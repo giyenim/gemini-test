@@ -6,17 +6,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
+    # Avoid infinite loop when this workflow commits built files back to main
+    if: github.event_name == 'workflow_dispatch' || github.actor != 'github-actions[bot]'
     defaults:
       run:
         working-directory: exam-app
@@ -37,18 +37,15 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: exam-app/dist
+      - name: Add .nojekyll
+        run: touch dist/.nojekyll
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      # Repo Pages is set to branch main + path /. Publish build into repo root
+      # without deleting source files (clean: false).
+      - name: Deploy to main root
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: exam-app/dist
+          branch: main
+          clean: false
+          commit-message: 'Deploy exam-app to GitHub Pages [skip ci]'
