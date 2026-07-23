@@ -24,7 +24,10 @@ function highlightTerms(text: string): ReactNode[] {
   const parts = text.split(/(단순 관점)/g)
   return parts.map((part, i) =>
     part === '단순 관점' ? (
-      <span key={i} className="term-box">
+      <span
+        key={i}
+        className="mx-px inline whitespace-nowrap border border-line px-0.5 leading-[1.3]"
+      >
         {part}
       </span>
     ) : (
@@ -108,8 +111,11 @@ export function ExamSheet({
   const page = pages[pageIndex] ?? pages[0]
 
   return (
-    <div className="sheet-page" data-page={page.number}>
-      <div className="sheet-page-inner">
+    <div
+      className="h-[1191px] w-[842px] overflow-hidden bg-white text-ink shadow-[0_2px_16px_rgba(0,0,0,0.25)]"
+      data-page={page.number}
+    >
+      <div className="flex h-full flex-col px-[88px] pt-[110px] pb-[18px]">
         <SheetHeader
           kind={page.headerKind}
           meta={meta}

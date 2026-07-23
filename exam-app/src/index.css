@@ -1,1 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700;900&display=swap');
 @import 'tailwindcss';
+
+@theme {
+  --font-serif: 'Noto Serif KR', Batang, 'Apple Myungjo', serif;
+  --color-ink: #111;
+  --color-ink-muted: #444;
+  --color-line: #111;
+  --color-accent: #1e3a5f;
+  --color-selected: #e8eef5;
+  --color-correct: #1b6b3a;
+  --color-wrong: #a33a2f;
+  --color-check: #e11d2e;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-serif);
+  color: var(--color-ink);
+  background: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}

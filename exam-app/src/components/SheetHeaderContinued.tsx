@@ -11,13 +11,19 @@ export function SheetHeaderContinued({
   pageNumber,
 }: SheetHeaderContinuedProps) {
   return (
-    <header className="sheet-header sheet-header-continued">
-      <p className="sheet-copyright">{meta.copyright}</p>
-      <div className="sheet-cont-row">
-        <span className="sheet-page-num">{pageNumber}</span>
-        <span className="sheet-type-badge">{meta.type}</span>
+    <header className="mb-2 shrink-0">
+      <p className="mb-1.5 text-center font-serif text-[11px] text-ink-muted">
+        {meta.copyright}
+      </p>
+      <div className="flex items-center justify-between">
+        <span className="font-serif text-[28px] font-bold leading-none">
+          {pageNumber}
+        </span>
+        <span className="inline-flex items-center justify-center whitespace-nowrap rounded border border-line px-3 py-0.5 font-serif text-sm font-bold leading-none">
+          {meta.type}
+        </span>
       </div>
-      <div className="sheet-header-rule" />
+      <div className="mt-2 border-t-[1.15px] border-line" />
     </header>
   )
 }
