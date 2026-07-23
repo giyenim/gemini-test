@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import examData from './data/exam-sample.json'
 import { ExamSheet } from './components/ExamSheet'
+import { MobileExamView } from './components/MobileExamView'
 import { PAGE_H, PAGE_W } from './layout/constants'
 import type { Answers, ChoiceIndex, ExamData } from './types/exam'
 
 const exam = examData as ExamData
+const MOBILE_MEDIA_QUERY = '(max-width: 767px)'
 
 /** 1 = 화면 가로 100%, 줄이려면 0.9 / 0.8 등으로 조절 (가운데 정렬) */
 const SHEET_ZOOM = 1
@@ -22,6 +24,11 @@ export default function App() {
   const [answers, setAnswers] = useState<Answers>({})
   const [submitted] = useState(false)
   const [pageCount, setPageCount] = useState(1)
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined'
+      ? window.matchMedia(MOBILE_MEDIA_QUERY).matches
+      : false,
+  )
   const [scale, setScale] = useState(SHEET_ZOOM)
   const [stagePad, setStagePad] = useState(PAD_MAX)
   const stageRef = useRef<HTMLDivElement>(null)
@@ -34,6 +41,19 @@ export default function App() {
   }, [submitted])
 
   useEffect(() => {
+    const media = window.matchMedia(MOBILE_MEDIA_QUERY)
+    const update = (event?: MediaQueryListEvent) => {
+      setIsMobile(event ? event.matches : media.matches)
+    }
+
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+
+  useEffect(() => {
+    if (isMobile) return
+
     const update = () => {
       const el = stageRef.current
       if (!el) return
@@ -74,10 +94,23 @@ export default function App() {
       observer.disconnect()
       window.removeEventListener('resize', update)
     }
-  }, [])
+  }, [isMobile])
 
   const stackH =
     pageCount * PAGE_H + Math.max(0, pageCount - 1) * PAGE_GAP
+
+  if (isMobile) {
+    return (
+      <div className="h-full min-h-0 overflow-hidden">
+        <MobileExamView
+          exam={exam}
+          answers={answers}
+          submitted={submitted}
+          onSelect={onSelect}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">

@@ -13,7 +13,8 @@ GitHub Pages 배포 (`base: /gemini-test/`).
 
 | 문서 | 내용 |
 |------|------|
-| [`exam-app/LAYOUT.md`](exam-app/LAYOUT.md) | 콘텐츠 단·페이지 배치 규칙 (상단 여백, 지문 흐름, 문제 최대 3개 등) |
+| [`exam-app/LAYOUT.md`](exam-app/LAYOUT.md) | 콘텐츠 단·페이지 배치 규칙 (여백·지문 흐름·문제 패킹) |
+| [`exam-app/README.md`](exam-app/README.md) | 앱 개요·실행 |
 | [`레퍼런스/국어영역_문제지.pdf`](레퍼런스/국어영역_문제지.pdf) | 시각·구성 레퍼런스 |
 
 레이아웃·여백을 바꿀 때는 **먼저 `LAYOUT.md`와 `src/layout/constants.ts`를 확인**한다.
@@ -26,15 +27,15 @@ exam-app/
     App.tsx                 # 스케일/스테이지, 전체 페이지 스택
     components/
       ExamSheet.tsx         # 측정 → pack → 렌더
-      SheetHeader*.tsx / SheetFooter / SheetContent / SheetColumn
+      SheetHeaderFirst.tsx  # 1페이지 헤더
+      SheetHeaderContinued.tsx  # 2페이지~ (페이지 번호 + 홀수형 뱃지)
+      SheetFooter / SheetContent / SheetColumn
       question/             # PassageBlock, QuestionBlock, ChoiceGroup, ViewBox, GeneralBlock
     layout/                 # packSheet, constants, types
-    data/exam-sample.json   # 샘플(레이아웃 케이스 포함)
+    data/exam-sample.json   # 레이아웃 케이스용 샘플
     types/exam.ts
   LAYOUT.md
 ```
-
-레거시 파일(`OneByOne.tsx`, 루트 `ChoiceGroup.tsx` 등)이 남아 있을 수 있다. **새 작업은 `question/`·`layout/` 경로를 쓴다.**
 
 ## 레이아웃 엔진 (요약)
 
@@ -42,7 +43,14 @@ exam-app/
 2. **Pack** — `packSheet()` (`LAYOUT.md` 규칙)  
 3. **Render** — 페이지별 Header / 2단 Content / Footer  
 
-핵심 상수 (`layout/constants.ts`): `COLUMN_TOP`, `MIN_QUESTION_GAP`, `MAX_QUESTIONS_PER_COLUMN`.
+핵심 상수 (`layout/constants.ts`):
+
+| 상수 | 역할 | 현재 |
+|------|------|------|
+| `COLUMN_TOP` | 단 시작·지문 직후 문제 상단 여백 | 14 |
+| `MIN_QUESTION_GAP` | 문제 사이 최소 간격 | 112 |
+| `QUESTION_TO_PASSAGE_GAP` | 문제 다음 새 지문 간격 (= 위와 동일) | 112 |
+| `MAX_QUESTIONS_PER_COLUMN` | 한 단 최대 문제 수 | 3 |
 
 ## 실행
 
