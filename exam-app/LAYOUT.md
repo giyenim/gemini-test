@@ -5,6 +5,9 @@
 
 구현: `src/layout/` (`packSheet.ts`, `constants.ts`) + `ExamSheet` 측정 레이어.
 
+> **범위:** 이 문서는 **데스크톱 `ExamSheet`** 전용이다.  
+> 모바일(≤767px)은 `MobileExamView` — 패킹 없이 세로 스크롤로 지문+연결 문제를 묶는다. (`App.tsx` 분기)
+
 ---
 
 ## 페이지 구조

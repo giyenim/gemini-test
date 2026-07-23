@@ -2,8 +2,11 @@
 
 수능형 시험지 UI. React 19 + Vite + Tailwind 4 + Noto Serif KR.
 
-임의의 지문·문제 JSON을 넣으면 2단 페이지 레이아웃이 자동으로 잡힌다.  
-규칙은 [`LAYOUT.md`](./LAYOUT.md), 저장소 에이전트 안내는 [`../AGENTS.md`](../AGENTS.md).
+임의의 지문·문제 JSON을 넣으면 레이아웃이 자동으로 잡힌다.  
+- **데스크톱**: 2단 페이지 패킹 — [`LAYOUT.md`](./LAYOUT.md)  
+- **모바일**(≤767px): 세로 스크롤, 지문과 연결 문제를 한 묶음으로 표시  
+
+저장소 에이전트 안내는 [`../AGENTS.md`](../AGENTS.md).
 
 ## 실행
 
@@ -18,9 +21,11 @@ npm run preview
 
 | 경로 | 역할 |
 |------|------|
-| `src/layout/` | 단·페이지 패킹 (`packSheet`, 여백 상수) |
+| `src/App.tsx` | 데스크톱/모바일 분기 (`max-width: 767px`) |
+| `src/layout/` | 단·페이지 패킹 (`packSheet`, 여백 상수) — 데스크톱 |
 | `src/components/ExamSheet.tsx` | 측정 → 패킹 → 페이지 렌더 |
-| `src/components/question/` | 지문·문제·선택지·보기 블록 |
+| `src/components/MobileExamView.tsx` | 모바일 세로 스크롤 뷰 |
+| `src/components/question/` | 지문·문제·선택지·보기 블록 (공용) |
 | `src/data/exam-sample.json` | 샘플 시험 데이터 |
 
 ## 배포

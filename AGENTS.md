@@ -7,7 +7,8 @@
 수능형 시험지 UI (`exam-app/`). React 19 + Vite + Tailwind 4 + Noto Serif KR.  
 GitHub Pages 배포 (`base: /gemini-test/`).
 
-목표: **임의의 지문·문제 JSON**이 들어오면 2단 시험지 레이아웃이 **자동**으로 잡힌다. left/right를 수동 하드코딩하지 않는다.
+목표: **임의의 지문·문제 JSON**이 들어오면 2단 시험지 레이아웃이 **자동**으로 잡힌다. left/right를 수동 하드코딩하지 않는다.  
+데스크톱은 `ExamSheet` 2단 패킹, **모바일(≤767px)** 은 `MobileExamView` 세로 스크롤(지문+연결 문제 묶음).
 
 ## 필수 문서
 
@@ -24,20 +25,31 @@ GitHub Pages 배포 (`base: /gemini-test/`).
 ```
 exam-app/
   src/
-    App.tsx                 # 스케일/스테이지, 전체 페이지 스택
+    App.tsx                 # 데스크톱/모바일 분기, 스케일/스테이지
     components/
-      ExamSheet.tsx         # 측정 → pack → 렌더
+      ExamSheet.tsx         # (데스크톱) 측정 → pack → 렌더
+      MobileExamView.tsx    # (모바일) 세로 스크롤, 지문·문제 묶음
+      examText.tsx          # 공통 하이라이트 텍스트
       SheetHeaderFirst.tsx  # 1페이지 헤더
       SheetHeaderContinued.tsx  # 2페이지~ (페이지 번호 + 홀수형 뱃지)
       SheetFooter / SheetContent / SheetColumn
       question/             # PassageBlock, QuestionBlock, ChoiceGroup, ViewBox, GeneralBlock
-    layout/                 # packSheet, constants, types
+    layout/                 # packSheet, constants, types (데스크톱 전용)
     data/exam-sample.json   # 레이아웃 케이스용 샘플
     types/exam.ts
   LAYOUT.md
 ```
 
-## 레이아웃 엔진 (요약)
+## 반응형
+
+| 구간 | 뷰 | 동작 |
+|------|-----|------|
+| `max-width: 767px` | `MobileExamView` | 흰 시험지 스타일 세로 스크롤. `passages[]` 기준 지문+`questionIds` 묶음 |
+| `768px` 이상 | `ExamSheet` | 기존 2단 자동 패킹 (`LAYOUT.md`) |
+
+모바일도 배경 `#2a2a2a` · 흰 지 · Noto Serif KR · 그림자/라운드 카드 없음 (PC와 동일 분위기).
+
+## 레이아웃 엔진 (요약 · 데스크톱)
 
 1. **Measure** — 단 너비로 지문·문제 높이 측정  
 2. **Pack** — `packSheet()` (`LAYOUT.md` 규칙)  
