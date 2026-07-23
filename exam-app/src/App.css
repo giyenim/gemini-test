@@ -522,7 +522,7 @@ button:disabled {
   top: 48%;
   transform: translate(-50%, -54%) rotate(-12deg);
   color: #e11d2e;
-  font-size: 1.35em;
+  font-size: 2.1em;
   font-weight: 700;
   line-height: 1;
   pointer-events: none;
