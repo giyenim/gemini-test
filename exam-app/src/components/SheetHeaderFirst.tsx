@@ -8,7 +8,7 @@ export interface SheetHeaderFirstProps {
 export function SheetHeaderFirst({ meta, pageNumber }: SheetHeaderFirstProps) {
   return (
     // 헤더 전체 박스 — h-[120px] 가 헤더 높이
-    <header className="relative flex h-[120px] shrink-0 flex-col box-border">
+    <header className="relative flex h-[120px] shrink-0 flex-col box-border mt-1">
       {/* ========== 페이지 번호 (예: 1) ==========
           - 위치: top / right 숫자만 바꾸면 됨 (예: top-1 right-2, top-[6px] right-[4px])
           - 크기: text-[36px]
@@ -24,7 +24,7 @@ export function SheetHeaderFirst({ meta, pageNumber }: SheetHeaderFirstProps) {
           - 글자 크기: text-[26px]
           - 홀쭉하게: scale-x-90
       */}
-      <div className="absolute right-0 bottom-5 z-10 inline-flex h-11 origin-right scale-x-90 items-center justify-center whitespace-nowrap rounded border border-line px-3.5 font-serif text-[26px] font-bold leading-none">
+      <div className="absolute right-0 bottom-3.5 z-10 inline-flex h-12 origin-right scale-x-90 items-center justify-center whitespace-nowrap rounded border border-line px-3 font-serif text-[30px] font-bold leading-none">
         {meta.type}
       </div>
 
