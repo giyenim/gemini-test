@@ -2,6 +2,7 @@ import {
   COLUMN_TOP,
   MAX_QUESTIONS_PER_COLUMN,
   MIN_QUESTION_GAP,
+  QUESTION_TO_PASSAGE_GAP,
 } from './constants'
 import type {
   PackInput,
@@ -178,13 +179,20 @@ function placePassage(c: Cursor, input: PackInput, passage: PassageMeasure) {
     ensurePage(c)
     ensureColumnTop(c)
 
-    // 같은 단에 이미 내용이 있으면 지문도 COLUMN_TOP (used에는 배치 시 반영)
-    const gapBefore = c.used > COLUMN_TOP ? COLUMN_TOP : 0
+    // 새 지문이 같은 단에서 문제 뒤에 올 때만 Q↔Q와 같은 고정 여백.
+    // 단을 넘어 이어지는 조각(open-top)은 단 시작 COLUMN_TOP만 (gapBefore=0).
+    const last = lastItemType(currentColumn(c))
+    const gapBefore =
+      isStart && last === 'question'
+        ? QUESTION_TO_PASSAGE_GAP
+        : isStart && last === 'passage'
+          ? COLUMN_TOP
+          : 0
     const avail = colHeight(c) - c.used - gapBefore
     const showIntro = isStart
     const openTop = !isStart
 
-    // 여유 부족하면 다음 단에서 다시
+    // 여유 부족하면 다음 단에서 다시 (이어짐이 아닌 새 지문만)
     if (avail < 24 && c.used > COLUMN_TOP) {
       advanceColumn(c)
       continue
