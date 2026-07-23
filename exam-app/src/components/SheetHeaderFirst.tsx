@@ -13,7 +13,7 @@ export function SheetHeaderFirst({ meta, pageNumber }: SheetHeaderFirstProps) {
           - 위치: top / right
           - 크기: text-[36px]
       */}
-      <span className="absolute top-0 right-0 z-10 font-serif text-[36px] font-semibold leading-none">
+      <span className="absolute top-0 right-0 z-10 font-serif text-[32px] font-semibold leading-none">
         {pageNumber}
       </span>
 

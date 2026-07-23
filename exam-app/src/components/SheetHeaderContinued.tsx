@@ -1,6 +1,6 @@
 import type { ExamMeta } from '../types/exam'
 
-/** 2장 이후 헤더 — 저작권 문구 + 페이지·형 */
+/** 2장 이후 헤더 — 페이지·형 */
 export interface SheetHeaderContinuedProps {
   meta: ExamMeta
   pageNumber: number
@@ -11,17 +11,15 @@ export function SheetHeaderContinued({
   pageNumber,
 }: SheetHeaderContinuedProps) {
   return (
-    <header className="mb-2 shrink-0">
-      <p className="mb-1.5 text-center font-serif text-[11px] text-ink-muted">
-        {meta.copyright}
-      </p>
+    <header className="shrink-0">
       <div className="flex items-center justify-between">
-        <span className="font-serif text-[28px] font-bold leading-none">
+        <span className="font-serif text-[36px] font-semibold leading-none">
           {pageNumber}
         </span>
-        <span className="inline-flex items-center justify-center whitespace-nowrap rounded border border-line px-3 py-0.5 font-serif text-sm font-bold leading-none">
+        {/* 홀수형 뱃지 — 첫 장과 동일 스타일, 축소 (h-12→h-8, text-30→20) */}
+        <div className="inline-flex h-8 origin-right scale-x-90 items-center justify-center whitespace-nowrap rounded border border-line px-2.5 font-serif text-[20px] font-bold leading-none">
           {meta.type}
-        </span>
+        </div>
       </div>
       <div className="mt-2 border-t-[1.15px] border-line" />
     </header>

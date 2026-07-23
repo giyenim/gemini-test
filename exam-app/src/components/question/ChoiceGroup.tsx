@@ -1,5 +1,17 @@
-import type { ChoiceIndex } from '../types/exam'
-import { CHOICE_MARKS } from '../utils/choices'
+import type { ChoiceIndex } from '../../types/exam'
+
+/** ① ② ③ ④ ⑤ */
+export const CHOICE_MARKS = [
+  '\u2460',
+  '\u2461',
+  '\u2462',
+  '\u2463',
+  '\u2464',
+] as const
+
+export function choiceMark(n: ChoiceIndex): string {
+  return CHOICE_MARKS[n - 1]
+}
 
 interface ChoiceGroupProps {
   questionId: number
