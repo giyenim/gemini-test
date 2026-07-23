@@ -494,27 +494,39 @@ button:disabled {
   border-radius: 0;
 }
 
-.choice-item:hover:not(:disabled) {
-  background: var(--selected);
+.choice-item:hover:not(:disabled) .choice-mark {
+  opacity: 0.72;
 }
 
-.choice-item.is-selected {
-  background: var(--selected);
-  outline: 1px solid var(--accent);
+.choice-item.is-correct .choice-text {
+  color: var(--correct);
 }
 
-.choice-item.is-correct {
-  background: var(--correct-bg);
-  outline: 1px solid var(--correct);
-}
-
-.choice-item.is-wrong {
-  background: var(--wrong-bg);
-  outline: 1px solid var(--wrong);
+.choice-item.is-wrong .choice-text {
+  color: var(--wrong);
 }
 
 .choice-mark {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2em;
   font-weight: 600;
+  line-height: 1;
+}
+
+.choice-check {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  transform: translate(-50%, -54%) rotate(-12deg);
+  color: #e11d2e;
+  font-size: 1.35em;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+  text-shadow: 0 0 1px #fff;
 }
 
 .choice-text {
