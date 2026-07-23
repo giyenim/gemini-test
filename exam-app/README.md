@@ -1,32 +1,28 @@
-# React + TypeScript + Vite
+# exam-app
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+수능형 시험지 UI. React 19 + Vite + Tailwind 4 + Noto Serif KR.
 
-Currently, two official plugins are available:
+임의의 지문·문제 JSON을 넣으면 2단 페이지 레이아웃이 자동으로 잡힌다.  
+규칙은 [`LAYOUT.md`](./LAYOUT.md), 저장소 에이전트 안내는 [`../AGENTS.md`](../AGENTS.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 실행
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev      # http://localhost:5173/gemini-test/
+npm run build
+npm run preview
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## 주요 경로
+
+| 경로 | 역할 |
+|------|------|
+| `src/layout/` | 단·페이지 패킹 (`packSheet`, 여백 상수) |
+| `src/components/ExamSheet.tsx` | 측정 → 패킹 → 페이지 렌더 |
+| `src/components/question/` | 지문·문제·선택지·보기 블록 |
+| `src/data/exam-sample.json` | 샘플 시험 데이터 |
+
+## 배포
+
+Vite `base: '/gemini-test/'` — GitHub Pages 프로젝트 사이트용.

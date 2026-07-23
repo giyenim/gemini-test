@@ -1,19 +1,26 @@
-# Resume notes (paused mid-task)
+# Resume notes
 
-## Done
-- Vite + React exam UI in `exam-app/`
-- 수능형 layout: PDF size 842×1191, center gutter, page flip nav
-- Sample data: Q1–3 only (`exam-app/src/data/exam-sample.json`)
-- 한 문제씩 mode exists; grading UI temporarily removed
+## 현재 상태 (2026-07)
+
+- `exam-app/`: 수능형 2단 시험지, PDF 기준 842×1191
+- **자동 레이아웃**: 측정 → `packSheet` → 렌더 (`LAYOUT.md` / `layout/`)
+- 문제 컴포넌트: `components/question/`
+- 샘플 데이터: 레이아웃 케이스용 지문·문제 여러 세트 (`exam-sample.json`)
+- 1페이지 헤더 / 2페이지~ 속지 헤더·푸터 정리됨
+- GitHub Pages: `base: /gemini-test/`
+- 한 문제씩 모드·답안지 UI는 제거됨
 
 ## Next
-- Expand to pages 1–12 / questions 1–34 from `레퍼런스/국어영역_문제지.pdf`
-- Multi-page column layout matching PDF page breaks
-- Re-add 채점하기 / 답안 현황 at the end afterward
+
+- 레퍼런스 PDF 기준 문항 1–34 / 전체 페이지 데이터 확장
+- 채점하기 / 답안 현황 UI 재도입 (레이아웃 안정화 후)
 
 ## Run
+
 ```bash
 cd exam-app
 npm install
-npm run dev
+npm run dev    # http://localhost:5173/gemini-test/
 ```
+
+자세한 규칙은 `exam-app/LAYOUT.md`, 에이전트 안내는 `AGENTS.md`.

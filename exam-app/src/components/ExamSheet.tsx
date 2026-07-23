@@ -18,6 +18,7 @@ import { SheetColumn } from './SheetColumn'
 import { SheetContent } from './SheetContent'
 import { SheetFooter } from './SheetFooter'
 import { SheetHeader } from './SheetHeader'
+import { highlightTerms } from './examText'
 
 interface ExamSheetProps {
   exam: ExamData
@@ -25,22 +26,6 @@ interface ExamSheetProps {
   submitted: boolean
   onSelect: (questionId: number, choice: ChoiceIndex) => void
   onPageCount?: (count: number) => void
-}
-
-function highlightTerms(text: string): ReactNode[] {
-  const parts = text.split(/(단순 관점)/g)
-  return parts.map((part, i) =>
-    part === '단순 관점' ? (
-      <span
-        key={i}
-        className="mx-px inline whitespace-nowrap border border-line px-0.5 leading-[1.3]"
-      >
-        {part}
-      </span>
-    ) : (
-      <span key={i}>{part}</span>
-    ),
-  )
 }
 
 function appendHighlighted(el: HTMLElement, text: string) {
