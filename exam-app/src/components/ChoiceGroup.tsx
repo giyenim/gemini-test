@@ -29,7 +29,7 @@ export function ChoiceGroup({
         const isWrong = submitted && isSelected && correctAnswer !== value
 
         let className = 'choice-item'
-        if (isSelected && !submitted) className += ' is-selected'
+        if (isSelected) className += ' is-selected'
         if (isCorrect) className += ' is-correct'
         if (isWrong) className += ' is-wrong'
 
@@ -44,6 +44,11 @@ export function ChoiceGroup({
             >
               <span className="choice-mark" aria-hidden>
                 {CHOICE_MARKS[i]}
+                {isSelected ? (
+                  <span className="choice-check" aria-hidden>
+                    ✓
+                  </span>
+                ) : null}
               </span>
               <span className="choice-text">{text}</span>
             </button>
