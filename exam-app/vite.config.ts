@@ -4,5 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // GitHub Pages project site: https://giyenim.github.io/gemini-test/
+  base: '/gemini-test/',
   plugins: [react(), tailwindcss()],
 })
