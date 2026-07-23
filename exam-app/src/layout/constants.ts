@@ -5,8 +5,14 @@ export const PAGE_H = 1191
 /** 단 시작(지문·문제 공통) 상단 여백 */
 export const COLUMN_TOP = 14
 
-/** 문제 사이 최소 간격 — 이보다 작으면 다음 단으로 */
-export const MIN_QUESTION_GAP = 14
+/** 문제 사이 최소 간격 — 이보다 작으면 개수를 줄이거나 다음 단으로 */
+export const MIN_QUESTION_GAP = 112
+
+/**
+ * 문제 다음 지문(같은 단) 사이 고정 여백 (= 문제 사이 최소 간격).
+ * 지문 이어짐(open-top) 조각에는 쓰지 않음.
+ */
+export const QUESTION_TO_PASSAGE_GAP = MIN_QUESTION_GAP
 
 /** 한 단에 들어갈 수 있는 최대 문제 수 */
 export const MAX_QUESTIONS_PER_COLUMN = 3

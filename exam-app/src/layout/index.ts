@@ -3,6 +3,7 @@ export {
   PAGE_H,
   COLUMN_TOP,
   MIN_QUESTION_GAP,
+  QUESTION_TO_PASSAGE_GAP,
   MAX_QUESTIONS_PER_COLUMN,
   contentHeight,
   columnWidth,
