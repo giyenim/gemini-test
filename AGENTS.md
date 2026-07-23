@@ -1,0 +1,68 @@
+# AGENTS.md
+
+이 저장소에서 작업하는 에이전트를 위한 안내이다.
+
+## 프로젝트
+
+수능형 시험지 UI (`exam-app/`). React 19 + Vite + Tailwind 4 + Noto Serif KR.  
+GitHub Pages 배포 (`base: /gemini-test/`).
+
+목표: **임의의 지문·문제 JSON**이 들어오면 2단 시험지 레이아웃이 **자동**으로 잡힌다. left/right를 수동 하드코딩하지 않는다.
+
+## 필수 문서
+
+| 문서 | 내용 |
+|------|------|
+| [`exam-app/LAYOUT.md`](exam-app/LAYOUT.md) | 콘텐츠 단·페이지 배치 규칙 (상단 여백, 지문 흐름, 문제 최대 3개 등) |
+| [`레퍼런스/국어영역_문제지.pdf`](레퍼런스/국어영역_문제지.pdf) | 시각·구성 레퍼런스 |
+
+레이아웃·여백을 바꿀 때는 **먼저 `LAYOUT.md`와 `src/layout/constants.ts`를 확인**한다.
+
+## 디렉터리
+
+```
+exam-app/
+  src/
+    App.tsx                 # 스케일/스테이지, 전체 페이지 스택
+    components/
+      ExamSheet.tsx         # 측정 → pack → 렌더
+      SheetHeader*.tsx / SheetFooter / SheetContent / SheetColumn
+      question/             # PassageBlock, QuestionBlock, ChoiceGroup, ViewBox, GeneralBlock
+    layout/                 # packSheet, constants, types
+    data/exam-sample.json   # 샘플(레이아웃 케이스 포함)
+    types/exam.ts
+  LAYOUT.md
+```
+
+레거시 파일(`OneByOne.tsx`, 루트 `ChoiceGroup.tsx` 등)이 남아 있을 수 있다. **새 작업은 `question/`·`layout/` 경로를 쓴다.**
+
+## 레이아웃 엔진 (요약)
+
+1. **Measure** — 단 너비로 지문·문제 높이 측정  
+2. **Pack** — `packSheet()` (`LAYOUT.md` 규칙)  
+3. **Render** — 페이지별 Header / 2단 Content / Footer  
+
+핵심 상수 (`layout/constants.ts`): `COLUMN_TOP`, `MIN_QUESTION_GAP`, `MAX_QUESTIONS_PER_COLUMN`.
+
+## 실행
+
+```bash
+cd exam-app
+npm install
+npm run dev    # http://localhost:5173/gemini-test/
+npm run build
+```
+
+## 코딩 규칙
+
+- UI는 Tailwind 유틸 우선. 폰트는 Noto Serif KR.
+- 배경 `#2a2a2a`, 시험지 그림자 없음.
+- 한글 주석·문자열이 깨지면 반드시 복구한다.
+- 레이아웃 동작 변경 시 `LAYOUT.md`도 함께 갱신한다.
+- 커밋/푸시는 사용자가 요청할 때만 한다.
+
+## 하지 말 것
+
+- 단별 콘텐츠 수동 배치로 되돌리기
+- 문제를 단 중간에 잘라 이어 붙이기
+- `LAYOUT.md`와 다른 여백 규칙을 코드에만 조용히 넣기
