@@ -112,10 +112,10 @@ export function ExamSheet({
 
   return (
     <div
-      className="h-[1191px] w-[842px] overflow-hidden bg-white text-ink shadow-[0_2px_16px_rgba(0,0,0,0.25)]"
+      className="h-[1191px] w-[842px] overflow-hidden bg-white text-ink"
       data-page={page.number}
     >
-      <div className="flex h-full flex-col px-[88px] pt-[110px] pb-[18px]">
+      <div className="flex h-full flex-col px-[88px] pt-[106px] pb-[18px]">
         <SheetHeader
           kind={page.headerKind}
           meta={meta}

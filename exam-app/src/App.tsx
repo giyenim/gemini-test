@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import examData from './data/exam-sample.json'
-import { ExamSheet, getSheetPageCount } from './components/ExamSheet'
+import { ExamSheet } from './components/ExamSheet'
 import { OneByOne } from './components/OneByOne'
 import type { Answers, ChoiceIndex, ExamData, ViewMode } from './types/exam'
 
@@ -11,17 +11,23 @@ export const PAGE_W = 842
 export const PAGE_H = 1191
 
 /** 1 = 화면 가로 100%, 줄이려면 0.9 / 0.8 등으로 조절 (가운데 정렬) */
-const SHEET_ZOOM = 0.5
+const SHEET_ZOOM = 1
+
+/** 바깥 여백(스테이지 패딩) — 폭이 줄면 스케일보다 여백이 먼저 줄어듦 */
+const PAD_MAX = 24
+const PAD_MIN = 0
 
 export default function App() {
   const [viewMode] = useState<ViewMode>('sheet')
   const [answers, setAnswers] = useState<Answers>({})
   const [submitted] = useState(false)
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [pageIndex, setPageIndex] = useState(0)
-  const [scale, setScale] = useState(1)
+  const [pageIndex] = useState(0)
+  const [scale, setScale] = useState(SHEET_ZOOM)
+  const [stagePad, setStagePad] = useState(PAD_MAX)
   const stageRef = useRef<HTMLDivElement>(null)
-  const scaleRef = useRef(1)
+  const scaleRef = useRef(SHEET_ZOOM)
+  const padRef = useRef(PAD_MAX)
 
   const onSelect = useCallback((questionId: number, choice: ChoiceIndex) => {
     if (submitted) return
@@ -34,10 +40,34 @@ export default function App() {
     const update = () => {
       const el = stageRef.current
       if (!el) return
-      const next = (el.clientWidth / PAGE_W) * SHEET_ZOOM
-      if (Math.abs(next - scaleRef.current) < 0.002) return
-      scaleRef.current = next
-      setScale(next)
+
+      const W = el.clientWidth
+      const fit = (pad: number) => (W - pad * 2) / PAGE_W
+
+      let nextPad = PAD_MAX
+      let nextScale = Math.min(SHEET_ZOOM, fit(PAD_MAX))
+
+      // 선호 크기(SHEET_ZOOM)가 max 여백에선 안 들어가면 → 여백부터 축소
+      if (fit(PAD_MAX) < SHEET_ZOOM) {
+        nextPad = Math.max(PAD_MIN, (W - PAGE_W * SHEET_ZOOM) / 2)
+        if (fit(nextPad) >= SHEET_ZOOM) {
+          nextScale = SHEET_ZOOM
+        } else {
+          nextPad = PAD_MIN
+          nextScale = Math.max(0.2, fit(PAD_MIN))
+        }
+      }
+
+      if (
+        Math.abs(nextScale - scaleRef.current) < 0.002 &&
+        Math.abs(nextPad - padRef.current) < 0.5
+      ) {
+        return
+      }
+      scaleRef.current = nextScale
+      padRef.current = nextPad
+      setScale(nextScale)
+      setStagePad(nextPad)
     }
 
     update()
@@ -54,7 +84,10 @@ export default function App() {
     <div className="flex h-full flex-col overflow-hidden">
       {viewMode === 'sheet' ? (
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden" ref={stageRef}>
-          <div className="flex min-h-0 flex-1 items-start justify-center overflow-auto p-6 [scrollbar-gutter:stable]">
+          <div
+            className="flex min-h-0 flex-1 items-start justify-center overflow-auto [scrollbar-gutter:stable]"
+            style={{ padding: stagePad }}
+          >
             <div
               className="relative shrink-0"
               style={{
@@ -80,38 +113,9 @@ export default function App() {
               </div>
             </div>
           </div>
-
-          <nav
-            className="flex shrink-0 items-center justify-center gap-4 border-t border-[#e0e0e0] bg-white px-4 py-3 font-serif"
-            aria-label="페이지 이동"
-          >
-            <button
-              type="button"
-              className="min-w-[72px] border border-[#666] bg-white px-4 py-1.5 text-[13px] font-medium hover:enabled:bg-[#f3f3f3]"
-              disabled={pageIndex <= 0}
-              onClick={() => setPageIndex((i) => Math.max(0, i - 1))}
-            >
-              이전
-            </button>
-            <span className="min-w-12 text-center text-[13px] font-semibold">
-              {pageIndex + 1} / {getSheetPageCount(exam)}
-            </span>
-            <button
-              type="button"
-              className="min-w-[72px] border border-[#666] bg-white px-4 py-1.5 text-[13px] font-medium hover:enabled:bg-[#f3f3f3]"
-              disabled={pageIndex >= getSheetPageCount(exam) - 1}
-              onClick={() =>
-                setPageIndex((i) =>
-                  Math.min(getSheetPageCount(exam) - 1, i + 1),
-                )
-              }
-            >
-              다음
-            </button>
-          </nav>
         </div>
       ) : (
-        <div className="mx-auto min-h-0 w-[720px] flex-1 overflow-auto p-4">
+        <div className="mx-auto min-h-0 w-full max-w-[720px] flex-1 overflow-auto p-4">
           <main>
             <OneByOne
               exam={exam}
