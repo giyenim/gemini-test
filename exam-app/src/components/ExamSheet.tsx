@@ -115,14 +115,18 @@ export function ExamSheet({
       className="h-[1191px] w-[842px] overflow-hidden bg-white text-ink"
       data-page={page.number}
     >
-      <div className="flex h-full flex-col px-[88px] pt-[106px] pb-[18px]">
+      <div className="flex h-full flex-col px-[88px] pt-[88px] pb-[60px]">
         <SheetHeader
           kind={page.headerKind}
           meta={meta}
           pageNumber={page.number}
         />
         <SheetContent left={page.left} right={page.right} />
-        <SheetFooter meta={meta} pageNumber={page.number} />
+        <SheetFooter
+          meta={meta}
+          pageNumber={page.number}
+          totalPages={getSheetPageCount(exam)}
+        />
       </div>
     </div>
   )
