@@ -33,23 +33,25 @@ export function OneByOne({
   const answeredCount = questions.filter((q) => answers[q.id] != null).length
 
   return (
-    <div className="one-by-one">
-      <div className="one-progress">
-        <div className="one-progress-text">
+    <div className="flex flex-col gap-[0.85rem] border border-line bg-white p-4">
+      <div>
+        <div className="mb-[0.35rem] flex justify-between font-serif text-[0.8rem] font-medium">
           <span>
             {currentIndex + 1} / {total}
           </span>
-          <span className="one-answered">응답 {answeredCount}/{total}</span>
+          <span className="text-ink-muted">
+            응답 {answeredCount}/{total}
+          </span>
         </div>
         <div
-          className="one-progress-bar"
+          className="h-1 overflow-hidden bg-[#ddd]"
           role="progressbar"
           aria-valuenow={currentIndex + 1}
           aria-valuemin={1}
           aria-valuemax={total}
         >
           <div
-            className="one-progress-fill"
+            className="h-full bg-accent transition-[width] duration-250 ease-in-out"
             style={{ width: `${((currentIndex + 1) / total) * 100}%` }}
           />
         </div>
@@ -61,6 +63,7 @@ export function OneByOne({
         body={passage.body}
         collapsed={passageCollapsed}
         onToggle={() => setPassageCollapsed((v) => !v)}
+        frameClassName="max-h-[36vh] overflow-auto"
       />
 
       <QuestionBlock
@@ -71,31 +74,31 @@ export function OneByOne({
         compact
       />
 
-      <nav className="one-nav" aria-label="문항 이동">
+      <nav
+        className="flex items-center justify-between gap-2 border-t border-[#ccc] pt-2"
+        aria-label="문항 이동"
+      >
         <button
           type="button"
-          className="one-nav-btn"
+          className="min-w-[4.2rem] border border-line bg-white px-[0.85rem] py-[0.45rem] font-serif text-[0.82rem] font-medium"
           disabled={currentIndex === 0}
           onClick={() => onChangeIndex(currentIndex - 1)}
         >
           이전
         </button>
-        <div className="one-dots" role="tablist" aria-label="문항 선택">
+        <div className="flex flex-wrap justify-center gap-[0.35rem]" role="tablist" aria-label="문항 선택">
           {questions.map((q, i) => {
-            let cls = 'one-dot'
-            if (i === currentIndex) cls += ' is-current'
-            if (answers[q.id] != null) cls += ' is-answered'
-            if (submitted) {
-              if (answers[q.id] === q.answer) cls += ' is-correct'
-              else if (answers[q.id] != null) cls += ' is-wrong'
-            }
+            const isCurrent = i === currentIndex
+            const isAnswered = answers[q.id] != null
             return (
               <button
                 key={q.id}
                 type="button"
-                className={cls}
+                className={`h-8 w-8 border border-line p-0 font-serif text-[0.78rem] font-semibold ${
+                  isCurrent ? 'outline outline-2 outline-offset-1 outline-accent' : ''
+                } ${isAnswered ? 'bg-selected' : 'bg-white'}`}
                 role="tab"
-                aria-selected={i === currentIndex}
+                aria-selected={isCurrent}
                 aria-label={`${q.id}번`}
                 onClick={() => onChangeIndex(i)}
               >
@@ -106,7 +109,7 @@ export function OneByOne({
         </div>
         <button
           type="button"
-          className="one-nav-btn"
+          className="min-w-[4.2rem] border border-line bg-white px-[0.85rem] py-[0.45rem] font-serif text-[0.82rem] font-medium"
           disabled={currentIndex >= total - 1}
           onClick={() => onChangeIndex(currentIndex + 1)}
         >

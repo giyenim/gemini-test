@@ -7,12 +7,12 @@ interface SheetFooterProps {
 
 export function SheetFooter({ meta, pageNumber }: SheetFooterProps) {
   return (
-    <footer className="sheet-footer">
-      <span>
+    <footer className="mt-2.5 grid shrink-0 grid-cols-[1fr_auto_1fr] items-center border-t border-line pt-1.5 font-serif text-[11px] text-ink">
+      <span className="justify-self-start">
         {meta.year} {meta.title}
       </span>
-      <span className="sheet-footer-page">{pageNumber}</span>
-      <span>
+      <span className="justify-self-center text-[13px] font-bold">{pageNumber}</span>
+      <span className="justify-self-end">
         {meta.period} {meta.type}
       </span>
     </footer>

@@ -3,7 +3,6 @@ import examData from './data/exam-sample.json'
 import { ExamSheet, getSheetPageCount } from './components/ExamSheet'
 import { OneByOne } from './components/OneByOne'
 import type { Answers, ChoiceIndex, ExamData, ViewMode } from './types/exam'
-import './App.css'
 
 const exam = examData as ExamData
 
@@ -35,8 +34,6 @@ export default function App() {
     const update = () => {
       const el = stageRef.current
       if (!el) return
-      // Measure stable stage width (not the scroll child) to avoid
-      // scrollbar ↔ scale feedback that causes vibration.
       const next = (el.clientWidth / PAGE_W) * SHEET_ZOOM
       if (Math.abs(next - scaleRef.current) < 0.002) return
       scaleRef.current = next
@@ -54,19 +51,19 @@ export default function App() {
   }, [viewMode])
 
   return (
-    <div className={`app app-${viewMode}`}>
+    <div className="flex h-full flex-col overflow-hidden">
       {viewMode === 'sheet' ? (
-        <div className="app-stage" ref={stageRef}>
-          <div className="stage-scroll">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden" ref={stageRef}>
+          <div className="flex min-h-0 flex-1 items-start justify-center overflow-auto p-6 [scrollbar-gutter:stable]">
             <div
-              className="page-scale"
+              className="relative shrink-0"
               style={{
                 width: PAGE_W * scale,
                 height: PAGE_H * scale,
               }}
             >
               <div
-                className="page-scale-inner"
+                className="absolute top-0 left-0 origin-top-left"
                 style={{
                   width: PAGE_W,
                   height: PAGE_H,
@@ -84,21 +81,24 @@ export default function App() {
             </div>
           </div>
 
-          <nav className="page-nav" aria-label="페이지 이동">
+          <nav
+            className="flex shrink-0 items-center justify-center gap-4 border-t border-[#e0e0e0] bg-white px-4 py-3 font-serif"
+            aria-label="페이지 이동"
+          >
             <button
               type="button"
-              className="page-nav-btn"
+              className="min-w-[72px] border border-[#666] bg-white px-4 py-1.5 text-[13px] font-medium hover:enabled:bg-[#f3f3f3]"
               disabled={pageIndex <= 0}
               onClick={() => setPageIndex((i) => Math.max(0, i - 1))}
             >
               이전
             </button>
-            <span className="page-nav-status">
+            <span className="min-w-12 text-center text-[13px] font-semibold">
               {pageIndex + 1} / {getSheetPageCount(exam)}
             </span>
             <button
               type="button"
-              className="page-nav-btn"
+              className="min-w-[72px] border border-[#666] bg-white px-4 py-1.5 text-[13px] font-medium hover:enabled:bg-[#f3f3f3]"
               disabled={pageIndex >= getSheetPageCount(exam) - 1}
               onClick={() =>
                 setPageIndex((i) =>
@@ -111,8 +111,8 @@ export default function App() {
           </nav>
         </div>
       ) : (
-        <div className="app-layout">
-          <main className="app-main">
+        <div className="mx-auto min-h-0 w-[720px] flex-1 overflow-auto p-4">
+          <main>
             <OneByOne
               exam={exam}
               answers={answers}
