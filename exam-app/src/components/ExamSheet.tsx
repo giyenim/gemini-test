@@ -1,6 +1,9 @@
 import { useMemo, type ReactNode } from 'react'
 import type { Answers, ChoiceIndex, ExamData, Passage, Question } from '../types/exam'
 import { PassageBlock, QuestionBlock } from './QuestionBlock'
+import { SheetContent } from './SheetContent'
+import { SheetFooter } from './SheetFooter'
+import { SheetHeader, type SheetHeaderKind } from './SheetHeader'
 
 interface ExamSheetProps {
   exam: ExamData
@@ -12,9 +15,9 @@ interface ExamSheetProps {
 
 interface SheetPage {
   number: number
+  headerKind: SheetHeaderKind
   left: ReactNode
   right: ReactNode
-  isFirst: boolean
 }
 
 function highlightTerms(text: string): ReactNode[] {
@@ -74,24 +77,29 @@ export function ExamSheet({
 
   const pages = useMemo(() => {
     const passage = passages[0]
+    const qNodes = (qs: Question[]) =>
+      qs.map((q) => (
+        <QuestionContent
+          key={q.id}
+          question={q}
+          selected={answers[q.id]}
+          submitted={submitted}
+          onSelect={(choice) => onSelect(q.id, choice)}
+        />
+      ))
+
     const built: SheetPage[] = [
       {
         number: 1,
-        isFirst: true,
+        headerKind: 'first',
         left: passage ? <PassageContent passage={passage} /> : null,
-        right: (
-          <>
-            {questions.map((q) => (
-              <QuestionContent
-                key={q.id}
-                question={q}
-                selected={answers[q.id]}
-                submitted={submitted}
-                onSelect={(choice) => onSelect(q.id, choice)}
-              />
-            ))}
-          </>
-        ),
+        right: <>{qNodes(questions.slice(0, 2))}</>,
+      },
+      {
+        number: 2,
+        headerKind: 'continued',
+        left: null,
+        right: <>{qNodes(questions.slice(2))}</>,
       },
     ]
     return built
@@ -102,54 +110,18 @@ export function ExamSheet({
   return (
     <div className="sheet-page" data-page={page.number}>
       <div className="sheet-page-inner">
-        {page.isFirst ? (
-          <header className="sheet-header sheet-header-first">
-            <div className="sheet-header-top">
-              <div className="sheet-period-oval">{meta.period}</div>
-              <div className="sheet-header-center">
-                <p className="sheet-main-title">
-                  {meta.year} {meta.title}
-                </p>
-                <h1 className="sheet-subject">{meta.subject}</h1>
-              </div>
-              <div className="sheet-header-right">
-                <span className="sheet-page-num">{page.number}</span>
-                <span className="sheet-type-badge">{meta.type}</span>
-              </div>
-            </div>
-            <div className="sheet-header-rule" />
-          </header>
-        ) : (
-          <header className="sheet-header sheet-header-cont">
-            <p className="sheet-copyright">{meta.copyright}</p>
-            <div className="sheet-cont-row">
-              <span className="sheet-page-num">{page.number}</span>
-              <span className="sheet-type-badge">{meta.type}</span>
-            </div>
-            <div className="sheet-header-rule" />
-          </header>
-        )}
-
-        <div className="sheet-columns">
-          <div className="sheet-col sheet-col-left">{page.left}</div>
-          <div className="sheet-gutter" aria-hidden />
-          <div className="sheet-col sheet-col-right">{page.right}</div>
-        </div>
-
-        <footer className="sheet-footer">
-          <span>
-            {meta.year} {meta.title}
-          </span>
-          <span className="sheet-footer-page">{page.number}</span>
-          <span>
-            {meta.period} {meta.type}
-          </span>
-        </footer>
+        <SheetHeader
+          kind={page.headerKind}
+          meta={meta}
+          pageNumber={page.number}
+        />
+        <SheetContent left={page.left} right={page.right} />
+        <SheetFooter meta={meta} pageNumber={page.number} />
       </div>
     </div>
   )
 }
 
 export function getSheetPageCount(_exam: ExamData): number {
-  return 1
+  return 2
 }
