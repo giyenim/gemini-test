@@ -8,7 +8,7 @@
 GitHub Pages 배포 (`base: /gemini-test/`).
 
 목표: **임의의 지문·문제 JSON**이 들어오면 2단 시험지 레이아웃이 **자동**으로 잡힌다. left/right를 수동 하드코딩하지 않는다.  
-데스크톱은 `ExamSheet` 2단 패킹, **모바일(≤767px)** 은 `MobileExamView` 세로 스크롤(지문+연결 문제 묶음).
+데스크톱은 `ExamSheet` 2단 패킹, **모바일(≤767px)** 은 `MobileExamView` 가로 스와이프 페이지(지문 묶음 / 단일 문제).
 
 ## 필수 문서
 
@@ -28,7 +28,7 @@ exam-app/
     App.tsx                 # 데스크톱/모바일 분기, 스케일/스테이지
     components/
       ExamSheet.tsx         # (데스크톱) 측정 → pack → 렌더
-      MobileExamView.tsx    # (모바일) 세로 스크롤, 지문·문제 묶음
+      MobileExamView.tsx    # (모바일) 가로 스와이프 페이지, 지문 묶음/단일 문제
       examText.tsx          # 공통 하이라이트 텍스트
       SheetHeaderFirst.tsx  # 1페이지 헤더
       SheetHeaderContinued.tsx  # 2페이지~ (페이지 번호 + 홀수형 뱃지)
@@ -44,7 +44,7 @@ exam-app/
 
 | 구간 | 뷰 | 동작 |
 |------|-----|------|
-| `max-width: 767px` | `MobileExamView` | 흰 시험지 스타일 세로 스크롤. `passages[]` 기준 지문+`questionIds` 묶음 |
+| `max-width: 767px` | `MobileExamView` | 가로 스와이프 페이지. 지문+`questionIds` 묶음 / 단일 문제는 1페이지 1문제. 페이지 안 세로 스크롤 |
 | `768px` 이상 | `ExamSheet` | 기존 2단 자동 패킹 (`LAYOUT.md`) |
 
 모바일도 배경 `#2a2a2a` · 흰 지 · Noto Serif KR · 그림자/라운드 카드 없음 (PC와 동일 분위기).
