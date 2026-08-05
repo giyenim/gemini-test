@@ -1,17 +1,24 @@
 import { useCallback, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react'
+import type { ExamScore } from '../grade'
 import type { Answers, ChoiceIndex, ExamData } from '../types/exam'
 import {
   columnWidth,
   contentHeight,
+  PAGE_PAD_BOTTOM,
+  PAGE_PAD_TOP,
+  PAGE_PAD_X,
   PAGE_W,
+  TARGET_COLUMNS,
 } from '../layout/constants'
 import { packSheet } from '../layout/packSheet'
 import type {
   PackedPage,
+  PackItem,
   PassageMeasure,
   PassageSegment,
   PlacedItem,
 } from '../layout/types'
+import { ExamActionButton } from './ExamActionButton'
 import { PassageBlock, type PassageBoxMode } from './question/PassageBlock'
 import { QuestionBlock } from './question/QuestionBlock'
 import { SheetColumn } from './SheetColumn'
@@ -24,23 +31,51 @@ interface ExamSheetProps {
   exam: ExamData
   answers: Answers
   submitted: boolean
+  score: ExamScore | null
   onSelect: (questionId: number, choice: ChoiceIndex) => void
+  onSubmit: () => void
+  onShowAnswerKey: () => void
   onPageCount?: (count: number) => void
 }
 
 function appendHighlighted(el: HTMLElement, text: string) {
-  const parts = text.split(/(단순 관점)/g)
-  for (const part of parts) {
-    if (part === '단순 관점') {
-      const span = document.createElement('span')
-      span.className =
-        'mx-px inline whitespace-nowrap border border-line px-0.5 leading-[1.3]'
-      span.textContent = part
-      el.appendChild(span)
-    } else if (part) {
-      el.appendChild(document.createTextNode(part))
+  el.appendChild(document.createTextNode(text))
+}
+
+/**
+ * 데이터 순서를 시험지 배치 단위로 묶는다.
+ * 지문에 묶인 문제는 지문 묶음으로, 나머지는 연속 구간(run)으로 모은다.
+ */
+function buildPackItems(
+  exam: ExamData,
+  passages: PassageMeasure[],
+): PackItem[] {
+  const byId = new Map(passages.map((p) => [p.id, p]))
+  const items: PackItem[] = []
+  const donePassages = new Set<string>()
+  let run: number[] = []
+
+  const flushRun = () => {
+    if (run.length > 0) {
+      items.push({ kind: 'questions', questionIds: run })
+      run = []
     }
   }
+
+  for (const q of exam.questions) {
+    const passage = q.passageId ? byId.get(q.passageId) : undefined
+    if (passage) {
+      if (donePassages.has(passage.id)) continue
+      donePassages.add(passage.id)
+      flushRun()
+      items.push({ kind: 'passage', passage })
+    } else {
+      run.push(q.id)
+    }
+  }
+  flushRun()
+
+  return items
 }
 
 function boxMode(openTop: boolean, openBottom: boolean): PassageBoxMode {
@@ -171,10 +206,14 @@ function MeasureLayer({
   }, [exam, colW, onMeasured])
 
   return (
+    // 바깥 래퍼로 잘라내 측정용 DOM이 스크롤 영역을 늘리지 않게 한다
+    <div
+      aria-hidden
+      className="pointer-events-none absolute top-0 left-0 h-0 w-0 overflow-hidden"
+    >
     <div
       ref={rootRef}
-      aria-hidden
-      className="pointer-events-none absolute top-0 -left-[9999px] text-[11.5px] leading-[1.48] break-keep break-words opacity-0"
+      className="text-[11.5px] leading-[1.48] break-keep break-words opacity-0"
       style={{ width: colW }}
     >
       {/* 글자 단위 분할 실측 프로브 */}
@@ -210,9 +249,11 @@ function MeasureLayer({
             submitted={false}
             onSelect={() => {}}
             renderStem={(stem) => <>{highlightTerms(stem)}</>}
+            anchor={false}
           />
         </div>
       ))}
+    </div>
     </div>
   )
 }
@@ -222,7 +263,10 @@ function renderPlacedItem(
   exam: ExamData,
   answers: Answers,
   submitted: boolean,
+  score: ExamScore | null,
   onSelect: (questionId: number, choice: ChoiceIndex) => void,
+  onSubmit: () => void,
+  onShowAnswerKey: () => void,
 ): ReactNode {
   if (item.type === 'passage') {
     const passage = exam.passages.find((p) => p.id === item.passageId)
@@ -237,6 +281,25 @@ function renderPlacedItem(
         fillColumn={item.openBottom}
         renderBody={(para) => <>{highlightTerms(para)}</>}
       />
+    )
+  }
+
+  if (item.type === 'submit-action') {
+    return (
+      <div className="flex flex-col items-start gap-2">
+        {!submitted ? (
+          <ExamActionButton onClick={onSubmit}>제출</ExamActionButton>
+        ) : (
+          <>
+            {score ? (
+              <p className="m-0 font-serif text-[16px] font-bold text-check">
+                {score.earned}/{score.max}점
+              </p>
+            ) : null}
+            <ExamActionButton onClick={onShowAnswerKey}>답지 보기</ExamActionButton>
+          </>
+        )}
+      </div>
     )
   }
 
@@ -260,7 +323,10 @@ function SheetPageView({
   exam,
   answers,
   submitted,
+  score,
   onSelect,
+  onSubmit,
+  onShowAnswerKey,
 }: {
   page: PackedPage
   pageNumber: number
@@ -268,21 +334,42 @@ function SheetPageView({
   exam: ExamData
   answers: Answers
   submitted: boolean
+  score: ExamScore | null
   onSelect: (questionId: number, choice: ChoiceIndex) => void
+  onSubmit: () => void
+  onShowAnswerKey: () => void
 }) {
   const renderItem = (item: PlacedItem) =>
-    renderPlacedItem(item, exam, answers, submitted, onSelect)
+    renderPlacedItem(
+      item,
+      exam,
+      answers,
+      submitted,
+      score,
+      onSelect,
+      onSubmit,
+      onShowAnswerKey,
+    )
 
   return (
     <div
       className="h-[1191px] w-[842px] overflow-hidden bg-white text-ink"
       data-page={pageNumber}
     >
-      <div className="flex h-full flex-col px-[88px] pt-[88px] pb-[60px]">
+      <div
+        className="flex h-full flex-col"
+        style={{
+          paddingLeft: PAGE_PAD_X,
+          paddingRight: PAGE_PAD_X,
+          paddingTop: PAGE_PAD_TOP,
+          paddingBottom: PAGE_PAD_BOTTOM,
+        }}
+      >
         <SheetHeader
           kind={page.headerKind}
           meta={exam.meta}
           pageNumber={pageNumber}
+          score={page.headerKind === 'first' && submitted ? score : null}
         />
         <SheetContent
           left={
@@ -306,7 +393,10 @@ export function ExamSheet({
   exam,
   answers,
   submitted,
+  score,
   onSelect,
+  onSubmit,
+  onShowAnswerKey,
   onPageCount,
 }: ExamSheetProps) {
   const colW = columnWidth(PAGE_W)
@@ -319,8 +409,9 @@ export function ExamSheet({
       if (!probe) return
 
       const packed = packSheet({
-        passages,
+        items: buildPackItems(exam, passages),
         questionHeights,
+        targetColumns: TARGET_COLUMNS,
         contentHeightFirst: contentHeight('first'),
         contentHeightContinued: contentHeight('continued'),
         measurePassage: ({
@@ -367,7 +458,10 @@ export function ExamSheet({
               exam={exam}
               answers={answers}
               submitted={submitted}
+              score={score}
               onSelect={onSelect}
+              onSubmit={onSubmit}
+              onShowAnswerKey={onShowAnswerKey}
             />
           ))
         )}

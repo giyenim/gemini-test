@@ -1,11 +1,14 @@
+import type { ExamScore } from '../grade'
 import type { ExamMeta } from '../types/exam'
 
 export interface SheetHeaderFirstProps {
   meta: ExamMeta
   pageNumber: number
+  /** 제출 후 총점 — 헤더 좌상단 */
+  score?: ExamScore | null
 }
 
-export function SheetHeaderFirst({ meta, pageNumber }: SheetHeaderFirstProps) {
+export function SheetHeaderFirst({ meta, pageNumber, score }: SheetHeaderFirstProps) {
   return (
     // 헤더 전체 박스 — h-[120px] 가 헤더 높이
     <header className="relative mt-1 flex h-[120px] shrink-0 flex-col box-border">
@@ -16,6 +19,12 @@ export function SheetHeaderFirst({ meta, pageNumber }: SheetHeaderFirstProps) {
       <span className="absolute top-0 right-0 z-10 font-serif text-[32px] font-semibold leading-none">
         {pageNumber}
       </span>
+
+      {score ? (
+        <p className="absolute top-0 left-0 z-10 m-0 font-serif text-[18px] font-bold leading-none text-check">
+          {score.earned}/{score.max}점
+        </p>
+      ) : null}
 
       {/* ========== 상단 줄: 시험명 ==========
           - 크기: text-[23px] / font-semibold / scale-x-90

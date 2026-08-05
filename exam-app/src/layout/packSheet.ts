@@ -1,8 +1,12 @@
 import {
   COLUMN_TOP,
+  MAX_QUESTION_GAP,
   MAX_QUESTIONS_PER_COLUMN,
   MIN_QUESTION_GAP,
   QUESTION_TO_PASSAGE_GAP,
+  SUBMIT_ACTION_BLOCK,
+  SUBMIT_ACTION_GAP,
+  SUBMIT_ACTION_H,
 } from './constants'
 import type {
   PackInput,
@@ -339,7 +343,16 @@ function questionHeight(input: PackInput, id: number): number {
   return input.questionHeights.get(id) ?? 0
 }
 
-function placeQuestions(c: Cursor, input: PackInput, questionIds: number[]) {
+/**
+ * 문제 배치.
+ * @param reserveSubmit 이 묶음이 시험 마지막 문제들이면 제출 버튼 높이를 함께 예약
+ */
+function placeQuestions(
+  c: Cursor,
+  input: PackInput,
+  questionIds: number[],
+  reserveSubmit = false,
+) {
   let idx = 0
 
   while (idx < questionIds.length) {
@@ -357,15 +370,27 @@ function placeQuestions(c: Cursor, input: PackInput, questionIds: number[]) {
           : 0
 
     const remaining = questionIds.length - idx
+
+    // 목표 단 수가 있으면 남은 문제를 남은 단에 고르게 나눈다.
+    // (한 단에 몰아 담아 마지막 단이 비는 것을 막는다)
+    let cap = Math.min(MAX_QUESTIONS_PER_COLUMN, remaining)
+    if (input.targetColumns) {
+      const columnsUsed = c.pageIndex * 2 + c.colIndex
+      const columnsLeft = Math.max(1, input.targetColumns - columnsUsed)
+      cap = Math.min(cap, Math.ceil(remaining / columnsLeft))
+    }
+
     let bestK = 0
 
-    for (let k = Math.min(MAX_QUESTIONS_PER_COLUMN, remaining); k >= 1; k -= 1) {
+    for (let k = cap; k >= 1; k -= 1) {
       let sum = 0
       for (let i = 0; i < k; i += 1) {
         sum += questionHeight(input, questionIds[idx + i])
       }
       const minGaps = k > 1 ? (k - 1) * MIN_QUESTION_GAP : 0
-      if (lead + sum + minGaps <= avail) {
+      const isFinalBatch = reserveSubmit && idx + k === questionIds.length
+      const tail = isFinalBatch ? SUBMIT_ACTION_BLOCK : 0
+      if (lead + sum + minGaps + tail <= avail) {
         bestK = k
         break
       }
@@ -381,9 +406,14 @@ function placeQuestions(c: Cursor, input: PackInput, questionIds: number[]) {
 
     const ids = questionIds.slice(idx, idx + bestK)
     const sum = ids.reduce((a, id) => a + questionHeight(input, id), 0)
+    const isFinalBatch = reserveSubmit && idx + bestK === questionIds.length
+    const tail = isFinalBatch ? SUBMIT_ACTION_BLOCK : 0
+    // 마지막 단도 같은 규칙으로 벌린다 (제출 블록 높이는 빼고 계산)
     const stretch = bestK > 1
-    const free = Math.max(0, avail - lead - sum)
-    const gap = stretch ? free / (bestK - 1) : 0
+    const free = Math.max(0, avail - lead - sum - tail)
+    const gap = stretch
+      ? Math.max(MIN_QUESTION_GAP, Math.min(MAX_QUESTION_GAP, free / (bestK - 1)))
+      : 0
 
     ids.forEach((id, i) => {
       const gapBefore = i === 0 ? lead : gap
@@ -394,6 +424,14 @@ function placeQuestions(c: Cursor, input: PackInput, questionIds: number[]) {
       })
       c.used += gapBefore + questionHeight(input, id)
     })
+
+    if (isFinalBatch) {
+      currentColumn(c).items.push({
+        type: 'submit-action',
+        gapBefore: SUBMIT_ACTION_GAP,
+      })
+      c.used += SUBMIT_ACTION_GAP + SUBMIT_ACTION_H
+    }
 
     if (stretch) {
       c.used = colHeight(c)
@@ -419,9 +457,18 @@ export function packSheet(input: PackInput): PackedPage[] {
   }
   ensurePage(c)
 
-  for (const passage of input.passages) {
-    placePassage(c, input, passage)
-    placeQuestions(c, input, passage.questionIds)
+  // 지문 묶음과 단일 문제 구간을 데이터 순서대로 배치한다.
+  const lastIndex = input.items.length - 1
+
+  for (let i = 0; i < input.items.length; i += 1) {
+    const item = input.items[i]!
+    const isLast = i === lastIndex
+    if (item.kind === 'passage') {
+      placePassage(c, input, item.passage)
+      placeQuestions(c, input, item.passage.questionIds, isLast)
+    } else {
+      placeQuestions(c, input, item.questionIds, isLast)
+    }
   }
 
   return c.pages.length > 0 ? c.pages : [emptyPage('first')]

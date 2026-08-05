@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import examData from './data/exam-sample.json'
+import { AnswerKeyView } from './components/AnswerKeyView'
 import { ExamSheet } from './components/ExamSheet'
 import { MobileExamView } from './components/MobileExamView'
+import { gradeExam } from './grade'
 import { PAGE_H, PAGE_W } from './layout/constants'
 import type { Answers, ChoiceIndex, ExamData } from './types/exam'
 
-const exam = examData as ExamData
+// JSON 리터럴은 문자열 유니온·튜플로 좁혀지지 않으므로 한 번에 단언한다
+const exam = examData as unknown as ExamData
 const MOBILE_MEDIA_QUERY = '(max-width: 767px)'
 
 /** 1 = 화면 가로 100%, 줄이려면 0.9 / 0.8 등으로 조절 (가운데 정렬) */
@@ -20,9 +23,12 @@ const PAGE_GAP = 24
 
 export { PAGE_W, PAGE_H }
 
+type ViewMode = 'exam' | 'answerKey'
+
 export default function App() {
   const [answers, setAnswers] = useState<Answers>({})
-  const [submitted] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('exam')
   const [pageCount, setPageCount] = useState(1)
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined'
@@ -32,13 +38,32 @@ export default function App() {
   const [scale, setScale] = useState(SHEET_ZOOM)
   const [stagePad, setStagePad] = useState(PAD_MAX)
   const stageRef = useRef<HTMLDivElement>(null)
+  const stageScrollRef = useRef<HTMLDivElement>(null)
   const scaleRef = useRef(SHEET_ZOOM)
   const padRef = useRef(PAD_MAX)
+
+  const score = useMemo(
+    () => (submitted ? gradeExam(exam, answers) : null),
+    [submitted, answers],
+  )
 
   const onSelect = useCallback((questionId: number, choice: ChoiceIndex) => {
     if (submitted) return
     setAnswers((prev) => ({ ...prev, [questionId]: choice }))
   }, [submitted])
+
+  const onSubmit = useCallback(() => {
+    setSubmitted(true)
+    stageScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
+  const onShowAnswerKey = useCallback(() => {
+    setViewMode('answerKey')
+  }, [])
+
+  const onBackToExam = useCallback(() => {
+    setViewMode('exam')
+  }, [])
 
   useEffect(() => {
     const media = window.matchMedia(MOBILE_MEDIA_QUERY)
@@ -52,7 +77,7 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (isMobile) return
+    if (isMobile || viewMode !== 'exam') return
 
     const update = () => {
       const el = stageRef.current
@@ -94,7 +119,15 @@ export default function App() {
       observer.disconnect()
       window.removeEventListener('resize', update)
     }
-  }, [isMobile])
+  }, [isMobile, viewMode])
+
+  if (viewMode === 'answerKey') {
+    return (
+      <div className="h-full min-h-0 overflow-hidden">
+        <AnswerKeyView exam={exam} onBack={onBackToExam} />
+      </div>
+    )
+  }
 
   const stackH =
     pageCount * PAGE_H + Math.max(0, pageCount - 1) * PAGE_GAP
@@ -106,7 +139,10 @@ export default function App() {
           exam={exam}
           answers={answers}
           submitted={submitted}
+          score={score}
           onSelect={onSelect}
+          onSubmit={onSubmit}
+          onShowAnswerKey={onShowAnswerKey}
         />
       </div>
     )
@@ -116,6 +152,7 @@ export default function App() {
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden" ref={stageRef}>
         <div
+          ref={stageScrollRef}
           className="flex min-h-0 flex-1 items-start justify-center overflow-auto [scrollbar-gutter:stable]"
           style={{ padding: stagePad }}
         >
@@ -138,7 +175,10 @@ export default function App() {
                 exam={exam}
                 answers={answers}
                 submitted={submitted}
+                score={score}
                 onSelect={onSelect}
+                onSubmit={onSubmit}
+                onShowAnswerKey={onShowAnswerKey}
                 onPageCount={setPageCount}
               />
             </div>
