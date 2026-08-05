@@ -17,9 +17,23 @@ export interface PassageMeasure {
   questionIds: number[]
 }
 
+/**
+ * 시험지에 놓이는 순서 단위.
+ * - `passage`  지문 + 그 지문에 딸린 문제들
+ * - `questions` 지문 없는 단일 문제들의 연속 구간
+ */
+export type PackItem =
+  | { kind: 'passage'; passage: PassageMeasure }
+  | { kind: 'questions'; questionIds: number[] }
+
 export interface PackInput {
-  passages: PassageMeasure[]
+  items: PackItem[]
   questionHeights: Map<number, number>
+  /**
+   * 목표 단 수. 주면 남은 문제를 남은 단에 고르게 나눠 담는다.
+   * (수능 과탐처럼 쪽수가 고정된 시험지용. 높이가 모자라면 자동으로 넘어간다)
+   */
+  targetColumns?: number
   contentHeightFirst: number
   contentHeightContinued: number
   /**
@@ -53,7 +67,13 @@ export interface PlacedQuestion {
   gapBefore: number
 }
 
-export type PlacedItem = PlacedPassage | PlacedQuestion
+/** PC 마지막 단 — 제출/답지 보기 버튼 (마지막 문제와 함께 패킹) */
+export interface PlacedSubmitAction {
+  type: 'submit-action'
+  gapBefore: number
+}
+
+export type PlacedItem = PlacedPassage | PlacedQuestion | PlacedSubmitAction
 
 export interface PackedColumn {
   items: PlacedItem[]
