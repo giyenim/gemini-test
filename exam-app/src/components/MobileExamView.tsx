@@ -305,7 +305,7 @@ export function MobileExamView({
           return (
             <article
               key={page.key}
-              className="h-full w-full shrink-0 snap-start snap-always overflow-y-auto overscroll-y-contain bg-white text-[11.5px] leading-[1.48] break-keep break-words"
+              className="h-full w-full shrink-0 snap-start snap-always overflow-y-auto overscroll-y-contain bg-white text-[11.5px] leading-[1.48] break-words"
               aria-label={`${pageNumber} / ${pages.length} 페이지`}
             >
               {/* min-h-full + flex-1: 짧은 콘텐츠면 풋터를 화면 하단 근처에, 길면 콘텐츠 아래로 밀어냄 */}

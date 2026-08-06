@@ -1,5 +1,8 @@
 /**
  * 자료 표 — 수능형 문제지의 표 (가는 테두리 · 가운데 정렬)
+ *
+ * 레퍼런스 문제지에서 굵은 서체(견명조)를 쓰는 곳은 문항 번호와 페이지 번호뿐이다.
+ * 표 머리와 첫 열도 보통 굵기다.
  */
 interface TableBlockProps {
   head?: string[]
@@ -13,10 +16,7 @@ export function TableBlock({ head, rows }: TableBlockProps) {
         <thead>
           <tr>
             {head.map((cell, i) => (
-              <th
-                key={i}
-                className="border border-line px-1 py-1 font-bold break-keep"
-              >
+              <th key={i} className="border border-line px-1 py-1 font-normal">
                 {cell}
               </th>
             ))}
@@ -27,12 +27,7 @@ export function TableBlock({ head, rows }: TableBlockProps) {
         {rows.map((row, r) => (
           <tr key={r}>
             {row.map((cell, i) => (
-              <td
-                key={i}
-                className={`border border-line px-1 py-1 break-keep ${
-                  i === 0 ? 'font-semibold' : ''
-                }`}
-              >
+              <td key={i} className="border border-line px-1 py-1 font-normal">
                 {cell}
               </td>
             ))}

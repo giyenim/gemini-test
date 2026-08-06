@@ -78,7 +78,7 @@ export function ChoiceGroup({
               onClick={() => onSelect(value)}
             >
               <span
-                className="relative inline-flex w-[1.2em] items-center justify-center font-semibold leading-none group-hover:opacity-70"
+                className="relative inline-flex w-[1.2em] items-center justify-center font-normal leading-none group-hover:opacity-70"
                 aria-hidden
               >
                 {CHOICE_MARKS[i]}
@@ -100,7 +100,7 @@ export function ChoiceGroup({
                   </span>
                 ) : null}
               </span>
-              <span className={compact ? undefined : 'break-keep'}>{text}</span>
+              <span>{text}</span>
             </button>
           </li>
         )

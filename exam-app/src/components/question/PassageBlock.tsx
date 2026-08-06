@@ -54,7 +54,7 @@ export function PassageBlock({
         <div
           className={`${boxClass(boxMode)}${stretch ? ' min-h-0 flex-1' : ''}`}
         >
-          <div className="text-justify text-[11.5px] leading-normal">
+          <div className="text-[11.5px] leading-normal">
             {segments.map((seg, i) => (
               <p
                 key={i}

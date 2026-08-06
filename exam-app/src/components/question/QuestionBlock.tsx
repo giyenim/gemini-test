@@ -31,6 +31,19 @@ const BLOCK_GAP: Record<QuestionContentBlock['type'], number> = {
 /** 발문 아래 여백 */
 const STEM_GAP = 6
 
+/**
+ * 들여쓰기 — 레퍼런스 문제지(`레퍼런스/01 물리학Ⅰ_문제.pdf`) 실측.
+ * 단 왼쪽 87.9 기준으로
+ *   문항 번호 87.9 · 발문 첫 줄 글자 106.7 · 발문 둘째 줄부터 99.2
+ *   질문 문장 첫 줄 109.5 · 보기 박스 99.0 · 선택지 99.3
+ * → 본문은 모두 11.3 들여쓰고, 번호만 그 왼쪽으로 내민다.
+ */
+const BODY_INDENT = 11.3
+/** 발문 첫 줄에서 번호와 글자 사이 */
+const NUMBER_GAP = 7.8
+/** 질문 문장 첫 줄만 한 글자 더 (109.5 − 99.2) */
+const SENTENCE_INDENT = 10.3
+
 interface QuestionBlockProps {
   question: Question
   selected?: ChoiceIndex
@@ -51,7 +64,7 @@ function resolveBlocks(question: Question): QuestionContentBlock[] {
 
 function PointMark({ points }: { points: number }) {
   if (points === 2) return null
-  return <span className="font-medium"> [{points}점]</span>
+  return <span> [{points}점]</span>
 }
 
 function renderBlock(block: QuestionContentBlock): ReactNode {
@@ -89,24 +102,43 @@ export function QuestionBlock({
   )
 
   return (
-    <article id={anchor ? `q-${question.id}` : undefined}>
-      {/* 발문 — 번호는 단 왼쪽 끝, 둘째 줄부터 번호 폭만큼 들여쓰기 */}
+    // 본문은 BODY_INDENT 만큼 들여쓴다 — 자료·보기 박스와 선택지까지 같은 기준선
+    <article
+      id={anchor ? `q-${question.id}` : undefined}
+      style={{ paddingLeft: BODY_INDENT }}
+    >
+      {/*
+        발문 — 번호만 단 왼쪽 끝으로 내밀고, 둘째 줄부터 본문 기준선으로 돌아온다.
+        레퍼런스는 번호만 굵은 명조 13.0이고 발문 글자는 본문과 같은 중명조 11.2다.
+      */}
       <h3
-        className="flex gap-1 text-[13px] font-bold leading-[1.35]"
-        style={{ marginBottom: STEM_GAP }}
+        className="m-0 text-[11.5px] font-normal leading-[1.5]"
+        style={{
+          marginLeft: -BODY_INDENT,
+          paddingLeft: BODY_INDENT,
+          textIndent: -BODY_INDENT,
+          marginBottom: STEM_GAP,
+        }}
       >
-        <span className="shrink-0">{question.id}.</span>
-        <span className="break-keep">
-          {renderStem ? renderStem(question.stem) : question.stem}
-          {lastTextIndex < 0 && <PointMark points={question.points} />}
+        <span
+          className="text-[13px] font-bold leading-none"
+          style={{ marginRight: NUMBER_GAP }}
+        >
+          {question.id}.
         </span>
+        {renderStem ? renderStem(question.stem) : question.stem}
+        {lastTextIndex < 0 && <PointMark points={question.points} />}
       </h3>
 
       {/* 자료 → 질문 문장 → 보기 */}
       {blocks.map((block, i) => (
         <div key={i} style={{ marginBottom: BLOCK_GAP[block.type] }}>
           {block.type === 'text' ? (
-            <p className="m-0 text-[11.5px] leading-[1.5] break-keep">
+            /* 질문 문장 — 첫 줄만 한 글자 들여쓴다 */
+            <p
+              className="m-0 text-[11.5px] leading-[1.5]"
+              style={{ textIndent: SENTENCE_INDENT }}
+            >
               {block.body}
               {i === lastTextIndex && <PointMark points={question.points} />}
             </p>

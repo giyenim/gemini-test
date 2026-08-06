@@ -129,7 +129,8 @@ function measurePassageDom(
       box.className = 'border-[1.25px] border-line px-2.5 py-2'
     }
     const inner = document.createElement('div')
-    inner.className = 'text-justify text-[11.5px] leading-normal'
+    // PassageBlock 안쪽 div와 같은 클래스여야 측정과 렌더가 어긋나지 않는다
+    inner.className = 'text-[11.5px] leading-normal'
     segments.forEach((seg, i) => {
       const p = document.createElement('p')
       const isLast = i === segments.length - 1
@@ -213,7 +214,7 @@ function MeasureLayer({
     >
     <div
       ref={rootRef}
-      className="text-[11.5px] leading-[1.48] break-keep break-words opacity-0"
+      className="text-[11.5px] leading-[1.48] break-words opacity-0"
       style={{ width: colW }}
     >
       {/* 글자 단위 분할 실측 프로브 */}
