@@ -4,7 +4,6 @@ export interface ExamMeta {
   title: string
   year: string
   period: string
-  type: string
   subject: string
   copyright: string
 }

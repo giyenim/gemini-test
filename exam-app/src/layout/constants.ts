@@ -42,8 +42,8 @@ export const SUBMIT_ACTION_BLOCK = SUBMIT_ACTION_GAP + SUBMIT_ACTION_H
 export const PAGE_PAD_TOP = 76
 export const PAGE_PAD_BOTTOM = 50
 
-/** 첫 장 헤더: mt-1 + h-[120px] */
-export const HEADER_FIRST_H = 4 + 120
+/** 첫 장 헤더: mt-1 + h-[148px] (시험명 / 교시·과목 / 성명·수험 번호) */
+export const HEADER_FIRST_H = 4 + 148
 
 /** 속지 헤더: 페이지행(36) + mt-2 + 구분선 */
 export const HEADER_CONTINUED_H = 36 + 8 + 1.15

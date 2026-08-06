@@ -318,7 +318,7 @@ export function MobileExamView({
                   />
                 ) : (
                   <div className="mb-4">
-                    <SheetHeaderContinued meta={exam.meta} pageNumber={pageNumber} />
+                    <SheetHeaderContinued pageNumber={pageNumber} />
                   </div>
                 )}
 

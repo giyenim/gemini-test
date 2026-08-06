@@ -1,25 +1,16 @@
-import type { ExamMeta } from '../types/exam'
-
-/** 2장 이후 헤더 — 페이지·형 */
+/** 2장 이후 헤더 — 페이지 번호 */
 export interface SheetHeaderContinuedProps {
-  meta: ExamMeta
   pageNumber: number
 }
 
-export function SheetHeaderContinued({
-  meta,
-  pageNumber,
-}: SheetHeaderContinuedProps) {
+export function SheetHeaderContinued({ pageNumber }: SheetHeaderContinuedProps) {
   return (
     <header className="shrink-0">
-      <div className="flex items-center justify-between">
+      {/* 페이지 번호만 둔다 — 형(홀수형/짝수형) 구분이 없다 */}
+      <div className="flex h-9 items-center">
         <span className="font-serif text-[36px] font-semibold leading-none">
           {pageNumber}
         </span>
-        {/* 홀수형 뱃지 — 첫 장과 동일 스타일, 축소 (h-12→h-8, text-30→20) */}
-        <div className="inline-flex h-8 origin-right scale-x-90 items-center justify-center whitespace-nowrap rounded border border-line px-2.5 font-serif text-[20px] font-bold leading-none">
-          {meta.type}
-        </div>
       </div>
       <div className="mt-2 border-t-[1.15px] border-line" />
     </header>

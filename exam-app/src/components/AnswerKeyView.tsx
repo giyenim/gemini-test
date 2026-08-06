@@ -38,9 +38,6 @@ export function AnswerKeyView({ exam, onBack }: AnswerKeyViewProps) {
           <p className="m-0 mt-1 text-[18px] font-bold leading-snug">
             {exam.meta.subject} 정답표
           </p>
-          <p className="m-0 mt-1 text-[14px] font-semibold">
-            ( {exam.meta.type.replace('형', '').trim()} ) 형
-          </p>
         </header>
 
         <div className="overflow-x-auto">

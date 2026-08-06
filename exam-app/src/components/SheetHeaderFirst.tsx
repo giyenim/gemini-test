@@ -8,13 +8,33 @@ export interface SheetHeaderFirstProps {
   score?: ExamScore | null
 }
 
+/**
+ * 수험 번호 칸 — 레퍼런스 실측(`레퍼런스/01 물리학Ⅰ_문제.pdf` 1쪽) 그대로.
+ * 라벨 72.3 / 숫자 4칸(각 20.7) / 하이픈 20.7 / 숫자 4칸 = 258.6
+ */
+const ID_CELL_W = 20.7
+
+function DigitCells() {
+  return (
+    <div className="flex">
+      {[0, 1, 2, 3].map((i) => (
+        <span
+          key={i}
+          className={`block h-full ${i < 3 ? 'border-r border-dashed border-line' : ''}`}
+          style={{ width: ID_CELL_W }}
+        />
+      ))}
+    </div>
+  )
+}
+
 export function SheetHeaderFirst({ meta, pageNumber, score }: SheetHeaderFirstProps) {
   return (
-    // 헤더 전체 박스 — h-[120px] 가 헤더 높이
-    <header className="relative mt-1 flex h-[120px] shrink-0 flex-col box-border">
+    // 헤더 전체 박스 — h-[148px] 가 헤더 높이 (constants.ts의 HEADER_FIRST_H와 함께 고친다)
+    <header className="relative mt-1 flex h-[148px] shrink-0 flex-col box-border">
       {/* ========== 페이지 번호 (예: 1) ==========
           - 위치: top / right
-          - 크기: text-[36px]
+          - 크기: text-[32px]
       */}
       <span className="absolute top-0 right-0 z-10 font-serif text-[32px] font-semibold leading-none">
         {pageNumber}
@@ -26,7 +46,7 @@ export function SheetHeaderFirst({ meta, pageNumber, score }: SheetHeaderFirstPr
         </p>
       ) : null}
 
-      {/* ========== 상단 줄: 시험명 ==========
+      {/* ========== 첫째 줄: 시험명 ==========
           - 크기: text-[23px] / font-semibold / scale-x-90
       */}
       <div className="grid h-9 grid-cols-1 items-end pb-[3px]">
@@ -35,8 +55,8 @@ export function SheetHeaderFirst({ meta, pageNumber, score }: SheetHeaderFirstPr
         </p>
       </div>
 
-      {/* ========== 하단 줄: 교시 | 과목 | 홀수형 (한 블럭, 위쪽 정렬) ========== */}
-      <div className="grid min-h-0 flex-1 grid-cols-[1fr_auto_1fr] items-start gap-x-2 pt-3 pb-3">
+      {/* ========== 둘째 줄: 교시 | 과목 ========== */}
+      <div className="grid min-h-0 flex-1 grid-cols-[1fr_auto_1fr] items-start gap-x-2 pt-3 pb-2">
         {/* --- 왼쪽: 교시 타원 ---
             - 높이 h-[34px] / 글자 text-[25px] / scale-x-80 origin-left
         */}
@@ -50,17 +70,48 @@ export function SheetHeaderFirst({ meta, pageNumber, score }: SheetHeaderFirstPr
         <h1 className="m-0 justify-self-center whitespace-nowrap font-serif text-[46px] font-bold leading-none tracking-[0.12em]">
           {meta.subject}
         </h1>
+      </div>
 
-        {/* --- 오른쪽: 홀수형 뱃지 ---
-            - 높이 h-12 / 글자 text-[30px] / scale-x-90 origin-right
-        */}
-        <div className="inline-flex h-12 origin-right scale-x-90 items-center justify-center justify-self-end whitespace-nowrap rounded border border-line px-3 font-serif text-[30px] font-bold leading-none">
-          {meta.type}
+      {/* ========== 셋째 줄: 성명 · 수험 번호 기입란 ==========
+          레퍼런스 실측 — 박스 높이 26.5 / 성명 186.1(라벨 38.5) / 사이 15.3 / 수험 번호 258.6
+          레퍼런스의 `제( )선택` 칸은 쓰지 않는다 (선택 과목이 없다).
+      */}
+      <div
+        className="flex shrink-0 items-stretch justify-center font-serif text-[15px] leading-none"
+        style={{ height: 26.5, gap: 15.3 }}
+      >
+        {/* --- 성명 --- */}
+        <div className="flex border border-line" style={{ width: 186.1 }}>
+          <span
+            className="flex items-center justify-center border-r border-line"
+            style={{ width: 38.5 }}
+          >
+            성명
+          </span>
+        </div>
+
+        {/* --- 수험 번호 --- */}
+        <div className="flex border border-line" style={{ width: 258.6 }}>
+          <span
+            className="flex items-center justify-center border-r border-line whitespace-nowrap"
+            style={{ width: 72.3 }}
+          >
+            수험 번호
+          </span>
+          <DigitCells />
+          {/* 자리 구분 하이픈 */}
+          <span
+            className="flex items-center justify-center border-x border-line text-[13px]"
+            style={{ width: ID_CELL_W }}
+          >
+            —
+          </span>
+          <DigitCells />
         </div>
       </div>
 
       {/* ========== 하단 구분선 ========== */}
-      <div className="shrink-0 border-t-[1.15px] border-line" />
+      <div className="mt-2 shrink-0 border-t-[1.15px] border-line" />
     </header>
   )
 }

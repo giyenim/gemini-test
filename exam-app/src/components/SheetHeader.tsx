@@ -17,7 +17,7 @@ export function SheetHeader({ kind, meta, pageNumber, score }: SheetHeaderProps)
   if (kind === 'first') {
     return <SheetHeaderFirst meta={meta} pageNumber={pageNumber} score={score} />
   }
-  return <SheetHeaderContinued meta={meta} pageNumber={pageNumber} />
+  return <SheetHeaderContinued pageNumber={pageNumber} />
 }
 
 export { SheetHeaderFirst } from './SheetHeaderFirst'

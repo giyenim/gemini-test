@@ -4,7 +4,7 @@
 
 ## 프로젝트
 
-**제미나이 활용 능력 모의고사** — 수능 과학탐구 형식의 시험지 UI (`exam-app/`).
+**이지스 AI 활용 능력 모의고사** — 수능 과학탐구 형식의 시험지 UI (`exam-app/`).
 React 19 + Vite + Tailwind 4 + Noto Serif KR. GitHub Pages 배포 (`base: /gemini-test/`).
 
 - 출제 범위: 이지스퍼블리싱 『구글 제미나이』 01~04장 → [`book/`](book/)에 장별 Markdown
@@ -41,8 +41,8 @@ exam-app/
       MobileExamView.tsx    # (모바일) 가로 스와이프, 1문제 1페이지
       AnswerKeyView.tsx     # 정답표
       examText.tsx          # 공통 텍스트 렌더 훅
-      SheetHeaderFirst.tsx  # 1페이지 헤더
-      SheetHeaderContinued.tsx  # 2페이지~ (페이지 번호 + 홀수형 뱃지)
+      SheetHeaderFirst.tsx  # 1페이지 헤더 (시험명 / 교시·과목 / 성명·수험 번호)
+      SheetHeaderContinued.tsx  # 2페이지~ (페이지 번호)
       SheetFooter / SheetContent / SheetColumn / ExamActionButton
       question/             # QuestionBlock, PassageBlock, ChoiceGroup,
                             # ViewBox(보기) GeneralBlock(자료) TableBlock(표) FigureBlock(그림)
