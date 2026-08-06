@@ -106,7 +106,7 @@ function measurePassageDom(
 
   if (showIntro) {
     const intro = document.createElement('p')
-    intro.className = 'mb-1.5 text-[11.5px] font-normal'
+    intro.className = 'mb-1.5 text-[12px] font-normal'
     const strong = document.createElement('strong')
     strong.className = 'font-bold'
     strong.textContent = passage.label
@@ -130,7 +130,7 @@ function measurePassageDom(
     }
     const inner = document.createElement('div')
     // PassageBlock 안쪽 div와 같은 클래스여야 측정과 렌더가 어긋나지 않는다
-    inner.className = 'text-[11.5px] leading-normal'
+    inner.className = 'text-[12px] leading-normal'
     segments.forEach((seg, i) => {
       const p = document.createElement('p')
       const isLast = i === segments.length - 1
@@ -214,7 +214,7 @@ function MeasureLayer({
     >
     <div
       ref={rootRef}
-      className="text-[11.5px] leading-[1.48] break-words opacity-0"
+      className="text-[12px] leading-[1.48] break-words opacity-0"
       style={{ width: colW }}
     >
       {/* 글자 단위 분할 실측 프로브 */}
@@ -225,7 +225,7 @@ function MeasureLayer({
         const segments = paras.map((text) => ({ text, indent: true }))
         return (
           <div key={p.id}>
-            <p data-measure={`intro:${p.id}`} className="mb-1.5 text-[11.5px]">
+            <p data-measure={`intro:${p.id}`} className="mb-1.5 text-[12px]">
               <strong className="font-bold">{p.label}</strong> {p.intro}
             </p>
             <div
@@ -451,19 +451,29 @@ export function ExamSheet({
           <div className="h-[1191px] w-[842px] bg-white" />
         ) : (
           pages.map((page, i) => (
-            <SheetPageView
-              key={i}
-              page={page}
-              pageNumber={i + 1}
-              totalPages={pages.length}
-              exam={exam}
-              answers={answers}
-              submitted={submitted}
-              score={score}
-              onSelect={onSelect}
-              onSubmit={onSubmit}
-              onShowAnswerKey={onShowAnswerKey}
-            />
+            // 배경이 흰색이라 쪽 경계가 보이지 않는다.
+            // 페이지 사이 gap-6(24) 한가운데에 옅은 회색 점선을 그어 쪽을 나눈다.
+            // 선은 absolute라 스택 높이(App의 stackH)를 건드리지 않는다.
+            <div key={i} className="relative">
+              {i > 0 ? (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -top-3 right-0 left-0 border-t border-dashed border-[var(--color-page-divider)]"
+                />
+              ) : null}
+              <SheetPageView
+                page={page}
+                pageNumber={i + 1}
+                totalPages={pages.length}
+                exam={exam}
+                answers={answers}
+                submitted={submitted}
+                score={score}
+                onSelect={onSelect}
+                onSubmit={onSubmit}
+                onShowAnswerKey={onShowAnswerKey}
+              />
+            </div>
           ))
         )}
       </div>

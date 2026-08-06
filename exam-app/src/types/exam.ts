@@ -47,6 +47,11 @@ export type QuestionContentBlock =
       srcs?: string[]
       /** 그림마다 붙는 라벨 — (가) (나) 등 */
       labels?: string[]
+      /**
+       * 여러 장을 세로로 쌓는다 (기본은 가로 나열).
+       * 가로로 두면 각 그림이 단 폭의 절반까지밖에 못 커진다.
+       */
+      stack?: boolean
       /** 확보할 높이(px). 이미지 로드 전에도 패킹이 흔들리지 않도록 항상 지정 */
       height: number
       /** 그림이 아직 없을 때 자리에 표시할 안내 문구 */

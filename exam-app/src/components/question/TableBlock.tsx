@@ -11,7 +11,7 @@ interface TableBlockProps {
 
 export function TableBlock({ head, rows }: TableBlockProps) {
   return (
-    <table className="w-full border-collapse border border-line text-center text-[11px] leading-[1.4]">
+    <table className="w-full border-collapse border border-line text-center text-[11.5px] leading-[1.4]">
       {head && head.length > 0 ? (
         <thead>
           <tr>

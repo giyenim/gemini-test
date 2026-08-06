@@ -46,7 +46,7 @@ export function PassageBlock({
   return (
     <section className={stretch ? 'flex h-full min-h-0 flex-col' : undefined}>
       {showIntro ? (
-        <p className="mb-1.5 shrink-0 text-[11.5px] font-normal">
+        <p className="mb-1.5 shrink-0 text-[12px] font-normal">
           <strong className="font-bold">{label}</strong> {intro}
         </p>
       ) : null}
@@ -54,7 +54,7 @@ export function PassageBlock({
         <div
           className={`${boxClass(boxMode)}${stretch ? ' min-h-0 flex-1' : ''}`}
         >
-          <div className="text-[11.5px] leading-normal">
+          <div className="text-[12px] leading-normal">
             {segments.map((seg, i) => (
               <p
                 key={i}

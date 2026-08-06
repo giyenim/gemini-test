@@ -29,7 +29,7 @@ export function AnswerKeyView({ exam, onBack }: AnswerKeyViewProps) {
   const rowCount = Math.max(...columns.map((col) => col.length), 0)
 
   return (
-    <div className="h-full overflow-y-auto overscroll-y-contain bg-[#2a2a2a] text-ink">
+    <div className="h-full overflow-y-auto overscroll-y-contain bg-white text-ink">
       <div className="mx-auto min-h-full w-full max-w-[720px] bg-white px-5 py-8 font-serif">
         <header className="mb-6 text-center">
           <p className="m-0 text-[15px] font-semibold leading-snug tracking-[-0.02em]">

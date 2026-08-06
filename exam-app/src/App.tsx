@@ -11,8 +11,13 @@ import type { Answers, ChoiceIndex, ExamData } from './types/exam'
 const exam = examData as unknown as ExamData
 const MOBILE_MEDIA_QUERY = '(max-width: 767px)'
 
-/** 1 = 화면 가로 100%, 줄이려면 0.9 / 0.8 등으로 조절 (가운데 정렬) */
-const SHEET_ZOOM = 1
+/**
+ * 시험지 최대 배율. 화면이 넓으면 이 값까지 **키워서** 보여 주고,
+ * 좁으면 폭에 맞춰 자동으로 줄인다 (가운데 정렬).
+ * 1 = 원래 크기(842px). 키울수록 좌우 검은 여백이 줄고 글자가 커진다.
+ * 레이아웃은 원래 크기로 계산한 뒤 CSS로 확대하므로 쪽수에는 영향이 없다.
+ */
+const SHEET_ZOOM = 1.35
 
 /** 바깥 여백(스테이지 패딩) — 폭이 줄면 스케일보다 여백이 먼저 줄어듦 */
 const PAD_MAX = 24
@@ -37,7 +42,6 @@ export default function App() {
   )
   const [scale, setScale] = useState(SHEET_ZOOM)
   const [stagePad, setStagePad] = useState(PAD_MAX)
-  const stageRef = useRef<HTMLDivElement>(null)
   const stageScrollRef = useRef<HTMLDivElement>(null)
   const scaleRef = useRef(SHEET_ZOOM)
   const padRef = useRef(PAD_MAX)
@@ -80,7 +84,9 @@ export default function App() {
     if (isMobile || viewMode !== 'exam') return
 
     const update = () => {
-      const el = stageRef.current
+      // 스크롤 컨테이너를 재야 한다 — 바깥 래퍼를 재면 세로 스크롤바
+      // 자리(scrollbar-gutter)가 빠지지 않아 가로 스크롤이 생긴다
+      const el = stageScrollRef.current
       if (!el) return
 
       const W = el.clientWidth
@@ -113,7 +119,7 @@ export default function App() {
 
     update()
     const observer = new ResizeObserver(update)
-    if (stageRef.current) observer.observe(stageRef.current)
+    if (stageScrollRef.current) observer.observe(stageScrollRef.current)
     window.addEventListener('resize', update)
     return () => {
       observer.disconnect()
@@ -150,7 +156,7 @@ export default function App() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden" ref={stageRef}>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div
           ref={stageScrollRef}
           className="flex min-h-0 flex-1 items-start justify-center overflow-auto [scrollbar-gutter:stable]"

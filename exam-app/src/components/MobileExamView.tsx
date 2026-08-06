@@ -248,7 +248,7 @@ export function MobileExamView({
   }
 
   return (
-    <div className="h-full overflow-hidden bg-[#2a2a2a] text-ink">
+    <div className="h-full overflow-hidden bg-white text-ink">
       {/* 가로 스와이프 · 마우스 드래그 · 스크롤로 페이지 전환 */}
       <div
         ref={scrollerRef}
@@ -305,7 +305,7 @@ export function MobileExamView({
           return (
             <article
               key={page.key}
-              className="h-full w-full shrink-0 snap-start snap-always overflow-y-auto overscroll-y-contain bg-white text-[11.5px] leading-[1.48] break-words"
+              className="h-full w-full shrink-0 snap-start snap-always overflow-y-auto overscroll-y-contain bg-white text-[12px] leading-[1.48] break-words"
               aria-label={`${pageNumber} / ${pages.length} 페이지`}
             >
               {/* min-h-full + flex-1: 짧은 콘텐츠면 풋터를 화면 하단 근처에, 길면 콘텐츠 아래로 밀어냄 */}

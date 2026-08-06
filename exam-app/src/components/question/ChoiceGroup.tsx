@@ -70,8 +70,8 @@ export function ChoiceGroup({
               type="button"
               className={
                 compact
-                  ? 'group grid w-full grid-cols-[1.15em_1fr] gap-[0.2em] rounded-none border border-transparent bg-transparent py-px text-left text-[11.5px] leading-[1.5] whitespace-nowrap text-inherit'
-                  : 'group grid w-full grid-cols-[1.35em_1fr] gap-0.5 rounded-none border border-transparent bg-transparent px-0.5 py-px text-left text-[11.5px] leading-[1.5] text-inherit'
+                  ? 'group grid w-full grid-cols-[1.15em_1fr] gap-[0.2em] rounded-none border border-transparent bg-transparent py-px text-left text-[12px] leading-[1.5] whitespace-nowrap text-inherit'
+                  : 'group grid w-full grid-cols-[1.35em_1fr] gap-0.5 rounded-none border border-transparent bg-transparent px-0.5 py-px text-left text-[12px] leading-[1.5] text-inherit'
               }
               disabled={disabled || submitted}
               aria-pressed={isSelected}

@@ -77,6 +77,7 @@ function renderBlock(block: QuestionContentBlock): ReactNode {
           srcs={block.srcs}
           labels={block.labels}
           height={block.height}
+          stack={block.stack}
           note={block.note}
         />
       )
@@ -112,7 +113,7 @@ export function QuestionBlock({
         레퍼런스는 번호만 굵은 명조 13.0이고 발문 글자는 본문과 같은 중명조 11.2다.
       */}
       <h3
-        className="m-0 text-[11.5px] font-normal leading-[1.5]"
+        className="m-0 text-[12px] font-normal leading-[1.5]"
         style={{
           marginLeft: -BODY_INDENT,
           paddingLeft: BODY_INDENT,
@@ -121,7 +122,7 @@ export function QuestionBlock({
         }}
       >
         <span
-          className="text-[13px] font-bold leading-none"
+          className="text-[13.5px] font-bold leading-none"
           style={{ marginRight: NUMBER_GAP }}
         >
           {question.id}.
@@ -136,7 +137,7 @@ export function QuestionBlock({
           {block.type === 'text' ? (
             /* 질문 문장 — 첫 줄만 한 글자 들여쓴다 */
             <p
-              className="m-0 text-[11.5px] leading-[1.5]"
+              className="m-0 text-[12px] leading-[1.5]"
               style={{ textIndent: SENTENCE_INDENT }}
             >
               {block.body}

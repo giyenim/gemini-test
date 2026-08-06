@@ -337,7 +337,8 @@
             "(가)",
             "(나)"
           ],
-          "height": 130
+          "stack": true,
+          "height": 256
         },
         {
           "type": "text",
