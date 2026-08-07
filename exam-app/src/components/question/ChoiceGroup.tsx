@@ -84,18 +84,18 @@ export function ChoiceGroup({
                 {CHOICE_MARKS[i]}
                 {!submitted && isSelected ? (
                   <span
-                    className="pointer-events-none absolute top-[48%] left-1/2 -translate-x-1/2 -translate-y-[54%] -rotate-12 text-[2.1em] font-bold leading-none text-check [text-shadow:0_0_1px_#fff]"
+                    className="pointer-events-none absolute select-none top-[48%] left-1/2 -translate-x-1/2 -translate-y-[54%] -rotate-12 text-[2.1em] font-bold leading-none text-check [text-shadow:0_0_1px_#fff]"
                   >
                     ✓
                   </span>
                 ) : null}
                 {showCircle ? (
-                  <span className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[1.85em] font-bold leading-none text-check [text-shadow:0_0_1px_#fff]">
+                  <span className="pointer-events-none absolute select-none top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[1.85em] font-bold leading-none text-check [text-shadow:0_0_1px_#fff]">
                     ○
                   </span>
                 ) : null}
                 {showCross ? (
-                  <span className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[1.55em] font-bold leading-none text-check [text-shadow:0_0_1px_#fff]">
+                  <span className="pointer-events-none absolute select-none top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[1.55em] font-bold leading-none text-check [text-shadow:0_0_1px_#fff]">
                     ✕
                   </span>
                 ) : null}
