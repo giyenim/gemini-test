@@ -15,3 +15,7 @@ __pycache__/
 # `python tools/build_book_md.py` 를 실행한다.
 /01_01~02(18~85).pdf
 /02_03~04(86~168).pdf
+
+# 문항 그림의 원본 일러스트 (말풍선·라벨을 얹기 전). 저장소에 넣지 않는다.
+# 완성본만 exam-app/public/figures/ 에 커밋한다.
+/preview.png

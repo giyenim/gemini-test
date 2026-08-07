@@ -31,7 +31,7 @@ React 19 + Vite + Tailwind 4 + Noto Serif KR. GitHub Pages 배포 (`base: /gemin
 ```
 book/                       # 원본 교재 장별 Markdown (출제 근거)
 exam/후보문항-40.md          # 후보 문항 40제 · 정답 · 해설
-tools/                      # 교재 PDF → book/*.md 변환기
+tools/                      # 교재 PDF → book/*.md 변환기, 학생 대화 그림 생성기
 exam-app/
   public/figures/           # 문항 그림 (교재 PDF에서 잘라낸 캡처)
   src/
