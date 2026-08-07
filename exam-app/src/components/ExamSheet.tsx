@@ -287,7 +287,7 @@ function renderPlacedItem(
 
   if (item.type === 'submit-action') {
     return (
-      <div className="flex flex-col items-start gap-2">
+      <div className="flex flex-col items-end gap-2">
         {!submitted ? (
           <ExamActionButton onClick={onSubmit}>제출</ExamActionButton>
         ) : (
