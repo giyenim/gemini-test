@@ -1,8 +1,36 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap');
 @import 'tailwindcss';
 
+/**
+ * 조선굴림 — 방일영문화재단. 개인·기업 무료, 재배포·임베딩 허용.
+ * 성적통지표와 응시자 기입란에만 쓴다.
+ *
+ * ttf 폴백은 두지 않는다: 저장소에 없어 404 이고, 성적표를 PNG 로 구울 때
+ * src 의 모든 URL 을 훑는 경로에서 매번 다시 때린다. woff2 + woff 로 충분하다.
+ */
+@font-face {
+  font-family: 'ChosunGu';
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+  src:
+    url('https://cdn.jsdelivr.net/gh/fonts-archive/ChosunGu/ChosunGu.woff2') format('woff2'),
+    url('https://cdn.jsdelivr.net/gh/fonts-archive/ChosunGu/ChosunGu.woff') format('woff');
+}
+
 @theme {
+  /*
+   * 본문·시험지. 조선신명조를 써 봤으나 가로획이 얇아 작은 글자가 자글거려 되돌렸다.
+   * Noto Serif KR 은 화면용으로 힌팅이 촘촘하고 굵기(400/600/700)가 실제로 있다.
+   */
   --font-serif: 'Noto Serif KR', Batang, 'Apple Myungjo', serif;
+  /**
+   * 응시자가 적어 넣는 칸 — 이름·수험 번호 (RESULT-PAGE.md §0).
+   * 나중에 **실제 사용자 손글씨**가 들어갈 자리다. 그때까지 굴림으로 둔다.
+   */
+  --font-write: 'ChosunGu', Gulim, sans-serif;
+  /** 성적통지표 전용 — 조선굴림 (RESULT-PAGE.md §2) */
+  --font-report: 'ChosunGu', Gulim, sans-serif;
   --color-ink: #111;
   --color-ink-muted: #444;
   --color-line: #111;

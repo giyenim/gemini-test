@@ -1,6 +1,5 @@
 import { useCallback, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react'
-import type { ExamScore } from '../grade'
-import type { Answers, ChoiceIndex, ExamData } from '../types/exam'
+import type { Answers, ChoiceIndex, ExamData, Examinee } from '../types/exam'
 import {
   columnWidth,
   contentHeight,
@@ -30,11 +29,9 @@ import { highlightTerms } from './examText'
 interface ExamSheetProps {
   exam: ExamData
   answers: Answers
-  submitted: boolean
-  score: ExamScore | null
+  examinee: Examinee | null
   onSelect: (questionId: number, choice: ChoiceIndex) => void
   onSubmit: () => void
-  onShowAnswerKey: () => void
   onPageCount?: (count: number) => void
 }
 
@@ -263,11 +260,8 @@ function renderPlacedItem(
   item: PlacedItem,
   exam: ExamData,
   answers: Answers,
-  submitted: boolean,
-  score: ExamScore | null,
   onSelect: (questionId: number, choice: ChoiceIndex) => void,
   onSubmit: () => void,
-  onShowAnswerKey: () => void,
 ): ReactNode {
   if (item.type === 'passage') {
     const passage = exam.passages.find((p) => p.id === item.passageId)
@@ -288,18 +282,7 @@ function renderPlacedItem(
   if (item.type === 'submit-action') {
     return (
       <div className="flex flex-col items-end gap-2">
-        {!submitted ? (
-          <ExamActionButton onClick={onSubmit}>제출</ExamActionButton>
-        ) : (
-          <>
-            {score ? (
-              <p className="m-0 font-serif text-[16px] font-bold text-check">
-                {score.earned}/{score.max}점
-              </p>
-            ) : null}
-            <ExamActionButton onClick={onShowAnswerKey}>답지 보기</ExamActionButton>
-          </>
-        )}
+        <ExamActionButton onClick={onSubmit}>제출</ExamActionButton>
       </div>
     )
   }
@@ -310,7 +293,7 @@ function renderPlacedItem(
     <QuestionBlock
       question={question}
       selected={answers[question.id]}
-      submitted={submitted}
+      submitted={false}
       onSelect={(choice) => onSelect(question.id, choice)}
       renderText={(text) => <>{highlightTerms(text)}</>}
     />
@@ -323,34 +306,21 @@ function SheetPageView({
   totalPages,
   exam,
   answers,
-  submitted,
-  score,
+  examinee,
   onSelect,
   onSubmit,
-  onShowAnswerKey,
 }: {
   page: PackedPage
   pageNumber: number
   totalPages: number
   exam: ExamData
   answers: Answers
-  submitted: boolean
-  score: ExamScore | null
+  examinee: Examinee | null
   onSelect: (questionId: number, choice: ChoiceIndex) => void
   onSubmit: () => void
-  onShowAnswerKey: () => void
 }) {
   const renderItem = (item: PlacedItem) =>
-    renderPlacedItem(
-      item,
-      exam,
-      answers,
-      submitted,
-      score,
-      onSelect,
-      onSubmit,
-      onShowAnswerKey,
-    )
+    renderPlacedItem(item, exam, answers, onSelect, onSubmit)
 
   return (
     <div
@@ -370,7 +340,7 @@ function SheetPageView({
           kind={page.headerKind}
           meta={exam.meta}
           pageNumber={pageNumber}
-          score={page.headerKind === 'first' && submitted ? score : null}
+          examinee={examinee}
         />
         <SheetContent
           left={
@@ -393,11 +363,9 @@ function SheetPageView({
 export function ExamSheet({
   exam,
   answers,
-  submitted,
-  score,
+  examinee,
   onSelect,
   onSubmit,
-  onShowAnswerKey,
   onPageCount,
 }: ExamSheetProps) {
   const colW = columnWidth(PAGE_W)
@@ -467,11 +435,9 @@ export function ExamSheet({
                 totalPages={pages.length}
                 exam={exam}
                 answers={answers}
-                submitted={submitted}
-                score={score}
+                examinee={examinee}
                 onSelect={onSelect}
                 onSubmit={onSubmit}
-                onShowAnswerKey={onShowAnswerKey}
               />
             </div>
           ))

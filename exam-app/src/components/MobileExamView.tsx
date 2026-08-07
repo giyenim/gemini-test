@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ExamScore } from '../grade'
 import { HEADER_FIRST_H, PAGE_PAD_X, PAGE_W } from '../layout/constants'
-import type { Answers, ChoiceIndex, ExamData, ExamMeta, Passage, Question } from '../types/exam'
+import type {
+  Answers,
+  ChoiceIndex,
+  ExamData,
+  Examinee,
+  ExamMeta,
+  Passage,
+  Question,
+} from '../types/exam'
 import { ExamActionButton } from './ExamActionButton'
 import { PassageBlock } from './question/PassageBlock'
 import { QuestionBlock } from './question/QuestionBlock'
@@ -15,22 +22,20 @@ const HEADER_DESIGN_W = PAGE_W - PAGE_PAD_X * 2
 interface MobileExamViewProps {
   exam: ExamData
   answers: Answers
-  submitted: boolean
-  score: ExamScore | null
+  examinee: Examinee | null
   onSelect: (questionId: number, choice: ChoiceIndex) => void
   onSubmit: () => void
-  onShowAnswerKey: () => void
 }
 
 /** PC 1페이지 헤더와 동일 컴포넌트, 화면 폭에 맞게 scale */
 function MobileSheetHeader({
   meta,
   pageNumber,
-  score,
+  examinee,
 }: {
   meta: ExamMeta
   pageNumber: number
-  score?: ExamScore | null
+  examinee?: Examinee | null
 }) {
   const hostRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
@@ -64,7 +69,7 @@ function MobileSheetHeader({
           transformOrigin: 'top left',
         }}
       >
-        <SheetHeaderFirst meta={meta} pageNumber={pageNumber} score={score} />
+        <SheetHeaderFirst meta={meta} pageNumber={pageNumber} examinee={examinee} />
       </div>
     </div>
   )
@@ -152,12 +157,10 @@ function buildMobilePages(exam: ExamData): MobilePage[] {
 function MobilePageContent({
   page,
   answers,
-  submitted,
   onSelect,
 }: {
   page: MobilePage
   answers: Answers
-  submitted: boolean
   onSelect: (questionId: number, choice: ChoiceIndex) => void
 }) {
   if (page.type === 'passage-group') {
@@ -180,7 +183,7 @@ function MobilePageContent({
                 key={question.id}
                 question={question}
                 selected={answers[question.id]}
-                submitted={submitted}
+                submitted={false}
                 onSelect={(choice) => onSelect(question.id, choice)}
                 renderText={(text) => <>{highlightTerms(text)}</>}
               />
@@ -196,7 +199,7 @@ function MobilePageContent({
       <QuestionBlock
         question={page.question}
         selected={answers[page.question.id]}
-        submitted={submitted}
+        submitted={false}
         onSelect={(choice) => onSelect(page.question.id, choice)}
         renderText={(text) => <>{highlightTerms(text)}</>}
       />
@@ -207,11 +210,9 @@ function MobilePageContent({
 export function MobileExamView({
   exam,
   answers,
-  submitted,
-  score,
+  examinee,
   onSelect,
   onSubmit,
-  onShowAnswerKey,
 }: MobileExamViewProps) {
   const pages = buildMobilePages(exam)
   const scrollerRef = useRef<HTMLDivElement>(null)
@@ -314,7 +315,7 @@ export function MobileExamView({
                   <MobileSheetHeader
                     meta={exam.meta}
                     pageNumber={pageNumber}
-                    score={submitted ? score : null}
+                    examinee={examinee}
                   />
                 ) : (
                   <div className="mb-4">
@@ -326,36 +327,12 @@ export function MobileExamView({
                   <MobilePageContent
                     page={page}
                     answers={answers}
-                    submitted={submitted}
                     onSelect={onSelect}
                   />
 
                   {isLast ? (
                     <div className="mt-8 flex flex-col items-center gap-3">
-                      {!submitted ? (
-                        <ExamActionButton
-                          onClick={() => {
-                            onSubmit()
-                            const el = scrollerRef.current
-                            if (el) {
-                              el.scrollTo({ left: 0, behavior: 'smooth' })
-                            }
-                          }}
-                        >
-                          제출
-                        </ExamActionButton>
-                      ) : (
-                        <>
-                          {score ? (
-                            <p className="m-0 font-serif text-[15px] font-bold text-check">
-                              {score.earned}/{score.max}점
-                            </p>
-                          ) : null}
-                          <ExamActionButton onClick={onShowAnswerKey}>
-                            답지 보기
-                          </ExamActionButton>
-                        </>
-                      )}
+                      <ExamActionButton onClick={onSubmit}>제출</ExamActionButton>
                     </div>
                   ) : null}
                 </div>

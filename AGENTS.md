@@ -11,6 +11,9 @@ React 19 + Vite + Tailwind 4 + Noto Serif KR. GitHub Pages 배포 (`base: /gemin
 - 현재 시험지: **20문항 · 4쪽 · 50점**(3점 10 + 2점 10). 전부 단일 문제(지문 없음)
 - 후보 문항 40제와 해설: [`exam/후보문항-40.md`](exam/후보문항-40.md)
 
+응시 흐름: **이름 입력 → 시험지 → 채점 중 3초 → 성적통지표**. 되돌아가는 길은 없다.
+시험지는 항상 채점 전 상태로만 그린다 — 채점 결과는 결과 화면의 채점표·오답노트가 보여 준다.
+
 목표: **임의의 지문·문제 JSON**이 들어오면 2단 시험지 레이아웃이 **자동**으로 잡힌다. left/right를 수동 하드코딩하지 않는다.  
 데스크톱은 `ExamSheet` 2단 패킹, **모바일(≤767px)** 은 `MobileExamView` 가로 스와이프 페이지(1문제 1페이지).
 
@@ -19,6 +22,7 @@ React 19 + Vite + Tailwind 4 + Noto Serif KR. GitHub Pages 배포 (`base: /gemin
 | 문서 | 내용 |
 |------|------|
 | [`exam-app/LAYOUT.md`](exam-app/LAYOUT.md) | 콘텐츠 단·페이지 배치 규칙 (여백·문제 패킹·4쪽 맞추기·블록 타입) |
+| [`exam-app/RESULT-PAGE.md`](exam-app/RESULT-PAGE.md) | **제출 이후 화면** — 성적통지표·채점표·오답노트 명세와 구현 상태 |
 | [`exam-app/README.md`](exam-app/README.md) | 앱 개요·실행 |
 | [`book/README.md`](book/README.md) | 원본 교재 Markdown (출제 근거) |
 | [`exam/후보문항-40.md`](exam/후보문항-40.md) | 후보 문항·정답·해설 |
@@ -39,7 +43,10 @@ exam-app/
     components/
       ExamSheet.tsx         # (데스크톱) 측정 → pack → 렌더
       MobileExamView.tsx    # (모바일) 가로 스와이프, 1문제 1페이지
-      AnswerKeyView.tsx     # 정답표
+      NameEntryView.tsx     # 응시 전 이름 입력
+      result/               # 제출 이후 화면 (RESULT-PAGE.md)
+                            # GradingOverlay(채점 중) ResultView(성적표 화면)
+                            # ReportCard(성적통지표) ScoreTablePopup WrongNotePopup Modal
       examText.tsx          # 공통 텍스트 렌더 훅
       SheetHeaderFirst.tsx  # 1페이지 헤더 (시험명 / 교시·과목 / 성명·수험 번호)
       SheetHeaderContinued.tsx  # 2페이지~ (페이지 번호)

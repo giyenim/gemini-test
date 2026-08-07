@@ -16,6 +16,14 @@ export interface Passage {
   questionIds: number[]
 }
 
+/** 오답노트에서 안내할 교재 위치 */
+export interface QuestionSource {
+  /** 장 — 예: `01장 안녕, 제미나이!` */
+  chapter: string
+  /** 절·쪽 — 예: `01-4 (p.43~44)` */
+  detail: string
+}
+
 export interface Question {
   id: number
   stem: string
@@ -26,6 +34,10 @@ export interface Question {
   passageId?: string
   /** 발문 아래 콘텐츠 블록 (자료 / 보기 / 그림) — 순서대로 렌더 */
   blocks?: QuestionContentBlock[]
+  /** 오답노트 해설 2~3줄. 줄바꿈으로 항목을 나눈다 */
+  explanation?: string
+  /** 오답노트 하단의 책 안내 */
+  source?: QuestionSource
   /** @deprecated blocks의 type:'view' 사용 */
   box?: {
     title: string
@@ -65,3 +77,12 @@ export interface ExamData {
 }
 
 export type Answers = Partial<Record<number, ChoiceIndex>>
+
+/** 응시자 — 시작 화면에서 이름만 받고 수험 번호는 응시 시각으로 발급한다 */
+export interface Examinee {
+  name: string
+  /** 8자리. 시험지 헤더의 4-4 칸과 성적표에 같은 값이 찍힌다 */
+  id: string
+  /** 응시일 — 성적표 하단 날짜 */
+  takenAt: string
+}

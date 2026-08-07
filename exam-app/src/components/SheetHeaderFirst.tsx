@@ -1,11 +1,10 @@
-import type { ExamScore } from '../grade'
-import type { ExamMeta } from '../types/exam'
+import type { Examinee, ExamMeta } from '../types/exam'
 
 export interface SheetHeaderFirstProps {
   meta: ExamMeta
   pageNumber: number
-  /** 제출 후 총점 — 헤더 좌상단 */
-  score?: ExamScore | null
+  /** 응시자 — 성명·수험 번호 기입란을 채운다 */
+  examinee?: Examinee | null
 }
 
 /**
@@ -14,21 +13,26 @@ export interface SheetHeaderFirstProps {
  */
 const ID_CELL_W = 20.7
 
-function DigitCells() {
+/** 수험 번호 4칸. `digits`가 없으면 빈칸으로 둔다 */
+function DigitCells({ digits }: { digits?: string }) {
   return (
     <div className="flex">
       {[0, 1, 2, 3].map((i) => (
         <span
           key={i}
-          className={`block h-full ${i < 3 ? 'border-r border-dashed border-line' : ''}`}
+          className={`flex h-full items-center justify-center font-write text-[13px] leading-none ${
+            i < 3 ? 'border-r border-dashed border-line' : ''
+          }`}
           style={{ width: ID_CELL_W }}
-        />
+        >
+          {digits?.[i] ?? ''}
+        </span>
       ))}
     </div>
   )
 }
 
-export function SheetHeaderFirst({ meta, pageNumber, score }: SheetHeaderFirstProps) {
+export function SheetHeaderFirst({ meta, pageNumber, examinee }: SheetHeaderFirstProps) {
   return (
     // 헤더 전체 박스 — h-[148px] 가 헤더 높이 (constants.ts의 HEADER_FIRST_H와 함께 고친다)
     <header className="relative mt-1 flex h-[148px] shrink-0 flex-col box-border">
@@ -39,12 +43,6 @@ export function SheetHeaderFirst({ meta, pageNumber, score }: SheetHeaderFirstPr
       <span className="absolute top-0 right-0 z-10 font-serif text-[32px] font-semibold leading-none">
         {pageNumber}
       </span>
-
-      {score ? (
-        <p className="absolute top-0 left-0 z-10 m-0 font-serif text-[18px] font-bold leading-none text-check">
-          {score.earned}/{score.max}점
-        </p>
-      ) : null}
 
       {/* ========== 첫째 줄: 시험명 ==========
           - 크기: text-[23px] / font-semibold / scale-x-90
@@ -88,6 +86,9 @@ export function SheetHeaderFirst({ meta, pageNumber, score }: SheetHeaderFirstPr
           >
             성명
           </span>
+          <span className="flex min-w-0 flex-1 items-center justify-center truncate px-2 font-write text-[14px] leading-none">
+            {examinee?.name ?? ''}
+          </span>
         </div>
 
         {/* --- 수험 번호 --- */}
@@ -98,7 +99,7 @@ export function SheetHeaderFirst({ meta, pageNumber, score }: SheetHeaderFirstPr
           >
             수험 번호
           </span>
-          <DigitCells />
+          <DigitCells digits={examinee?.id.slice(0, 4)} />
           {/* 자리 구분 하이픈 */}
           <span
             className="flex items-center justify-center border-x border-line text-[13px]"
@@ -106,7 +107,7 @@ export function SheetHeaderFirst({ meta, pageNumber, score }: SheetHeaderFirstPr
           >
             —
           </span>
-          <DigitCells />
+          <DigitCells digits={examinee?.id.slice(4, 8)} />
         </div>
       </div>
 

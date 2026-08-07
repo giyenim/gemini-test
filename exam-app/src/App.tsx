@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import examData from './data/exam-sample.json'
-import { AnswerKeyView } from './components/AnswerKeyView'
 import { ExamSheet } from './components/ExamSheet'
 import { MobileExamView } from './components/MobileExamView'
+import { NameEntryView } from './components/NameEntryView'
+import { GradingOverlay } from './components/result/GradingOverlay'
+import { ResultView } from './components/result/ResultView'
+import { issueExaminee } from './examinee'
 import { gradeExam } from './grade'
 import { PAGE_H, PAGE_W } from './layout/constants'
-import type { Answers, ChoiceIndex, ExamData } from './types/exam'
+import type { Answers, ChoiceIndex, ExamData, Examinee } from './types/exam'
 
 // JSON 리터럴은 문자열 유니온·튜플로 좁혀지지 않으므로 한 번에 단언한다
 const exam = examData as unknown as ExamData
@@ -23,18 +26,21 @@ const SHEET_ZOOM = 1.35
 const PAD_MAX = 24
 const PAD_MIN = 0
 
-/** ExamSheet 페이지 사이 gap-6 */
-const PAGE_GAP = 24
+/** 제출 후 성적표까지 끄는 시간 (RESULT-PAGE.md §1) */
+const GRADING_MS = 3000
 
 export { PAGE_W, PAGE_H }
 
-type ViewMode = 'exam' | 'answerKey'
+/**
+ * 응시 흐름 — 이름 입력 → 시험 → 채점 중 → 성적표.
+ * 되돌아가는 길은 두지 않는다 (RESULT-PAGE.md §7 "다시 응시하기" 제외).
+ */
+type Phase = 'entry' | 'exam' | 'grading' | 'result'
 
 export default function App() {
   const [answers, setAnswers] = useState<Answers>({})
-  const [submitted, setSubmitted] = useState(false)
-  const [viewMode, setViewMode] = useState<ViewMode>('exam')
-  const [pageCount, setPageCount] = useState(1)
+  const [examinee, setExaminee] = useState<Examinee | null>(null)
+  const [phase, setPhase] = useState<Phase>('entry')
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined'
       ? window.matchMedia(MOBILE_MEDIA_QUERY).matches
@@ -46,28 +52,32 @@ export default function App() {
   const scaleRef = useRef(SHEET_ZOOM)
   const padRef = useRef(PAD_MAX)
 
+  const graded = phase === 'grading' || phase === 'result'
   const score = useMemo(
-    () => (submitted ? gradeExam(exam, answers) : null),
-    [submitted, answers],
+    () => (graded ? gradeExam(exam, answers) : null),
+    [graded, answers],
   )
 
   const onSelect = useCallback((questionId: number, choice: ChoiceIndex) => {
-    if (submitted) return
+    if (phase !== 'exam') return
     setAnswers((prev) => ({ ...prev, [questionId]: choice }))
-  }, [submitted])
+  }, [phase])
+
+  const onStart = useCallback((name: string) => {
+    setExaminee(issueExaminee(name))
+    setPhase('exam')
+  }, [])
 
   const onSubmit = useCallback(() => {
-    setSubmitted(true)
-    stageScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    setPhase('grading')
   }, [])
 
-  const onShowAnswerKey = useCallback(() => {
-    setViewMode('answerKey')
-  }, [])
-
-  const onBackToExam = useCallback(() => {
-    setViewMode('exam')
-  }, [])
+  // 채점 중 화면을 3초 보여 준 뒤 성적표로 넘긴다
+  useEffect(() => {
+    if (phase !== 'grading') return
+    const timer = window.setTimeout(() => setPhase('result'), GRADING_MS)
+    return () => window.clearTimeout(timer)
+  }, [phase])
 
   useEffect(() => {
     const media = window.matchMedia(MOBILE_MEDIA_QUERY)
@@ -81,7 +91,7 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (isMobile || viewMode !== 'exam') return
+    if (isMobile || phase !== 'exam') return
 
     const update = () => {
       // 스크롤 컨테이너를 재야 한다 — 바깥 래퍼를 재면 세로 스크롤바
@@ -125,18 +135,32 @@ export default function App() {
       observer.disconnect()
       window.removeEventListener('resize', update)
     }
-  }, [isMobile, viewMode])
+  }, [isMobile, phase])
 
-  if (viewMode === 'answerKey') {
+  if (phase === 'entry') {
     return (
       <div className="h-full min-h-0 overflow-hidden">
-        <AnswerKeyView exam={exam} onBack={onBackToExam} />
+        <NameEntryView
+          meta={exam.meta}
+          questionCount={exam.questions.length}
+          totalPoints={exam.questions.reduce((sum, q) => sum + q.points, 0)}
+          onStart={onStart}
+        />
       </div>
     )
   }
 
-  const stackH =
-    pageCount * PAGE_H + Math.max(0, pageCount - 1) * PAGE_GAP
+  if (phase === 'grading') {
+    return <div className="h-full min-h-0 overflow-hidden"><GradingOverlay /></div>
+  }
+
+  if (phase === 'result' && examinee && score) {
+    return (
+      <div className="h-full min-h-0 overflow-hidden">
+        <ResultView exam={exam} examinee={examinee} score={score} />
+      </div>
+    )
+  }
 
   if (isMobile) {
     return (
@@ -144,11 +168,9 @@ export default function App() {
         <MobileExamView
           exam={exam}
           answers={answers}
-          submitted={submitted}
-          score={score}
+          examinee={examinee}
           onSelect={onSelect}
           onSubmit={onSubmit}
-          onShowAnswerKey={onShowAnswerKey}
         />
       </div>
     )
@@ -162,32 +184,20 @@ export default function App() {
           className="flex min-h-0 flex-1 items-start justify-center overflow-auto [scrollbar-gutter:stable]"
           style={{ padding: stagePad }}
         >
-          <div
-            className="relative shrink-0"
-            style={{
-              width: PAGE_W * scale,
-              height: stackH * scale,
-            }}
-          >
-            <div
-              className="absolute top-0 left-0 origin-top-left"
-              style={{
-                width: PAGE_W,
-                height: stackH,
-                transform: `scale(${scale})`,
-              }}
-            >
-              <ExamSheet
-                exam={exam}
-                answers={answers}
-                submitted={submitted}
-                score={score}
-                onSelect={onSelect}
-                onSubmit={onSubmit}
-                onShowAnswerKey={onShowAnswerKey}
-                onPageCount={setPageCount}
-              />
-            </div>
+          {/*
+            transform: scale 이 아니라 zoom 이다.
+            scale 은 11.5px 로 조판한 글자를 늘리는 것이라 획이 픽셀 격자에 어긋나 번진다
+            (조선신명조처럼 가로획이 얇은 명조에서 특히 자글자글해진다).
+            zoom 은 처음부터 확대된 크기로 조판하므로 획이 픽셀에 맞는다.
+          */}
+          <div className="shrink-0" style={{ zoom: scale }}>
+            <ExamSheet
+              exam={exam}
+              answers={answers}
+              examinee={examinee}
+              onSelect={onSelect}
+              onSubmit={onSubmit}
+            />
           </div>
         </div>
       </div>

@@ -1,5 +1,4 @@
-import type { ExamScore } from '../grade'
-import type { ExamMeta } from '../types/exam'
+import type { Examinee, ExamMeta } from '../types/exam'
 import { SheetHeaderContinued } from './SheetHeaderContinued'
 import { SheetHeaderFirst } from './SheetHeaderFirst'
 
@@ -10,12 +9,12 @@ interface SheetHeaderProps {
   kind: SheetHeaderKind
   meta: ExamMeta
   pageNumber: number
-  score?: ExamScore | null
+  examinee?: Examinee | null
 }
 
-export function SheetHeader({ kind, meta, pageNumber, score }: SheetHeaderProps) {
+export function SheetHeader({ kind, meta, pageNumber, examinee }: SheetHeaderProps) {
   if (kind === 'first') {
-    return <SheetHeaderFirst meta={meta} pageNumber={pageNumber} score={score} />
+    return <SheetHeaderFirst meta={meta} pageNumber={pageNumber} examinee={examinee} />
   }
   return <SheetHeaderContinued pageNumber={pageNumber} />
 }
