@@ -106,7 +106,7 @@ function measurePassageDom(
 
   if (showIntro) {
     const intro = document.createElement('p')
-    intro.className = 'mb-1.5 text-[12px] font-normal'
+    intro.className = 'mb-1.5 text-[11.5px] font-normal'
     const strong = document.createElement('strong')
     strong.className = 'font-bold'
     strong.textContent = passage.label
@@ -130,7 +130,7 @@ function measurePassageDom(
     }
     const inner = document.createElement('div')
     // PassageBlock 안쪽 div와 같은 클래스여야 측정과 렌더가 어긋나지 않는다
-    inner.className = 'text-[12px] leading-normal'
+    inner.className = 'text-[11.5px] leading-normal'
     segments.forEach((seg, i) => {
       const p = document.createElement('p')
       const isLast = i === segments.length - 1
@@ -214,7 +214,7 @@ function MeasureLayer({
     >
     <div
       ref={rootRef}
-      className="text-[12px] leading-[1.48] break-words opacity-0"
+      className="text-[11.5px] leading-[1.48] break-words opacity-0"
       style={{ width: colW }}
     >
       {/* 글자 단위 분할 실측 프로브 */}
@@ -225,7 +225,7 @@ function MeasureLayer({
         const segments = paras.map((text) => ({ text, indent: true }))
         return (
           <div key={p.id}>
-            <p data-measure={`intro:${p.id}`} className="mb-1.5 text-[12px]">
+            <p data-measure={`intro:${p.id}`} className="mb-1.5 text-[11.5px]">
               <strong className="font-bold">{p.label}</strong> {p.intro}
             </p>
             <div
@@ -249,7 +249,7 @@ function MeasureLayer({
             question={q}
             submitted={false}
             onSelect={() => {}}
-            renderStem={(stem) => <>{highlightTerms(stem)}</>}
+            renderText={(text) => <>{highlightTerms(text)}</>}
             anchor={false}
           />
         </div>
@@ -312,7 +312,7 @@ function renderPlacedItem(
       selected={answers[question.id]}
       submitted={submitted}
       onSelect={(choice) => onSelect(question.id, choice)}
-      renderStem={(stem) => <>{highlightTerms(stem)}</>}
+      renderText={(text) => <>{highlightTerms(text)}</>}
     />
   )
 }

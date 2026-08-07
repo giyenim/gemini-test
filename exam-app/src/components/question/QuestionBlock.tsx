@@ -19,8 +19,20 @@ import { GeneralBlock } from './GeneralBlock.tsx'
 import { TableBlock } from './TableBlock.tsx'
 import { ViewBox } from './ViewBox.tsx'
 
-/** 블록 아래 여백 (px) — 레퍼런스 문제지 실측 */
+/** 블록 아래 여백 (px) — 발문·자료·질문 문장·보기 사이 */
 const BLOCK_GAP: Record<QuestionContentBlock['type'], number> = {
+  general: 11,
+  table: 11,
+  figure: 15,
+  text: 9,
+  view: 17,
+}
+
+/**
+ * 선택지 바로 위 여백 — 마지막 블록에만 쓴다.
+ * 문제 안(발문·자료·보기) 간격만 넓히고 선택지와의 간격은 그대로 둔다.
+ */
+const CHOICE_GAP: Record<QuestionContentBlock['type'], number> = {
   general: 8,
   table: 8,
   figure: 12,
@@ -29,7 +41,9 @@ const BLOCK_GAP: Record<QuestionContentBlock['type'], number> = {
 }
 
 /** 발문 아래 여백 */
-const STEM_GAP = 6
+const STEM_GAP = 9
+/** 자료·보기 없이 선택지가 바로 붙는 문제의 발문 아래 여백 */
+const STEM_TO_CHOICE_GAP = 6
 
 /**
  * 들여쓰기 — 레퍼런스 문제지(`레퍼런스/01 물리학Ⅰ_문제.pdf`) 실측.
@@ -49,7 +63,8 @@ interface QuestionBlockProps {
   selected?: ChoiceIndex
   submitted: boolean
   onSelect: (choice: ChoiceIndex) => void
-  renderStem?: (stem: string) => ReactNode
+  /** 발문·질문 문장에 표시 규칙(부정어 밑줄 등)을 입힌다 — `examText.highlightTerms` */
+  renderText?: (text: string) => ReactNode
   /** 측정용 사본은 false — 같은 id가 문서에 두 번 생기지 않게 한다 */
   anchor?: boolean
 }
@@ -93,7 +108,7 @@ export function QuestionBlock({
   selected,
   submitted,
   onSelect,
-  renderStem,
+  renderText,
   anchor = true,
 }: QuestionBlockProps) {
   const blocks = resolveBlocks(question)
@@ -113,34 +128,40 @@ export function QuestionBlock({
         레퍼런스는 번호만 굵은 명조 13.0이고 발문 글자는 본문과 같은 중명조 11.2다.
       */}
       <h3
-        className="m-0 text-[12px] font-normal leading-[1.5]"
+        className="m-0 text-[11.5px] font-normal leading-[1.5]"
         style={{
           marginLeft: -BODY_INDENT,
           paddingLeft: BODY_INDENT,
           textIndent: -BODY_INDENT,
-          marginBottom: STEM_GAP,
+          marginBottom: blocks.length ? STEM_GAP : STEM_TO_CHOICE_GAP,
         }}
       >
         <span
-          className="text-[13.5px] font-bold leading-none"
+          className="text-[13px] font-bold leading-none"
           style={{ marginRight: NUMBER_GAP }}
         >
           {question.id}.
         </span>
-        {renderStem ? renderStem(question.stem) : question.stem}
+        {renderText ? renderText(question.stem) : question.stem}
         {lastTextIndex < 0 && <PointMark points={question.points} />}
       </h3>
 
       {/* 자료 → 질문 문장 → 보기 */}
       {blocks.map((block, i) => (
-        <div key={i} style={{ marginBottom: BLOCK_GAP[block.type] }}>
+        <div
+          key={i}
+          style={{
+            marginBottom:
+              (i === blocks.length - 1 ? CHOICE_GAP : BLOCK_GAP)[block.type],
+          }}
+        >
           {block.type === 'text' ? (
             /* 질문 문장 — 첫 줄만 한 글자 들여쓴다 */
             <p
-              className="m-0 text-[12px] leading-[1.5]"
+              className="m-0 text-[11.5px] leading-[1.5]"
               style={{ textIndent: SENTENCE_INDENT }}
             >
-              {block.body}
+              {renderText ? renderText(block.body) : block.body}
               {i === lastTextIndex && <PointMark points={question.points} />}
             </p>
           ) : (
