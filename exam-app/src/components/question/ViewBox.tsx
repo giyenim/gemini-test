@@ -24,7 +24,7 @@ export function ViewBox({ title, body }: ViewBoxProps) {
       aria-label={title}
     >
       {/* 라벨 — 흰 배경으로 윗선을 끊고 그 위에 얹는다 */}
-      <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white text-[11.5px] leading-none font-normal [word-spacing:0.45em]">
+      <span className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[calc(50%+0.5px)] bg-white text-[11.5px] leading-none font-normal [word-spacing:0.45em]">
         &lt;{title}&gt;
       </span>
       <div className="px-2 pt-[10px] pb-1.5 text-[11.5px] font-normal leading-[1.5]">
