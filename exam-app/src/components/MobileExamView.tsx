@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { HEADER_FIRST_H, PAGE_PAD_X, PAGE_W } from '../layout/constants'
+import { HEADER_FIRST_H, PAGE_H, PAGE_PAD_X, PAGE_W } from '../layout/constants'
 import type {
   Answers,
   ChoiceIndex,
@@ -9,6 +9,7 @@ import type {
   Passage,
   Question,
 } from '../types/exam'
+import { CoverSheet } from './CoverSheet'
 import { ExamActionButton } from './ExamActionButton'
 import { PassageBlock } from './question/PassageBlock'
 import { QuestionBlock } from './question/QuestionBlock'
@@ -25,6 +26,8 @@ interface MobileExamViewProps {
   examinee: Examinee | null
   onSelect: (questionId: number, choice: ChoiceIndex) => void
   onSubmit: () => void
+  /** 표지 성명 칸에 적은 이름 — 속지 헤더·성적표까지 따라간다 */
+  onNameChange: (name: string) => void
 }
 
 /** PC 1페이지 헤더와 동일 컴포넌트, 화면 폭에 맞게 scale */
@@ -70,6 +73,41 @@ function MobileSheetHeader({
         }}
       >
         <SheetHeaderFirst meta={meta} pageNumber={pageNumber} examinee={examinee} />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * 표지 — 842×1191 고정 디자인이라 화면 폭에 맞춰 통째로 줄인다.
+ * (`MobileSheetHeader` 와 같은 방식. 표지는 읽기만 하므로 축소해도 조작에 지장이 없다.)
+ */
+function MobileCover({
+  meta,
+  examinee,
+  onNameChange,
+}: {
+  meta: ExamMeta
+  examinee?: Examinee | null
+  onNameChange: (name: string) => void
+}) {
+  const hostRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+
+  useEffect(() => {
+    const el = hostRef.current
+    if (!el) return
+    const update = (width: number) => setScale(Math.min(1, width / PAGE_W))
+    update(el.clientWidth)
+    const ro = new ResizeObserver(([entry]) => update(entry.contentRect.width))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  return (
+    <div ref={hostRef} style={{ height: PAGE_H * scale }}>
+      <div style={{ width: PAGE_W, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+        <CoverSheet meta={meta} examinee={examinee} onNameChange={onNameChange} />
       </div>
     </div>
   )
@@ -213,6 +251,7 @@ export function MobileExamView({
   examinee,
   onSelect,
   onSubmit,
+  onNameChange,
 }: MobileExamViewProps) {
   const pages = buildMobilePages(exam)
   const scrollerRef = useRef<HTMLDivElement>(null)
@@ -300,6 +339,14 @@ export function MobileExamView({
         onPointerUp={(event) => endDrag(event.pointerId)}
         onPointerCancel={(event) => endDrag(event.pointerId)}
       >
+        {/* 표지 — 문제 페이지 앞의 한 장. 쪽 번호를 받지 않는다 */}
+        <article
+          className="h-full w-full shrink-0 snap-start snap-always overflow-y-auto overscroll-y-contain bg-white"
+          aria-label="표지"
+        >
+          <MobileCover meta={exam.meta} examinee={examinee} onNameChange={onNameChange} />
+        </article>
+
         {pages.map((page, index) => {
           const pageNumber = index + 1
           const isLast = index === pages.length - 1

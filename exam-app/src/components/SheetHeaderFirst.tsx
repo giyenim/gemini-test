@@ -48,7 +48,7 @@ export function SheetHeaderFirst({ meta, pageNumber, examinee }: SheetHeaderFirs
           - 크기: text-[23px] / font-semibold / scale-x-90
       */}
       <div className="grid h-9 grid-cols-1 items-end pb-[3px]">
-        <p className="m-0 justify-self-center scale-x-90 whitespace-nowrap font-serif text-[23px] font-semibold leading-[1.15] tracking-[-0.02em]">
+        <p className="m-0 justify-self-center scale-x-90 whitespace-nowrap font-gothic text-[23px] font-semibold leading-[1.15] tracking-[-0.02em]">
           {meta.year} {meta.title}
         </p>
       </div>
@@ -65,7 +65,7 @@ export function SheetHeaderFirst({ meta, pageNumber, examinee }: SheetHeaderFirs
         {/* --- 가운데: 과목명 ---
             - 크기 text-[46px] / font-bold
         */}
-        <h1 className="m-0 justify-self-center whitespace-nowrap font-serif text-[46px] font-bold leading-none tracking-[0.12em]">
+        <h1 className="m-0 justify-self-center whitespace-nowrap font-gothic text-[46px] font-bold leading-none tracking-[0.12em]">
           {meta.subject}
         </h1>
       </div>
@@ -75,7 +75,7 @@ export function SheetHeaderFirst({ meta, pageNumber, examinee }: SheetHeaderFirs
           레퍼런스의 `제( )선택` 칸은 쓰지 않는다 (선택 과목이 없다).
       */}
       <div
-        className="flex shrink-0 items-stretch justify-center font-serif text-[15px] leading-none"
+        className="flex shrink-0 items-stretch justify-center font-gothic text-[15px] leading-none"
         style={{ height: 26.5, gap: 15.3 }}
       >
         {/* --- 성명 --- */}

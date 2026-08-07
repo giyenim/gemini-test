@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import examData from './data/exam-sample.json'
 import { ExamSheet } from './components/ExamSheet'
 import { MobileExamView } from './components/MobileExamView'
-import { NameEntryView } from './components/NameEntryView'
+import { PageNav } from './components/PageNav'
 import { GradingOverlay } from './components/result/GradingOverlay'
 import { ResultView } from './components/result/ResultView'
 import { issueExaminee } from './examinee'
@@ -32,15 +32,22 @@ const GRADING_MS = 3000
 export { PAGE_W, PAGE_H }
 
 /**
- * 응시 흐름 — 이름 입력 → 시험 → 채점 중 → 성적표.
- * 되돌아가는 길은 두지 않는다 (RESULT-PAGE.md §7 "다시 응시하기" 제외).
+ * 응시 흐름 — 표지 → 시험 → 채점 중 → 성적표.
+ *
+ * 실제 시험지처럼 **표지부터 바로 시작한다.** 이름은 표지 성명 칸에 직접 적고,
+ * 수험 번호는 화면에 들어온 시각으로 발급된다. 되돌아가는 길은 두지 않는다
+ * (RESULT-PAGE.md §7 "다시 응시하기" 제외).
  */
-type Phase = 'entry' | 'exam' | 'grading' | 'result'
+type Phase = 'exam' | 'grading' | 'result'
 
 export default function App() {
   const [answers, setAnswers] = useState<Answers>({})
-  const [examinee, setExaminee] = useState<Examinee | null>(null)
-  const [phase, setPhase] = useState<Phase>('entry')
+  // 표지를 여는 순간이 곧 응시 시작이다
+  const [examinee, setExaminee] = useState<Examinee>(() => issueExaminee(''))
+  const [phase, setPhase] = useState<Phase>('exam')
+  // 데스크톱은 한 번에 한 쪽만 본다. 0 = 표지, 1부터 문제 페이지
+  const [pageIndex, setPageIndex] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined'
       ? window.matchMedia(MOBILE_MEDIA_QUERY).matches
@@ -49,6 +56,7 @@ export default function App() {
   const [scale, setScale] = useState(SHEET_ZOOM)
   const [stagePad, setStagePad] = useState(PAD_MAX)
   const stageScrollRef = useRef<HTMLDivElement>(null)
+  const totalPagesRef = useRef(1)
   const scaleRef = useRef(SHEET_ZOOM)
   const padRef = useRef(PAD_MAX)
 
@@ -63,14 +71,40 @@ export default function App() {
     setAnswers((prev) => ({ ...prev, [questionId]: choice }))
   }, [phase])
 
-  const onStart = useCallback((name: string) => {
-    setExaminee(issueExaminee(name))
-    setPhase('exam')
+  // 표지 성명 칸 — 적는 즉시 속지 헤더와 성적표에 반영된다
+  const onNameChange = useCallback((name: string) => {
+    setExaminee((prev) => ({ ...prev, name }))
+  }, [])
+
+  const goToPage = useCallback((next: number) => {
+    setPageIndex((prev) => {
+      const clamped = Math.min(totalPagesRef.current - 1, Math.max(0, next))
+      if (clamped !== prev) stageScrollRef.current?.scrollTo({ top: 0 })
+      return clamped
+    })
   }, [])
 
   const onSubmit = useCallback(() => {
     setPhase('grading')
   }, [])
+
+  const onPageCount = useCallback((count: number) => {
+    totalPagesRef.current = count
+    setTotalPages(count)
+  }, [])
+
+  // ← → 로도 쪽을 넘긴다. 표지 성명 칸에 쓰는 중이면 건드리지 않는다
+  useEffect(() => {
+    if (phase !== 'exam' || isMobile) return
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null
+      if (el?.closest('input, textarea, select')) return
+      if (e.key === 'ArrowLeft') goToPage(pageIndex - 1)
+      if (e.key === 'ArrowRight') goToPage(pageIndex + 1)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [phase, isMobile, pageIndex, goToPage])
 
   // 채점 중 화면을 3초 보여 준 뒤 성적표로 넘긴다
   useEffect(() => {
@@ -137,24 +171,11 @@ export default function App() {
     }
   }, [isMobile, phase])
 
-  if (phase === 'entry') {
-    return (
-      <div className="h-full min-h-0 overflow-hidden">
-        <NameEntryView
-          meta={exam.meta}
-          questionCount={exam.questions.length}
-          totalPoints={exam.questions.reduce((sum, q) => sum + q.points, 0)}
-          onStart={onStart}
-        />
-      </div>
-    )
-  }
-
   if (phase === 'grading') {
     return <div className="h-full min-h-0 overflow-hidden"><GradingOverlay /></div>
   }
 
-  if (phase === 'result' && examinee && score) {
+  if (phase === 'result' && score) {
     return (
       <div className="h-full min-h-0 overflow-hidden">
         <ResultView exam={exam} examinee={examinee} score={score} />
@@ -171,6 +192,7 @@ export default function App() {
           examinee={examinee}
           onSelect={onSelect}
           onSubmit={onSubmit}
+          onNameChange={onNameChange}
         />
       </div>
     )
@@ -190,14 +212,21 @@ export default function App() {
             (조선신명조처럼 가로획이 얇은 명조에서 특히 자글자글해진다).
             zoom 은 처음부터 확대된 크기로 조판하므로 획이 픽셀에 맞는다.
           */}
-          <div className="shrink-0" style={{ zoom: scale }}>
-            <ExamSheet
-              exam={exam}
-              answers={answers}
-              examinee={examinee}
-              onSelect={onSelect}
-              onSubmit={onSubmit}
-            />
+          {/* 넘김 버튼은 시험지 폭에 맞춰 그 아래에 붙는다 (화면 고정 아님) */}
+          <div className="flex shrink-0 flex-col">
+            <div style={{ zoom: scale }}>
+              <ExamSheet
+                exam={exam}
+                answers={answers}
+                examinee={examinee}
+                onSelect={onSelect}
+                onSubmit={onSubmit}
+                onNameChange={onNameChange}
+                pageIndex={pageIndex}
+                onPageCount={onPageCount}
+              />
+            </div>
+            <PageNav index={pageIndex} total={totalPages} onChange={goToPage} />
           </div>
         </div>
       </div>

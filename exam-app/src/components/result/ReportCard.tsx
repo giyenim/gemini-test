@@ -2,12 +2,6 @@ import type { Ref } from 'react'
 import type { ExamScore } from '../../grade'
 import type { Examinee, ExamMeta } from '../../types/exam'
 
-/**
- * 발급 기관명.
- * RESULT-PAGE.md §8 에 정확한 명칭이 미결로 남아 있다. 확정되면 여기만 고친다.
- */
-const ISSUER = '이지스퍼블리싱 평가원'
-
 interface ReportCardProps {
   meta: ExamMeta
   examinee: Examinee
@@ -32,7 +26,7 @@ export function ReportCard({ meta, examinee, score, captureRef }: ReportCardProp
   return (
     <div
       ref={captureRef}
-      className="mx-auto w-full max-w-[420px] border-[1.5px] border-line bg-white px-6 py-7 font-report text-ink"
+      className="mx-auto w-full max-w-[420px] border-[1.5px] border-line bg-white px-6 py-7 font-gothic text-ink"
     >
       {/* 시험명과 문서명을 한 줄에 둔다 — 실물 통지표의 머리글 한 줄과 같게 */}
       <header className="flex items-baseline justify-center gap-1.5 whitespace-nowrap text-center">
@@ -91,7 +85,7 @@ export function ReportCard({ meta, examinee, score, captureRef }: ReportCardProp
       <footer className="mt-7 text-center">
         <p className="m-0 text-[12.5px]">{examinee.takenAt}</p>
         <div className="mt-1.5 flex items-center justify-center gap-2">
-          <p className="m-0 text-[15px] font-bold tracking-[0.02em]">{ISSUER}</p>
+          <p className="m-0 text-[15px] font-bold tracking-[0.02em]">{meta.publisher}</p>
           {/* 직인 */}
           <span
             aria-label="직인"

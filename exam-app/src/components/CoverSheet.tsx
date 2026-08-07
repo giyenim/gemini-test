@@ -1,0 +1,212 @@
+import {
+  PAGE_H,
+  PAGE_PAD_BOTTOM,
+  PAGE_PAD_TOP,
+  PAGE_PAD_X,
+  PAGE_W,
+} from '../layout/constants'
+import type { Examinee, ExamMeta } from '../types/exam'
+
+/**
+ * 시험지 표지 — 문제 페이지 앞에 한 장 붙는다.
+ *
+ * 페이지 규격·여백·글꼴을 `layout/constants.ts`, `index.css` 와 맞춰 두었으므로
+ * 값이 갈라지지 않게 함께 고친다.
+ *
+ * 쪽 번호를 붙이지 않고 `data-page` 도 달지 않는다 — 문제 페이지가 1쪽부터 시작해야 하고,
+ * 쪽수 검사(`document.querySelectorAll('[data-page]').length === 4`)도 표지를 세면 안 된다.
+ *
+ * 세로 배치는 위에서부터 흘려 내리고 블록 사이 간격만 GAP 으로 조절한다.
+ * 칸을 절대 위치로 박지 않아 문구 길이가 바뀌어도 깨지지 않는다.
+ */
+
+/** 블록 사이 세로 간격 — 표지 배치는 여기만 만지면 된다 */
+const GAP = {
+  periodToTitle: 26,
+  titleToSubject: 46,
+  subjectToFields: 58,
+  fieldsToNotice: 78,
+  noticeToBanner: 62,
+  bannerToBrand: 84,
+}
+
+/** 유의 사항 — 필적 확인 문구는 두 번째 항목 안에 회색 띠로 끼워 넣는다 */
+const HANDWRITING = '사람을 구체적으로 도와주는 책'
+const BANNER = '※ 시험이 시작되건 말건 표지를 넘기시오.'
+
+const NOTICES = [
+  '문제지의 해당란에 성명과 수험 번호를 정확히 쓰시오.',
+  '답안지의 필적 확인란에 다음의 문구를 정자로 기재하시오.',
+  '답안지의 해당란에 성명과 수험 번호를 쓰고, 또 수험 번호와 답을 정확히 표시하시오.',
+  '문항에 따라 배점이 다릅니다. 3점 문항에만 점수가 표시되어 있습니다. 점수 표시가 없는 문항은 모두 2점입니다.',
+]
+/** 필적 확인 띠가 들어갈 항목 (0부터) */
+const HANDWRITING_AFTER = 1
+
+/** 성명 칸 최대 글자 수 — 칸 폭(148px)을 넘지 않는 선 */
+const MAX_NAME = 10
+
+interface CoverSheetProps {
+  meta: ExamMeta
+  examinee?: Examinee | null
+  /**
+   * 주면 성명 칸이 **직접 쓰는 칸**이 된다. 여기 적은 이름이 속지 헤더와 성적표까지
+   * 그대로 따라간다 — 실제 시험지도 표지와 속지 양쪽에 성명란이 있다.
+   */
+  onNameChange?: (name: string) => void
+}
+
+function NoticeItem({ text, children }: { text: string; children?: React.ReactNode }) {
+  return (
+    <li className="text-[16px] leading-[1.7] tracking-[-0.03em]">
+      <div className="flex">
+        {/* ○ 글머리 — 목록 마커 대신 직접 그려 행잡기를 맞춘다 */}
+        <span aria-hidden className="w-6 shrink-0 text-[13px] leading-[1.95]">
+          ○
+        </span>
+        <span className="min-w-0 flex-1">{text}</span>
+      </div>
+      {children}
+    </li>
+  )
+}
+
+/** 성명 · 수험 번호 — 라벨도 테두리 안에 들어가고 세로 실선으로 나뉜다 */
+function Field({
+  label,
+  labelWidth,
+  children,
+}: {
+  label: string
+  labelWidth: number
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex h-9 items-stretch border-[1.2px] border-line">
+      <span
+        className="flex items-center justify-center border-r-[1.2px] border-line whitespace-nowrap tracking-[-0.02em]"
+        style={{ width: labelWidth }}
+      >
+        {label}
+      </span>
+      {children}
+    </div>
+  )
+}
+
+export function CoverSheet({ meta, examinee, onNameChange }: CoverSheetProps) {
+  // 4칸 + 하이픈 + 4칸. 칸 수는 이 배열 길이로만 정한다
+  const idCells = [
+    ...(examinee?.id.slice(0, 4) ?? '    ').padEnd(4).split(''),
+    '—',
+    ...(examinee?.id.slice(4, 8) ?? '    ').padEnd(4).split(''),
+  ]
+
+  return (
+    <div
+      data-cover
+      className="flex flex-col overflow-hidden bg-white font-serif text-ink"
+      style={{
+        width: PAGE_W,
+        height: PAGE_H,
+        padding: `${PAGE_PAD_TOP}px ${PAGE_PAD_X}px ${PAGE_PAD_BOTTOM}px`,
+      }}
+    >
+      {/* 1. 교시 — 본문 헤더와 같은 모양이되 표지에서는 한 단계 크다 */}
+      <div className="inline-flex h-11 origin-left scale-x-[0.86] items-center justify-center self-start whitespace-nowrap rounded-full border-[1.2px] border-line px-5 font-gothic text-[27px] font-bold leading-none tracking-[-0.02em]">
+        {meta.period}
+      </div>
+
+      {/* 2. 시험명 */}
+      <p
+        className="m-0 scale-x-[0.94] text-center font-gothic text-[27px] font-semibold leading-[1.15] whitespace-nowrap tracking-[-0.02em]"
+        style={{ marginTop: GAP.periodToTitle }}
+      >
+        {meta.year} {meta.title}
+      </p>
+
+      {/* 3. 과목명 — 표지에서 가장 큰 활자.
+             letter-spacing 이 오른쪽에도 붙어 광학 중심이 밀리므로 그만큼 되민다 */}
+      <h1
+        className="m-0 text-center font-gothic text-[62px] font-bold leading-none whitespace-nowrap tracking-[0.1em] indent-[0.1em]"
+        style={{ marginTop: GAP.titleToSubject }}
+      >
+        {meta.subject}
+      </h1>
+
+      {/* 4. 성명 · 수험 번호 */}
+      <div
+        className="flex items-stretch justify-center gap-[22px] font-gothic text-[18px] leading-none"
+        style={{ marginTop: GAP.subjectToFields }}
+      >
+        <Field label="성명" labelWidth={58}>
+          {onNameChange ? (
+            <input
+              value={examinee?.name ?? ''}
+              onChange={(e) => onNameChange(e.target.value.slice(0, MAX_NAME))}
+              maxLength={MAX_NAME}
+              aria-label="성명"
+              autoComplete="name"
+              autoFocus
+              /* 빈칸으로 두면 성적표까지 이름 없이 나간다. 적는 칸이라는 표시를 남긴다 */
+              placeholder="이름"
+              className="w-[148px] border-0 bg-transparent px-2 text-center font-write text-[18px] text-ink outline-none placeholder:font-serif placeholder:text-[14px] placeholder:text-ink-muted/40 focus:bg-selected"
+            />
+          ) : (
+            <span className="flex w-[148px] items-center justify-center truncate px-2 font-write text-[18px]">
+              {examinee?.name ?? ''}
+            </span>
+          )}
+        </Field>
+        <Field label="수험 번호" labelWidth={100}>
+          <span className="flex">
+            {idCells.map((ch, i) => (
+              <span
+                key={i}
+                className={`flex w-7 items-center justify-center text-[18px] ${
+                  i < idCells.length - 1 ? 'border-r border-dashed border-line' : ''
+                } ${ch === '—' ? 'font-serif' : 'font-write'}`}
+              >
+                {ch.trim()}
+              </span>
+            ))}
+          </span>
+        </Field>
+      </div>
+
+      {/* 5. 유의 사항 */}
+      <section
+        className="border-[1.2px] border-line px-10 pt-[34px] pb-9"
+        style={{ marginTop: GAP.fieldsToNotice }}
+      >
+        <ul className="m-0 flex list-none flex-col gap-[22px] p-0">
+          {NOTICES.map((text, i) => (
+            <NoticeItem key={i} text={text}>
+              {i === HANDWRITING_AFTER ? (
+                <div className="mt-[18px] mb-[26px] border-[1.2px] border-line bg-band py-[11px] text-center text-[19px] font-bold leading-none tracking-[-0.02em]">
+                  {HANDWRITING}
+                </div>
+              ) : null}
+            </NoticeItem>
+          ))}
+        </ul>
+      </section>
+
+      {/* 6. 배너 */}
+      <div
+        className="border-[1.2px] border-line bg-band py-[15px] text-center text-[22px] font-bold leading-none tracking-[-0.02em]"
+        style={{ marginTop: GAP.noticeToBanner }}
+      >
+        {BANNER}
+      </div>
+
+      {/* 7. 발행처 — 표지의 마지막 블록 */}
+      <div
+        className="text-center font-gothic text-[30px] font-bold leading-none tracking-[0.06em] indent-[0.06em] whitespace-nowrap"
+        style={{ marginTop: GAP.bannerToBrand }}
+      >
+        {meta.publisher}
+      </div>
+    </div>
+  )
+}

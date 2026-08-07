@@ -6,6 +6,8 @@ export interface ExamMeta {
   period: string
   subject: string
   copyright: string
+  /** 발행처 — 표지 하단과 성적통지표 발급 기관에 같은 값이 들어간다 */
+  publisher: string
 }
 
 export interface Passage {

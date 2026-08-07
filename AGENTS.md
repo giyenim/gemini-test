@@ -8,10 +8,11 @@
 React 19 + Vite + Tailwind 4 + Noto Serif KR. GitHub Pages 배포 (`base: /gemini-test/`).
 
 - 출제 범위: 이지스퍼블리싱 『구글 제미나이』 01~04장 → [`book/`](book/)에 장별 Markdown
-- 현재 시험지: **20문항 · 4쪽 · 50점**(3점 10 + 2점 10). 전부 단일 문제(지문 없음)
+- 현재 시험지: **표지 1장 + 20문항 · 4쪽 · 50점**(3점 10 + 2점 10). 전부 단일 문제(지문 없음)
 - 후보 문항 40제와 해설: [`exam/후보문항-40.md`](exam/후보문항-40.md)
 
-응시 흐름: **이름 입력 → 시험지 → 채점 중 3초 → 성적통지표**. 되돌아가는 길은 없다.
+응시 흐름: **표지 → 시험지 → 채점 중 3초 → 성적통지표**. 되돌아가는 길은 없다.
+이름은 표지 성명 칸에 직접 적고, 적는 즉시 속지 헤더와 성적표에 반영된다.
 시험지는 항상 채점 전 상태로만 그린다 — 채점 결과는 결과 화면의 채점표·오답노트가 보여 준다.
 
 목표: **임의의 지문·문제 JSON**이 들어오면 2단 시험지 레이아웃이 **자동**으로 잡힌다. left/right를 수동 하드코딩하지 않는다.  
@@ -41,9 +42,9 @@ exam-app/
   src/
     App.tsx                 # 데스크톱/모바일 분기, 스케일/스테이지
     components/
+      CoverSheet.tsx        # 표지 (문제 페이지 앞 한 장, 쪽 번호 없음)
       ExamSheet.tsx         # (데스크톱) 측정 → pack → 렌더
       MobileExamView.tsx    # (모바일) 가로 스와이프, 1문제 1페이지
-      NameEntryView.tsx     # 응시 전 이름 입력
       result/               # 제출 이후 화면 (RESULT-PAGE.md)
                             # GradingOverlay(채점 중) ResultView(성적표 화면)
                             # ReportCard(성적통지표) ScoreTablePopup WrongNotePopup Modal
@@ -98,7 +99,9 @@ npm run build
 
 ## 코딩 규칙
 
-- UI는 Tailwind 유틸 우선. 폰트는 Noto Serif KR.
+- UI는 Tailwind 유틸 우선. 본문 글꼴은 Noto Serif KR, 양식(표지·성적표·헤더)은 조선굴림.
+- **요소 기본값(`button` 등)은 `index.css` 의 `@layer base` 안에만 쓴다.** 레이어 밖에 두면
+  Tailwind 유틸리티(`@layer utilities`)를 통째로 이겨서 `font-bold` 같은 게 조용히 무시된다.
 - 배경 흰색, 시험지 그림자 없음. 쪽 경계는 페이지 사이 **옅은 회색 점선**으로만 표시한다.
 - 한글 주석·문자열이 깨지면 반드시 복구한다.
 - 레이아웃 동작 변경 시 `LAYOUT.md`도 함께 갱신한다.

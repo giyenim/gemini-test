@@ -25,12 +25,16 @@
    */
   --font-serif: 'Noto Serif KR', Batang, 'Apple Myungjo', serif;
   /**
+   * 굴림 계열 — 양식(form)의 인쇄된 부분.
+   * 시험지 헤더(시험명·과목명·기입란 라벨)와 성적통지표 전체에 쓴다.
+   * 본문은 명조, 양식은 굴림 — 실제 시험지·통지표의 조판과 같다.
+   */
+  --font-gothic: 'ChosunGu', Gulim, sans-serif;
+  /**
    * 응시자가 적어 넣는 칸 — 이름·수험 번호 (RESULT-PAGE.md §0).
-   * 나중에 **실제 사용자 손글씨**가 들어갈 자리다. 그때까지 굴림으로 둔다.
+   * 나중에 **실제 사용자 손글씨**가 들어갈 자리라 굴림과 따로 둔다.
    */
   --font-write: 'ChosunGu', Gulim, sans-serif;
-  /** 성적통지표 전용 — 조선굴림 (RESULT-PAGE.md §2) */
-  --font-report: 'ChosunGu', Gulim, sans-serif;
   --color-ink: #111;
   --color-ink-muted: #444;
   --color-line: #111;
@@ -39,31 +43,42 @@
   --color-correct: #1b6b3a;
   --color-wrong: #a33a2f;
   --color-check: #e11d2e;
+  /** 표지의 필적 확인 띠·안내 배너 바탕 */
+  --color-band: #d9d9d9;
   /** 페이지 사이 구분선 — 흰 배경 위에서 쪽이 나뉘는 자리를 표시한다 */
   --color-page-divider: #c8c8c8;
 }
 
-html,
-body,
-#root {
-  margin: 0;
-  height: 100%;
-  overflow: hidden;
-}
+/*
+ * 요소 기본값은 반드시 `@layer base` 안에 둔다.
+ *
+ * 레이어 밖에 쓰면 **레이어에 든 규칙보다 무조건 이긴다.** Tailwind 유틸리티는
+ * `@layer utilities` 안에 있으므로, 레이어 없이 쓴 `button { font: inherit }` 하나가
+ * 모든 버튼의 `font-serif`·`font-gothic`·`font-bold` 를 통째로 무시하게 만들었다.
+ */
+@layer base {
+  html,
+  body,
+  #root {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+  }
 
-body {
-  font-family: var(--font-serif);
-  color: var(--color-ink);
-  background: #fff;
-  -webkit-font-smoothing: antialiased;
-}
+  body {
+    font-family: var(--font-serif);
+    color: var(--color-ink);
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
+  }
 
-button {
-  font: inherit;
-  cursor: pointer;
-}
+  button {
+    font: inherit;
+    cursor: pointer;
+  }
 
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.4;
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
 }

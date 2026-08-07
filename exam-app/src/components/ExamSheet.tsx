@@ -17,6 +17,7 @@ import type {
   PassageSegment,
   PlacedItem,
 } from '../layout/types'
+import { CoverSheet } from './CoverSheet'
 import { ExamActionButton } from './ExamActionButton'
 import { PassageBlock, type PassageBoxMode } from './question/PassageBlock'
 import { QuestionBlock } from './question/QuestionBlock'
@@ -32,7 +33,12 @@ interface ExamSheetProps {
   examinee: Examinee | null
   onSelect: (questionId: number, choice: ChoiceIndex) => void
   onSubmit: () => void
-  onPageCount?: (count: number) => void
+  /** 표지 성명 칸에 적은 이름 — 속지 헤더·성적표까지 따라간다 */
+  onNameChange: (name: string) => void
+  /** 지금 보여 줄 쪽. 0 = 표지, 1부터 문제 페이지 */
+  pageIndex: number
+  /** 표지를 포함한 총 쪽수 — 패킹이 끝나야 알 수 있어 올려 보낸다 */
+  onPageCount: (count: number) => void
 }
 
 function appendHighlighted(el: HTMLElement, text: string) {
@@ -366,6 +372,8 @@ export function ExamSheet({
   examinee,
   onSelect,
   onSubmit,
+  onNameChange,
+  pageIndex,
   onPageCount,
 }: ExamSheetProps) {
   const colW = columnWidth(PAGE_W)
@@ -401,7 +409,8 @@ export function ExamSheet({
           ),
       })
       setPages(packed)
-      onPageCount?.(packed.length)
+      // 표지 한 장을 더한 값이 화면에 보이는 총 쪽수다
+      onPageCount(packed.length + 1)
     },
     [exam, onPageCount],
   )
@@ -414,35 +423,32 @@ export function ExamSheet({
         probeRef={probeRef}
         onMeasured={onMeasured}
       />
-      <div className="flex flex-col gap-6">
-        {pages == null ? (
-          <div className="h-[1191px] w-[842px] bg-white" />
-        ) : (
-          pages.map((page, i) => (
-            // 배경이 흰색이라 쪽 경계가 보이지 않는다.
-            // 페이지 사이 gap-6(24) 한가운데에 옅은 회색 점선을 그어 쪽을 나눈다.
-            // 선은 absolute라 스택 높이(App의 stackH)를 건드리지 않는다.
-            <div key={i} className="relative">
-              {i > 0 ? (
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -top-3 right-0 left-0 border-t border-dashed border-[var(--color-page-divider)]"
-                />
-              ) : null}
-              <SheetPageView
-                page={page}
-                pageNumber={i + 1}
-                totalPages={pages.length}
-                exam={exam}
-                answers={answers}
-                examinee={examinee}
-                onSelect={onSelect}
-                onSubmit={onSubmit}
-              />
-            </div>
-          ))
-        )}
-      </div>
+      {/*
+        한 번에 한 쪽만 그린다. 0 = 표지, 1부터 문제 페이지.
+        표지는 쪽 번호를 받지 않으므로 문제 페이지는 그대로 1쪽부터다.
+      */}
+      {pageIndex === 0 ? (
+        <CoverSheet meta={exam.meta} examinee={examinee} onNameChange={onNameChange} />
+      ) : pages == null ? (
+        <div className="h-[1191px] w-[842px] bg-white" />
+      ) : (
+        (() => {
+          const page = pages[pageIndex - 1]
+          if (!page) return <div className="h-[1191px] w-[842px] bg-white" />
+          return (
+            <SheetPageView
+              page={page}
+              pageNumber={pageIndex}
+              totalPages={pages.length}
+              exam={exam}
+              answers={answers}
+              examinee={examinee}
+              onSelect={onSelect}
+              onSubmit={onSubmit}
+            />
+          )
+        })()
+      )}
     </div>
   )
 }
