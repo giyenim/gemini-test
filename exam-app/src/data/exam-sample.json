@@ -18,7 +18,7 @@
         {
           "type": "figure",
           "srcs": [
-            "q01-talk.png"
+            "q01-talk.webp"
           ],
           "height": 170
         },
@@ -411,8 +411,8 @@
         {
           "type": "figure",
           "srcs": [
-            "q13-before.png",
-            "q13-after.png"
+            "q13-before.webp",
+            "q13-after.webp"
           ],
           "labels": [
             "(가)",
@@ -452,7 +452,7 @@
         {
           "type": "figure",
           "srcs": [
-            "q05-input.png"
+            "q05-input.webp"
           ],
           "height": 180
         },

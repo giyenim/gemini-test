@@ -15,7 +15,7 @@
 --probe 로 잉크 분포를 찍어 머리 위치와 빈 곳을 눈으로 고른다.
 
 원본 일러스트(`preview.png` 등)는 저장소에 없다(.gitignore). 결과물만
-exam-app/public/figures/ 에 커밋한다.
+exam-app/public/figures/ 에 **WebP 로** 커밋한다.
 """
 import math
 import sys
@@ -26,6 +26,13 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parent.parent
 OUT_DIR = ROOT / "exam-app" / "public" / "figures"
 FONT_PATH = r"C:\Windows\Fonts\NotoSerifKR-VF.ttf"  # 시험지 본문과 같은 서체
+
+# 그림은 시험지에서 폭 300px 안팎으로 그려진다. 원본 캔버스(1600px 이상)는 그대로 둘
+# 이유가 없어 1000px 로 줄인다 — 고해상도 화면의 2~3배 확대까지 견디는 폭이다.
+# PNG 로 내보내던 시절 한 장이 900KB 였고, 그만큼이 Pages 대역폭으로 나갔다.
+# WebP 92 로 구우면 같은 그림이 60KB 다. 표시 크기에서는 차이가 보이지 않는다.
+MAX_WIDTH = 1000
+WEBP_QUALITY = 92
 
 # 각 학생: slot=말풍선 가로 범위, tip_x=꼬리가 가리킬 x, head_top=머리 위쪽 y,
 # label=A·B·C, label_pos=라벨 중심(머리 왼쪽). 모두 원본 이미지 좌표.
@@ -174,8 +181,13 @@ def build(name, spec):
         d.text((lx, ly + top_pad), s["label"], font=font_label, fill=INK, anchor="mm")
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    out = OUT_DIR / f"{name}.png"
-    canvas.save(out)
+    # 말풍선을 원본 좌표에 얹은 뒤 줄인다 — 먼저 줄이면 FIGURES 의 좌표가 다 어긋난다
+    if canvas.width > MAX_WIDTH:
+        canvas = canvas.resize(
+            (MAX_WIDTH, round(canvas.height * MAX_WIDTH / canvas.width)), Image.LANCZOS
+        )
+    out = OUT_DIR / f"{name}.webp"
+    canvas.save(out, "WEBP", quality=WEBP_QUALITY, method=6)
     print(f"{out.relative_to(ROOT)}  {canvas.width}x{canvas.height}  top_pad={top_pad}")
     for s in students:
         print(f"  {s['label']}: {' / '.join(s['lines'])}")

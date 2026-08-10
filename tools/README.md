@@ -16,7 +16,7 @@ python tools/build_book_md.py
 위계는 원서 조판 스타일로 판별한다 (예: `SDPsyche-Upright 35pt` = 장 제목, `NanumSquareNeoTTF-cBd 11.5pt` = 소제목).
 전체 매핑표는 `book2md.py` 상단 독스트링에 있다. 출력 표기 규칙은 [`book/README.md`](../book/README.md) 참고.
 
-## 학생 대화 그림 → `exam-app/public/figures/*.png`
+## 학생 대화 그림 → `exam-app/public/figures/*.webp`
 
 ```bash
 python -m pip install pillow
