@@ -212,7 +212,6 @@ export default function App() {
             (조선신명조처럼 가로획이 얇은 명조에서 특히 자글자글해진다).
             zoom 은 처음부터 확대된 크기로 조판하므로 획이 픽셀에 맞는다.
           */}
-          {/* 넘김 버튼은 시험지 폭에 맞춰 그 아래에 붙는다 (화면 고정 아님) */}
           <div className="flex shrink-0 flex-col">
             <div style={{ zoom: scale }}>
               <ExamSheet
@@ -226,10 +225,11 @@ export default function App() {
                 onPageCount={onPageCount}
               />
             </div>
-            <PageNav index={pageIndex} total={totalPages} onChange={goToPage} />
           </div>
         </div>
       </div>
+      {/* 화면 좌우에 고정된다 — 스테이지 안이 아니라 여기 둬야 스크롤과 무관해진다 */}
+      <PageNav index={pageIndex} total={totalPages} onChange={goToPage} />
     </div>
   )
 }
