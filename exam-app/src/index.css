@@ -47,6 +47,22 @@
   --color-band: #d9d9d9;
   /** 페이지 사이 구분선 — 흰 배경 위에서 쪽이 나뉘는 자리를 표시한다 */
   --color-page-divider: #c8c8c8;
+  /**
+   * 시험지 **바깥** 바탕 — 모눈종이를 깐 책상. 시험지 자체는 `bg-white` 라
+   * 여기 칠한 모눈이 종이 밑으로 비치지 않는다.
+   *
+   * 바탕은 시험지와 **같은 흰색**이다. 종이와 배경을 색으로 나누지 않으므로
+   * 경계는 오직 모눈선이 끊기는 자리로만 드러난다. 종이를 띄워 보이고 싶으면
+   * 여기를 `#f4f4f4` 쯤으로 내린다.
+   * 선은 본문 잉크를 5% 로 묽힌 색이다. 회색을 따로 고르지 않고 잉크에서 뽑았으므로
+   * 잉크 색을 손보면 모눈도 같이 따라온다.
+   *
+   * 5% 는 tailwindcss.com 의 배경 패턴과 같은 농도다 (거기도 `oklab(0 0 0 / 0.05)`).
+   * 20% 로 해 봤더니 흰 바탕에서 #ccc 까지 올라와 본문과 시선을 나눠 가졌다.
+   * 배경 격자는 **있는 줄 모르게** 깔려야 한다.
+   */
+  --color-desk: #fff;
+  --color-desk-grid: color-mix(in srgb, var(--color-ink) 5%, transparent);
 }
 
 /*
@@ -68,7 +84,16 @@
   body {
     font-family: var(--font-serif);
     color: var(--color-ink);
-    background: #fff;
+    /*
+     * 모눈 한 칸 20px = A4 기준 5mm (시험지 폭 842px ÷ 210mm ≈ 4px/mm).
+     * 스크롤은 body 가 아니라 안쪽 컨테이너에서 일어나므로(html/body 는 overflow:hidden)
+     * 이 모눈은 화면에 고정된 채 있고 시험지만 그 위를 지나간다.
+     */
+    background-color: var(--color-desk);
+    background-image:
+      linear-gradient(to right, var(--color-desk-grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--color-desk-grid) 1px, transparent 1px);
+    background-size: 20px 20px;
     -webkit-font-smoothing: antialiased;
   }
 
