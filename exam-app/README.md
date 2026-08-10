@@ -30,7 +30,13 @@ npm run preview
 
 ## 배포
 
-https://giyenim.github.io/gemini-test/ — Vite `base: '/gemini-test/'` 가 이 경로에 맞춰져 있다.
+https://gemini-test.easyspub.co.kr — 커스텀 도메인이라 사이트가 **루트**에 놓이고, 그래서
+Vite `base` 가 `'/'` 다. 옛 주소(`giyenim.github.io/gemini-test/`)로 들어오면 GitHub 이 이
+도메인으로 301 을 보낸다. 도메인 이름은 저장소 Settings → Pages 에 저장되어 있다
+(Actions 배포에서는 `CNAME` 파일이 따로 필요 없다).
+
+> `base` 를 저장소 경로(`'/gemini-test/'`)로 되돌리면 번들과 그림을 `/gemini-test/...` 에서
+> 찾다가 전부 404 가 나고 **화면이 빈 채로 뜬다.**
 
 `main` 에 푸시하면 [`deploy-pages.yml`](../.github/workflows/deploy-pages.yml) 이 `npm run build`
 후 `dist` 를 Pages 아티팩트로 올린다. **빌드 결과는 저장소에 커밋하지 않는다** — 저장소 Settings →
