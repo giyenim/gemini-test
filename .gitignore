@@ -19,3 +19,14 @@ __pycache__/
 # 문항 그림의 원본 일러스트 (말풍선·라벨을 얹기 전). 저장소에 넣지 않는다.
 # 완성본만 exam-app/public/figures/ 에 커밋한다.
 /preview.png
+
+# 예전에는 exam-app/dist 를 저장소 루트에 되커밋해 Pages 가 그걸 서빙했다.
+# 지금은 Actions 아티팩트로 배포하므로(.github/workflows/deploy-pages.yml)
+# 루트에 빌드 결과가 있을 이유가 없다. 실수로 다시 들어오지 않게 막는다.
+# 앞의 `/` 는 저장소 루트만 가리킨다 — exam-app/public/figures 등은 그대로 커밋된다.
+/index.html
+/assets/
+/figures/
+/favicon.svg
+/icons.svg
+/.nojekyll

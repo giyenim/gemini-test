@@ -30,4 +30,12 @@ npm run preview
 
 ## 배포
 
-Vite `base: '/gemini-test/'` — GitHub Pages 프로젝트 사이트용.
+https://giyenim.github.io/gemini-test/ — Vite `base: '/gemini-test/'` 가 이 경로에 맞춰져 있다.
+
+`main` 에 푸시하면 [`deploy-pages.yml`](../.github/workflows/deploy-pages.yml) 이 `npm run build`
+후 `dist` 를 Pages 아티팩트로 올린다. **빌드 결과는 저장소에 커밋하지 않는다** — 저장소 Settings →
+Pages 의 소스가 **GitHub Actions** (`build_type: workflow`) 여야 이 워크플로가 실제로 서빙된다.
+
+> 예전에는 `dist` 를 저장소 루트에 되커밋하고 Pages 가 `main` 의 `/` 를 서빙했다. 그때는 해시가
+> 바뀐 옛 번들이 `assets/` 에 계속 쌓였다. 루트의 `index.html`·`assets/`·`figures/` 는 그 방식의
+> 잔재이므로 되살리지 않는다 — `.gitignore` 가 막고 있다.
