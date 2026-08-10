@@ -1,21 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&display=swap');
+/* 시험지 밖 UI 용. dynamic subset 이라 쓰는 글자에 해당하는 조각만 내려온다 */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 @import 'tailwindcss';
 
 /**
  * 조선굴림 — 방일영문화재단. 개인·기업 무료, 재배포·임베딩 허용.
  * 성적통지표와 응시자 기입란에만 쓴다.
  *
- * ttf 폴백은 두지 않는다: 저장소에 없어 404 이고, 성적표를 PNG 로 구울 때
- * src 의 모든 URL 을 훑는 경로에서 매번 다시 때린다. woff2 + woff 로 충분하다.
+ * **저장소 안의 서브셋을 쓴다** (`public/fonts/`). CDN 의 원본은 한글 전체를 담은
+ * 통짜 한 벌이라 1,441KB 였고, 그것만으로 이 페이지 글꼴 전송량의 96% 를 차지했다.
+ * 실제로 쓰는 625자만 남기니 67KB 다. 성적표를 PNG 로 구울 때 base64 로 박는 양도
+ * 같은 비율로 줄어든다 (`result/fontEmbed.ts` 가 **이 파일을 함께 가리켜야 한다**).
+ *
+ * 글자를 새로 쓰기 시작하면 서브셋에 없어 폴백(Gulim)으로 떨어진다. 그럴 때는
+ * `tools/subset_chosungu.py` 를 다시 돌린다.
+ *
+ * woff2 하나만 둔다 — ttf·woff 폴백은 저장소에 없어 404 이고, 성적표를 구울 때
+ * src 의 모든 URL 을 훑는 경로에서 매번 다시 때린다.
  */
 @font-face {
   font-family: 'ChosunGu';
   font-weight: normal;
   font-style: normal;
   font-display: swap;
-  src:
-    url('https://cdn.jsdelivr.net/gh/fonts-archive/ChosunGu/ChosunGu.woff2') format('woff2'),
-    url('https://cdn.jsdelivr.net/gh/fonts-archive/ChosunGu/ChosunGu.woff') format('woff');
+  src: url('/fonts/ChosunGu-subset.woff2') format('woff2');
 }
 
 @theme {
@@ -35,6 +43,14 @@
    * 나중에 **실제 사용자 손글씨**가 들어갈 자리라 굴림과 따로 둔다.
    */
   --font-write: 'ChosunGu', Gulim, sans-serif;
+  /**
+   * 시험지 **밖**의 것들 — 쪽 넘김 버튼, 서명 창의 안내처럼 종이가 아닌 요소.
+   *
+   * 인쇄물 글꼴(명조·굴림)을 여기까지 쓰면 조작부마저 시험지의 일부처럼 보여,
+   * 어디까지가 문제지고 어디부터가 화면인지 흐려진다. 화면용 산세리프로 갈라 둔다.
+   */
+  --font-ui: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, sans-serif;
   --color-ink: #111;
   --color-ink-muted: #444;
   --color-line: #111;

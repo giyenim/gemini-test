@@ -10,8 +10,12 @@
  * 카드 안에 다른 글꼴을 쓰기 시작하면 여기에도 함께 더해야 한다.
  */
 
-/** `--font-gothic` / `--font-write` — index.css 의 @font-face 와 같은 파일이어야 한다 */
-const CHOSUN_GU_WOFF2 = 'https://cdn.jsdelivr.net/gh/fonts-archive/ChosunGu/ChosunGu.woff2'
+/**
+ * `--font-gothic` / `--font-write` — index.css 의 @font-face 와 **같은 파일이어야 한다.**
+ * 저장소 안의 서브셋(67KB)이다. CDN 원본(1,441KB)을 가리키면 카드 한 장 구울 때마다
+ * 그만큼을 내려받아 base64 로 박는다.
+ */
+const CHOSUN_GU_WOFF2 = `${import.meta.env.BASE_URL}fonts/ChosunGu-subset.woff2`
 
 async function toDataUrl(url: string): Promise<string> {
   const res = await fetch(url)
