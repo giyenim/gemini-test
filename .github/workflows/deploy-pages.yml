@@ -6,17 +6,18 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
+# 배포가 진행 중이면 끝날 때까지 기다린다 — 중간에 끊으면 사이트가 반쯤 올라간 상태로 남는다
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    # Avoid infinite loop when this workflow commits built files back to main
-    if: github.event_name == 'workflow_dispatch' || github.actor != 'github-actions[bot]'
     defaults:
       run:
         working-directory: exam-app
@@ -37,15 +38,21 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Add .nojekyll
-        run: touch dist/.nojekyll
-
-      # Repo Pages is set to branch main + path /. Publish build into repo root
-      # without deleting source files (clean: false).
-      - name: Deploy to main root
-        uses: JamesIves/github-pages-deploy-action@v4
+      # 빌드 결과를 저장소에 커밋하지 않고 Pages 아티팩트로 올린다.
+      # 매 배포가 dist 전체로 교체되므로 옛 해시 파일이 쌓이지 않는다.
+      # path 는 액션 입력이라 위의 working-directory 가 적용되지 않는다 — 저장소 루트 기준.
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          folder: exam-app/dist
-          branch: main
-          clean: false
-          commit-message: 'Deploy exam-app to GitHub Pages [skip ci]'
+          path: exam-app/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
