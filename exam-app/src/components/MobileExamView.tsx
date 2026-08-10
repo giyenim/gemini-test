@@ -27,7 +27,7 @@ interface MobileExamViewProps {
   onSelect: (questionId: number, choice: ChoiceIndex) => void
   onSubmit: () => void
   /** 표지 성명 칸에 적은 이름 — 속지 헤더·성적표까지 따라간다 */
-  onNameChange: (name: string) => void
+  onSignatureChange: (dataUrl: string | null) => void
 }
 
 /** PC 1페이지 헤더와 동일 컴포넌트, 화면 폭에 맞게 scale */
@@ -85,11 +85,11 @@ function MobileSheetHeader({
 function MobileCover({
   meta,
   examinee,
-  onNameChange,
+  onSignatureChange,
 }: {
   meta: ExamMeta
   examinee?: Examinee | null
-  onNameChange: (name: string) => void
+  onSignatureChange: (dataUrl: string | null) => void
 }) {
   const hostRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
@@ -107,7 +107,7 @@ function MobileCover({
   return (
     <div ref={hostRef} style={{ height: PAGE_H * scale }}>
       <div style={{ width: PAGE_W, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-        <CoverSheet meta={meta} examinee={examinee} onNameChange={onNameChange} />
+        <CoverSheet meta={meta} examinee={examinee} onSignatureChange={onSignatureChange} />
       </div>
     </div>
   )
@@ -251,9 +251,11 @@ export function MobileExamView({
   examinee,
   onSelect,
   onSubmit,
-  onNameChange,
+  onSignatureChange,
 }: MobileExamViewProps) {
   const pages = buildMobilePages(exam)
+  // 표지에 서명하기 전에는 문제 페이지를 붙이지 않는다 (아래 렌더 참고)
+  const signed = Boolean(examinee?.signature)
   const scrollerRef = useRef<HTMLDivElement>(null)
   const dragRef = useRef<{
     pointerId: number
@@ -344,10 +346,20 @@ export function MobileExamView({
           className="h-full w-full shrink-0 snap-start snap-always overflow-y-auto overscroll-y-contain bg-white"
           aria-label="표지"
         >
-          <MobileCover meta={exam.meta} examinee={examinee} onNameChange={onNameChange} />
+          <MobileCover meta={exam.meta} examinee={examinee} onSignatureChange={onSignatureChange} />
+          {signed ? null : (
+            <p className="m-0 px-4 pt-3 pb-8 text-center font-gothic text-[12px] text-ink-muted">
+              이름을 쓰면 다음 페이지로 넘어갑니다.
+            </p>
+          )}
         </article>
 
-        {pages.map((page, index) => {
+        {/*
+          서명 전에는 문제 페이지를 아예 붙이지 않는다. 넘김이 스크롤 스냅이라
+          "넘어가려는 동작"을 중간에 되돌리는 것보다 넘어갈 곳을 두지 않는 편이 조용하다.
+        */}
+        {signed &&
+          pages.map((page, index) => {
           const pageNumber = index + 1
           const isLast = index === pages.length - 1
           return (

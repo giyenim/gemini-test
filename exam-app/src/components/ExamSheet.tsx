@@ -34,7 +34,7 @@ interface ExamSheetProps {
   onSelect: (questionId: number, choice: ChoiceIndex) => void
   onSubmit: () => void
   /** 표지 성명 칸에 적은 이름 — 속지 헤더·성적표까지 따라간다 */
-  onNameChange: (name: string) => void
+  onSignatureChange: (dataUrl: string | null) => void
   /** 지금 보여 줄 쪽. 0 = 표지, 1부터 문제 페이지 */
   pageIndex: number
   /** 표지를 포함한 총 쪽수 — 패킹이 끝나야 알 수 있어 올려 보낸다 */
@@ -372,7 +372,7 @@ export function ExamSheet({
   examinee,
   onSelect,
   onSubmit,
-  onNameChange,
+  onSignatureChange,
   pageIndex,
   onPageCount,
 }: ExamSheetProps) {
@@ -428,7 +428,7 @@ export function ExamSheet({
         표지는 쪽 번호를 받지 않으므로 문제 페이지는 그대로 1쪽부터다.
       */}
       {pageIndex === 0 ? (
-        <CoverSheet meta={exam.meta} examinee={examinee} onNameChange={onNameChange} />
+        <CoverSheet meta={exam.meta} examinee={examinee} onSignatureChange={onSignatureChange} />
       ) : pages == null ? (
         <div className="h-[1191px] w-[842px] bg-white" />
       ) : (

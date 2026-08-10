@@ -1,6 +1,7 @@
 import type { Ref } from 'react'
 import type { ExamScore } from '../../grade'
 import type { Examinee, ExamMeta } from '../../types/exam'
+import { SignatureMark } from '../SignaturePad'
 
 interface ReportCardProps {
   meta: ExamMeta
@@ -40,8 +41,10 @@ export function ReportCard({ meta, examinee, score, captureRef }: ReportCardProp
         <p className="m-0">
           수험번호 <span className="ml-1 font-write text-[13px]">{examinee.id}</span>
         </p>
-        <p className="m-0">
-          성명 <span className="ml-1 font-write text-[13px]">{examinee.name}</span>
+        {/* 성명은 표지에서 직접 쓴 서명이 그대로 온다 — 글자가 아니라 이미지다 */}
+        <p className="m-0 flex items-end gap-1">
+          성명
+          <SignatureMark src={examinee.signature} className="ml-1 h-[22px] w-auto object-contain" />
         </p>
       </div>
 

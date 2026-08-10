@@ -1,0 +1,340 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { Modal } from './result/Modal'
+
+/**
+ * 성명 서명 — 이름을 **글자로 받지 않고** 마우스·손가락으로 직접 쓴다.
+ *
+ * 실제 시험지의 성명란은 응시자가 손으로 적는 자리다. 입력 상자로 두면 그 자리만
+ * 웹 폼이 되어 종이의 인상이 깨진다. 여기서 받은 획이 표지·속지 헤더·성적통지표
+ * 세 곳에 같은 이미지로 들어간다.
+ *
+ * **쓰는 곳과 놓이는 곳을 나눈다.** 성명란은 148×34 라 거기에 대고 마우스로 이름을
+ * 쓰기는 어렵다. 칸을 누르면 넉넉한 창이 열리고, 거기서 쓴 글씨가 칸에 담긴다.
+ * 창의 캔버스는 칸과 **같은 가로세로 비**라 축소해 넣어도 획의 모양이 변하지 않는다.
+ *
+ * 마우스와 터치를 따로 다루지 않는다 — Pointer 이벤트 하나로 둘 다 받는다.
+ * `touch-none` 은 손가락으로 그을 때 화면이 같이 스크롤되는 것을 막는다.
+ */
+
+/** 내부 해상도 배수 — 화면에 보이는 크기의 몇 배로 굽는가 (선이 계단지지 않을 만큼) */
+const SCALE = 2
+
+/** 획 굵기 (논리 px) */
+const STROKE = 2.4
+
+/**
+ * 서명 창의 캔버스 — 성명 칸(148×34)의 **6배**. 비율이 같아야 칸에 그대로 들어간다.
+ * 좁은 화면에서는 `max-width` 로 함께 줄어든다.
+ */
+const PAD_W = 888
+const PAD_H = 204
+
+interface SignaturePadProps {
+  /** PNG dataURL. 아직 쓰기 전이면 null */
+  value: string | null
+  onChange: (dataUrl: string | null) => void
+  /** 캔버스의 논리 크기 — 가로세로 비도 이 값에서 나온다 */
+  width: number
+  height: number
+}
+
+export function SignaturePad({ value, onChange, width, height }: SignaturePadProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const drawing = useRef(false)
+  const last = useRef<{ x: number; y: number } | null>(null)
+  /**
+   * 직전에 **내가 내보낸** dataURL. 부모가 그대로 돌려준 값을 다시 그리면
+   * 획을 그을 때마다 캔버스를 지웠다 그리게 되어 깜빡인다.
+   */
+  const emitted = useRef<string | null>(null)
+  const [hasInk, setHasInk] = useState(Boolean(value))
+
+  const ctxOf = (c: HTMLCanvasElement) => {
+    const ctx = c.getContext('2d')!
+    ctx.strokeStyle = '#111'
+    ctx.fillStyle = '#111'
+    ctx.lineWidth = STROKE * SCALE
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    return ctx
+  }
+
+  /**
+   * 표지는 `zoom` 으로 확대되어 그려진다. 그 아래에서 `offsetX` 는 브라우저마다
+   * 배율을 반영하기도, 안 하기도 한다. 실제 그려진 사각형 대비 비율로 환산하면
+   * 배율이 얼마든 어긋나지 않는다.
+   */
+  const posOf = (canvas: HTMLCanvasElement, clientX: number, clientY: number) => {
+    const r = canvas.getBoundingClientRect()
+    return {
+      x: ((clientX - r.left) / r.width) * canvas.width,
+      y: ((clientY - r.top) / r.height) * canvas.height,
+    }
+  }
+
+  // 부모가 밖에서 값을 바꿨을 때만 캔버스를 되돌린다 (되돌아왔을 때 서명이 남아 있어야 한다)
+  useEffect(() => {
+    if (value === emitted.current) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = ctxOf(canvas)
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    if (!value) {
+      setHasInk(false)
+      return
+    }
+    const img = new Image()
+    img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+    img.src = value
+    emitted.current = value
+    setHasInk(true)
+  }, [value])
+
+  const commit = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const url = canvas.toDataURL('image/png')
+    emitted.current = url
+    onChange(url)
+  }, [onChange])
+
+  const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const canvas = e.currentTarget
+    /*
+     * 칸 밖으로 나가도 획이 이어지도록 포인터를 잡아 둔다.
+     * **반드시 감싸야 한다** — 활성 포인터가 아닌 입력(합성 이벤트 등)에서는
+     * `NotFoundError` 를 던지고, 이 줄이 핸들러 맨 앞이라 그 순간 획이 통째로 죽는다.
+     * 잡지 못해도 칸 안에서 긋는 데에는 지장이 없다.
+     */
+    try {
+      canvas.setPointerCapture(e.pointerId)
+    } catch {
+      // 캡처 없이 진행한다. 칸을 벗어나는 순간은 onPointerLeave 가 마무리한다
+    }
+    const ctx = ctxOf(canvas)
+    const p = posOf(canvas, e.clientX, e.clientY)
+    drawing.current = true
+    last.current = p
+    // 톡 찍기만 해도 점이 남아야 한다 (마침표·점획)
+    ctx.beginPath()
+    ctx.arc(p.x, p.y, (STROKE * SCALE) / 2, 0, Math.PI * 2)
+    ctx.fill()
+    setHasInk(true)
+  }
+
+  const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!drawing.current) return
+    const canvas = e.currentTarget
+    const ctx = ctxOf(canvas)
+    const p = posOf(canvas, e.clientX, e.clientY)
+    const l = last.current
+    if (!l) return
+    ctx.beginPath()
+    ctx.moveTo(l.x, l.y)
+    ctx.lineTo(p.x, p.y)
+    ctx.stroke()
+    last.current = p
+  }
+
+  const onPointerEnd = () => {
+    if (!drawing.current) return
+    drawing.current = false
+    last.current = null
+    // 획이 끝날 때만 내보낸다 — 움직일 때마다 굽는 것은 비싸다
+    commit()
+  }
+
+  // 지우기는 부모가 `value` 를 null 로 되돌려 처리한다 (위 useEffect 가 캔버스를 비운다)
+
+  return (
+    /*
+     * 창이 좁으면 함께 줄되 가로세로 비는 지킨다 — 그래야 칸에 담길 때 획이 눌리지 않는다.
+     * 테두리를 두르지 않는다. 이 캔버스가 곧 창의 바닥이라 선을 그으면 도화지가 아니라
+     * 또 하나의 입력 상자로 보인다.
+     */
+    <div
+      className="relative w-full"
+      style={{ maxWidth: width, aspectRatio: `${width} / ${height}` }}
+    >
+      <canvas
+        ref={canvasRef}
+        width={width * SCALE}
+        height={height * SCALE}
+        aria-label="성명 서명란"
+        className="h-full w-full cursor-crosshair touch-none"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerEnd}
+        onPointerCancel={onPointerEnd}
+        /* 포인터를 잡지 못한 경우의 뒷정리 — 잡았다면 칸을 벗어나도 계속 이어야 한다 */
+        onPointerLeave={(e) => {
+          if (!e.currentTarget.hasPointerCapture(e.pointerId)) onPointerEnd()
+        }}
+      />
+      {hasInk ? null : (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 flex items-center justify-center font-ui text-[15px] text-ink-muted/35"
+        >
+          이 안에 이름을 쓰세요
+        </span>
+      )}
+    </div>
+  )
+}
+
+/**
+ * 표지의 성명 칸 — **누르면 서명 창이 열린다.**
+ *
+ * 칸 자체에는 캔버스를 두지 않는다. 148×34 에 대고 마우스로 이름을 쓰기는 어렵고,
+ * 손가락으로는 더 어렵다. 칸은 쓴 결과를 보여 주고 창을 여는 역할만 한다.
+ *
+ * 창은 `createPortal` 로 `body` 에 붙인다. 표지는 `zoom`(데스크톱)·`transform`(모바일)
+ * 안에서 그려지므로, 그 안에 두면 `fixed` 인 창까지 같이 확대·축소된다.
+ *
+ * 창 안의 획은 **확인을 눌러야** 칸에 담긴다. 그전까지는 `draft` 에만 머물러,
+ * 쓰다 말고 닫으면 원래 서명이 그대로 남는다.
+ */
+export function SignatureField({
+  value,
+  onChange,
+  width,
+}: {
+  value: string | null
+  onChange: (dataUrl: string | null) => void
+  /** 칸의 논리 폭 — 높이는 칸(`Field`)이 정한다 */
+  width: number
+}) {
+  const [open, setOpen] = useState(false)
+  /**
+   * 창에서 그리는 중인 그림. 확인을 눌러야 칸으로 넘어간다.
+   * `null` 로 되돌리면 `SignaturePad` 가 값이 바뀐 것을 보고 캔버스를 스스로 비운다.
+   */
+  const [draft, setDraft] = useState<string | null>(value)
+
+  const openPad = () => {
+    setDraft(value)
+    setOpen(true)
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={openPad}
+        aria-label={value ? '성명 다시 서명하기' : '성명 서명하기'}
+        className="flex h-full items-center justify-center bg-transparent px-1 hover:bg-selected"
+        style={{ width }}
+      >
+        {/*
+          비어 있을 때 아무것도 넣지 않는다 — 실제 시험지의 성명란도 빈 칸이다.
+          누를 수 있다는 것은 넘김 버튼의 `이름을 써 주세요` 와 칸의 hover 가 알려 준다.
+        */}
+        {value ? (
+          <SignatureMark src={value} className="max-h-full w-full object-contain" />
+        ) : null}
+      </button>
+
+      {open
+        ? createPortal(
+            /*
+             * 창은 **도화지 한 장** 그 자체다. 제목 줄도 본문 여백도 두지 않아 캔버스가
+             * 껍데기를 꽉 채우고, 지우기·닫기·확인만 그 위에 얹는다.
+             * 제목이 사라져도 `title` 은 `aria-label` 로 남아 화면 낭독기에 읽힌다.
+             * 껍데기의 닫기 ✕ 대신 도화지 위의 ✕ 를 쓴다 (Esc·바깥 누르기도 그대로).
+             */
+            <Modal
+              title="성명 서명"
+              width={PAD_W + 2}
+              hideHeader
+              bodyClassName="min-h-0 flex-1 overflow-hidden"
+              onClose={() => setOpen(false)}
+            >
+              <div className="relative">
+                <SignaturePad
+                  value={draft}
+                  onChange={setDraft}
+                  width={PAD_W}
+                  height={PAD_H}
+                />
+                {/* 지우기·닫기는 아이콘만, 오른쪽 위. 테두리를 두르면 도화지에 상자가 얹힌다 */}
+                <div className="absolute top-2.5 right-3 flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setDraft(null)}
+                    disabled={!draft}
+                    aria-label="서명 지우기"
+                    title="지우고 다시 쓰기"
+                    className="flex h-8 w-8 items-center justify-center bg-transparent text-ink-muted enabled:hover:text-ink disabled:cursor-not-allowed disabled:opacity-25"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      aria-hidden
+                      className="h-[18px] w-[18px]"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M9 14 4 9l5-5" />
+                      <path d="M4 9h11a5 5 0 0 1 0 10H8" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    aria-label="닫기"
+                    title="닫기"
+                    className="flex h-8 w-8 items-center justify-center bg-transparent text-ink-muted hover:text-ink"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      aria-hidden
+                      className="h-[18px] w-[18px]"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    >
+                      <path d="M6 6 18 18M18 6 6 18" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* 확인 — 쪽 넘김 버튼과 같은 결(시험지 밖 글꼴, 테두리 없음) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange(draft)
+                    setOpen(false)
+                  }}
+                  disabled={!draft}
+                  className="absolute right-3 bottom-2.5 bg-transparent px-2 py-1 font-ui text-[14px] text-ink enabled:hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                  확인
+                </button>
+              </div>
+            </Modal>,
+            document.body,
+          )
+        : null}
+    </>
+  )
+}
+
+/**
+ * 다 쓴 서명을 **읽기 전용**으로 보여 준다 — 속지 헤더와 성적통지표의 성명 칸.
+ * 칸 크기가 저마다 달라 `object-contain` 으로 비율만 지키고 크기는 부모가 정한다.
+ */
+export function SignatureMark({
+  src,
+  className,
+}: {
+  src?: string | null
+  className?: string
+}) {
+  if (!src) return null
+  return <img src={src} alt="" className={className ?? 'h-full w-full object-contain'} />
+}

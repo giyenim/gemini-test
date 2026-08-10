@@ -6,6 +6,7 @@ import {
   PAGE_W,
 } from '../layout/constants'
 import type { Examinee, ExamMeta } from '../types/exam'
+import { SignatureField, SignatureMark } from './SignaturePad'
 
 /**
  * 시험지 표지 — 문제 페이지 앞에 한 장 붙는다.
@@ -43,17 +44,17 @@ const NOTICES = [
 /** 필적 확인 띠가 들어갈 항목 (0부터) */
 const HANDWRITING_AFTER = 1
 
-/** 성명 칸 최대 글자 수 — 칸 폭(148px)을 넘지 않는 선 */
-const MAX_NAME = 10
+/** 성명 칸 폭 — 서명 창의 캔버스도 이 칸과 같은 가로세로 비로 잡는다 (SignaturePad.tsx) */
+const NAME_W = 148
 
 interface CoverSheetProps {
   meta: ExamMeta
   examinee?: Examinee | null
   /**
-   * 주면 성명 칸이 **직접 쓰는 칸**이 된다. 여기 적은 이름이 속지 헤더와 성적표까지
+   * 주면 성명 칸이 **직접 쓰는 칸**이 된다. 여기 쓴 서명이 속지 헤더와 성적표까지
    * 그대로 따라간다 — 실제 시험지도 표지와 속지 양쪽에 성명란이 있다.
    */
-  onNameChange?: (name: string) => void
+  onSignatureChange?: (dataUrl: string | null) => void
 }
 
 function NoticeItem({ text, children }: { text: string; children?: React.ReactNode }) {
@@ -94,7 +95,7 @@ function Field({
   )
 }
 
-export function CoverSheet({ meta, examinee, onNameChange }: CoverSheetProps) {
+export function CoverSheet({ meta, examinee, onSignatureChange }: CoverSheetProps) {
   // 4칸 + 하이픈 + 4칸. 칸 수는 이 배열 길이로만 정한다
   const idCells = [
     ...(examinee?.id.slice(0, 4) ?? '    ').padEnd(4).split(''),
@@ -140,21 +141,15 @@ export function CoverSheet({ meta, examinee, onNameChange }: CoverSheetProps) {
         style={{ marginTop: GAP.subjectToFields }}
       >
         <Field label="성명" labelWidth={58}>
-          {onNameChange ? (
-            <input
-              value={examinee?.name ?? ''}
-              onChange={(e) => onNameChange(e.target.value.slice(0, MAX_NAME))}
-              maxLength={MAX_NAME}
-              aria-label="성명"
-              autoComplete="name"
-              autoFocus
-              /* 빈칸으로 두면 성적표까지 이름 없이 나간다. 적는 칸이라는 표시를 남긴다 */
-              placeholder="이름"
-              className="w-[148px] border-0 bg-transparent px-2 text-center font-write text-[18px] text-ink outline-none placeholder:font-serif placeholder:text-[14px] placeholder:text-ink-muted/40 focus:bg-selected"
+          {onSignatureChange ? (
+            <SignatureField
+              value={examinee?.signature ?? null}
+              onChange={onSignatureChange}
+              width={NAME_W}
             />
           ) : (
-            <span className="flex w-[148px] items-center justify-center truncate px-2 font-write text-[18px]">
-              {examinee?.name ?? ''}
+            <span className="flex items-center justify-center px-1" style={{ width: NAME_W }}>
+              <SignatureMark src={examinee?.signature} className="max-h-full w-full object-contain" />
             </span>
           )}
         </Field>

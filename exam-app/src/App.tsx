@@ -43,7 +43,7 @@ type Phase = 'exam' | 'grading' | 'result'
 export default function App() {
   const [answers, setAnswers] = useState<Answers>({})
   // 표지를 여는 순간이 곧 응시 시작이다
-  const [examinee, setExaminee] = useState<Examinee>(() => issueExaminee(''))
+  const [examinee, setExaminee] = useState<Examinee>(() => issueExaminee())
   const [phase, setPhase] = useState<Phase>('exam')
   // 데스크톱은 한 번에 한 쪽만 본다. 0 = 표지, 1부터 문제 페이지
   const [pageIndex, setPageIndex] = useState(0)
@@ -71,9 +71,9 @@ export default function App() {
     setAnswers((prev) => ({ ...prev, [questionId]: choice }))
   }, [phase])
 
-  // 표지 성명 칸 — 적는 즉시 속지 헤더와 성적표에 반영된다
-  const onNameChange = useCallback((name: string) => {
-    setExaminee((prev) => ({ ...prev, name }))
+  // 표지 성명 칸 — 쓰는 즉시 속지 헤더와 성적표에 같은 서명이 반영된다
+  const onSignatureChange = useCallback((signature: string | null) => {
+    setExaminee((prev) => ({ ...prev, signature }))
   }, [])
 
   const goToPage = useCallback((next: number) => {
@@ -192,7 +192,7 @@ export default function App() {
           examinee={examinee}
           onSelect={onSelect}
           onSubmit={onSubmit}
-          onNameChange={onNameChange}
+          onSignatureChange={onSignatureChange}
         />
       </div>
     )
@@ -220,7 +220,7 @@ export default function App() {
                 examinee={examinee}
                 onSelect={onSelect}
                 onSubmit={onSubmit}
-                onNameChange={onNameChange}
+                onSignatureChange={onSignatureChange}
                 pageIndex={pageIndex}
                 onPageCount={onPageCount}
               />
@@ -229,7 +229,12 @@ export default function App() {
         </div>
       </div>
       {/* 화면 좌우에 고정된다 — 스테이지 안이 아니라 여기 둬야 스크롤과 무관해진다 */}
-      <PageNav index={pageIndex} total={totalPages} onChange={goToPage} />
+      <PageNav
+        index={pageIndex}
+        total={totalPages}
+        onChange={goToPage}
+        needsSignature={pageIndex === 0 && !examinee.signature}
+      />
     </div>
   )
 }

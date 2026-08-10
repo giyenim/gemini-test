@@ -3,6 +3,8 @@ interface PageNavProps {
   index: number
   total: number
   onChange: (next: number) => void
+  /** 표지에서 아직 서명하지 않았을 때 — 다음으로 넘기지 않고 이유를 대신 보여 준다 */
+  needsSignature?: boolean
 }
 
 /**
@@ -28,22 +30,24 @@ interface PageNavProps {
  * 표시를 덧붙이면 정작 읽어야 할 안내가 가려진다. 호버 반응은 눌리는 쪽과 **똑같이**
  * 준다 (`group-hover`, `group-enabled:group-hover` 아님).
  *
- * 화살표는 `←` `→` 다. 조선굴림에 `‹` `›` 글리프가 없어 폴백 글꼴의 점처럼 찍힌다.
+ * 글꼴은 시험지 밖의 것(`font-ui`)이다 — 종이가 아니라 화면의 조작부이기 때문이다.
  * 화살표와 글자는 두 줄로 나눠 가운데로 맞춘다 — 두 줄 모두 배경을 갖도록
  * `box-decoration-clone` 을 준다. 없으면 첫 줄에만 패딩이 붙어 배경이 어긋난다.
  *
  * 줄 높이와 세로 패딩은 **두 줄의 흰 바탕이 맞닿도록** 맞춘 값이다. 줄 간격이 배경보다
  * 벌어지면 두 줄 사이로 모눈이 비쳐 하이라이트가 끊겨 보인다.
  */
-export function PageNav({ index, total, onChange }: PageNavProps) {
+export function PageNav({ index, total, onChange, needsSignature }: PageNavProps) {
   const isFirst = index <= 0
   const isLast = index >= total - 1
+  // 서명은 표지에서만 막는다. 뒤로 가는 길은 언제나 열어 둔다
+  const blocked = Boolean(needsSignature) && !isLast
 
   // `disabled:*` 셋은 index.css 의 전역 `button { cursor: pointer }` 와
   // `button:disabled { cursor: not-allowed; opacity: .4 }` 를 이 버튼에서만 되돌린다.
   // 그쪽은 @layer base 라 레이어 없는 유틸리티가 이긴다. 다른 버튼은 그대로 둔다.
   const base =
-    'group pointer-events-auto px-4 py-3 text-center font-gothic text-[14px] text-ink disabled:cursor-default disabled:opacity-100'
+    'group pointer-events-auto px-4 py-3 text-center font-ui text-[14px] text-ink disabled:cursor-default disabled:opacity-100'
   // leading 을 줄 배경 높이(글자 14px + 세로 패딩 4+4)와 같은 22px 로 맞춰 두 줄을 맞닿게 한다.
   // **글자 크기를 바꾸면 이 값도 같이 옮겨야 한다** — 어긋나면 두 줄 사이로 모눈이 비친다.
   const label =
@@ -75,13 +79,17 @@ export function PageNav({ index, total, onChange }: PageNavProps) {
       <button
         type="button"
         className={base}
-        disabled={isLast}
+        disabled={isLast || blocked}
         onClick={() => onChange(index + 1)}
       >
         <span className={label}>
           {isLast ? (
             <>
               마지막<br />페이지입니다
+            </>
+          ) : blocked ? (
+            <>
+              이름을<br />써 주세요
             </>
           ) : (
             <>

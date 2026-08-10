@@ -71,7 +71,7 @@ export function ResultView({ exam, examinee, score }: ResultViewProps) {
       const url = await toPng(node, { pixelRatio: 2, backgroundColor: '#ffffff', fontEmbedCSS })
       const a = document.createElement('a')
       a.href = url
-      a.download = `성적통지표_${examinee.name}_${examinee.id}.png`
+      a.download = `성적통지표_${examinee.id}.png`
       a.click()
     } catch {
       setSaveError(true)

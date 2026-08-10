@@ -1,4 +1,5 @@
 import type { Examinee, ExamMeta } from '../types/exam'
+import { SignatureMark } from './SignaturePad'
 
 export interface SheetHeaderFirstProps {
   meta: ExamMeta
@@ -86,8 +87,8 @@ export function SheetHeaderFirst({ meta, pageNumber, examinee }: SheetHeaderFirs
           >
             성명
           </span>
-          <span className="flex min-w-0 flex-1 items-center justify-center truncate px-2 font-write text-[14px] leading-none">
-            {examinee?.name ?? ''}
+          <span className="flex min-w-0 flex-1 items-center justify-center px-1.5 py-0.5">
+            <SignatureMark src={examinee?.signature} className="max-h-full w-full object-contain" />
           </span>
         </div>
 

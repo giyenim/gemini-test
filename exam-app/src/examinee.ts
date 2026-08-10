@@ -39,10 +39,10 @@ export function issueExamineeId(now: Date = new Date()): string {
   return time + randomDigits(RANDOM_DIGITS)
 }
 
-/** 응시자 발급 — 이름은 표지에서 직접 고쳐 쓸 수 있으므로 비어 있어도 된다 */
-export function issueExaminee(name: string, now: Date = new Date()): Examinee {
+/** 응시자 발급 — 서명은 표지에서 직접 쓰므로 처음에는 비어 있다 */
+export function issueExaminee(now: Date = new Date()): Examinee {
   return {
-    name: name.trim(),
+    signature: null,
     id: issueExamineeId(now),
     takenAt: `${now.getFullYear()}년 ${now.getMonth() + 1}월 ${now.getDate()}일`,
   }
