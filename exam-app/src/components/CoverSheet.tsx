@@ -31,15 +31,24 @@ const GAP = {
   bannerToBrand: 84,
 }
 
-/** 유의 사항 — 필적 확인 문구는 두 번째 항목 안에 회색 띠로 끼워 넣는다 */
+/**
+ * 유의 사항 — 필적 확인 문구는 두 번째 항목 안에 회색 띠로 끼워 넣는다.
+ *
+ * 이 시험지에는 종이 답안지가 없고 수험 번호도 앱이 발급한다(`examinee.ts`).
+ * 그래서 원본 수능 표지의 문구를 그대로 두면 없는 물건을 가리키게 된다 —
+ * **띠와 ○ 목록의 꼴은 그대로 두고 문구만 이 시험지의 사정에 맞췄다.** 필적 확인
+ * 띠는 쓸모가 있어서가 아니라 표지가 표지처럼 보이게 하려고 남겨 둔 것이고,
+ * 항목 자체가 그렇다고 밝힌다. 답안지 표기 안내가 있던 자리는 책 소개로 쓰되,
+ * 시험을 치는 데 필요한 배점 안내를 앞에 두고 **맨 끝**에 붙인다.
+ */
 const HANDWRITING = '사람을 구체적으로 도와주는 책'
 const BANNER = '※ 시험이 시작되건 말건 표지를 넘기시오.'
 
 const NOTICES = [
-  '문제지의 해당란에 성명과 수험 번호를 정확히 쓰시오.',
-  '답안지의 필적 확인란에 다음의 문구를 정자로 기재하시오.',
-  '답안지의 해당란에 성명과 수험 번호를 쓰고, 또 수험 번호와 답을 정확히 표시하시오.',
+  '문제지의 해당란에 성명을 정확히 쓰시오. 수험 번호는 자동으로 부여됩니다.',
+  '필적 확인 문구는 형식을 맞추려고 넣었습니다. 다음의 문구를 마음에 새기시오.',
   '문항에 따라 배점이 다릅니다. 3점 문항에만 점수가 표시되어 있습니다. 점수 표시가 없는 문항은 모두 2점입니다.',
+  '본 시험지는 《된다! 하루 만에 끝내는 제미나이 활용법》 개정판을 바탕으로 만들어졌습니다. 책에 관심을 주시오.',
 ]
 /** 필적 확인 띠가 들어갈 항목 (0부터) */
 const HANDWRITING_AFTER = 1
@@ -178,7 +187,7 @@ export function CoverSheet({ meta, examinee, onSignatureChange }: CoverSheetProp
           {NOTICES.map((text, i) => (
             <NoticeItem key={i} text={text}>
               {i === HANDWRITING_AFTER ? (
-                <div className="mt-[18px] mb-[26px] border-[1.2px] border-line bg-band py-[11px] text-center text-[19px] font-bold leading-none tracking-[-0.02em]">
+                <div className="my-[16px] border-[1.2px] border-line bg-band py-[11px] text-center text-[19px] font-bold leading-none tracking-[-0.02em]">
                   {HANDWRITING}
                 </div>
               ) : null}

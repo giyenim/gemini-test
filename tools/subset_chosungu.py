@@ -34,9 +34,12 @@ OUT = APP / "public" / "fonts" / "ChosunGu-subset.woff2"
 SOURCE_URL = "https://cdn.jsdelivr.net/gh/fonts-archive/ChosunGu/ChosunGu.woff2"
 
 # 날짜·점수 표기는 코드가 조립해 내므로 문자열 검색으로는 잡히지 않는다 (examinee.ts, grade.ts)
+# 문장 부호도 여기서만 챙긴다 — `collect_chars` 의 정규식은 한글·숫자만 걷으므로
+# 겹낫표(《》) 같은 글자는 소스에 있어도 잡히지 않는다.
 ALWAYS = (
     "0123456789"
     ".,·:;()[]{}<>/\\-—–~!?%&*+=`^_|@#$'\" "
+    "《》〈〉「」『』"
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     "년월일점등급백분위표준원영역만제교시성명수험번호비고"
 )
