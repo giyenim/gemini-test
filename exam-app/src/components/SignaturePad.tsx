@@ -91,6 +91,34 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
     setHasInk(true)
   }, [value])
 
+  /*
+   * iOS 사파리의 돋보기(루페)를 막는다.
+   *
+   * 두 번 톡톡 치거나 꾹 누르면 사파리가 글자를 고르려고 물방울 모양 돋보기를 띄운다.
+   * CSS 로는 막지 못한다 — `user-select: none` 도 `-webkit-touch-callout: none` 도
+   * 사파리의 터치 제스처보다 뒤에 온다. 확실한 길은 `touchstart`·`touchmove` 의
+   * **기본 동작 자체**를 막는 것이다.
+   *
+   * **리액트의 `onTouchStart` 로는 안 된다.** 리액트는 이 두 이벤트를 성능을 위해
+   * passive 로 달아 두고, passive 리스너의 `preventDefault()` 는 조용히 무시된다.
+   * 그래서 여기서 직접 `passive: false` 로 단다.
+   *
+   * 그림 그리기에는 지장이 없다 — 획은 Pointer 이벤트로 받고, 여기서 끄는 것은
+   * 터치의 기본 동작(선택·돋보기·두 번 눌러 확대)뿐이다.
+   */
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const stop = (e: Event) => e.preventDefault()
+    const opts = { passive: false }
+    canvas.addEventListener('touchstart', stop, opts)
+    canvas.addEventListener('touchmove', stop, opts)
+    return () => {
+      canvas.removeEventListener('touchstart', stop)
+      canvas.removeEventListener('touchmove', stop)
+    }
+  }, [])
+
   const commit = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -177,6 +205,8 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
          * 셋 다 있어야 손가락으로 이름을 쓸 때 브라우저가 끼어들지 않는다.
          */
         className="h-full w-full cursor-crosshair touch-none select-none [-webkit-touch-callout:none]"
+        /* 꾹 눌렀을 때 뜨는 메뉴(안드로이드 크롬 등) — 돋보기와 짝을 이루는 나머지 반쪽 */
+        onContextMenu={(e) => e.preventDefault()}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerEnd}
