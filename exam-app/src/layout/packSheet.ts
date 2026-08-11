@@ -1,4 +1,5 @@
 import {
+  COLUMN_BOTTOM,
   COLUMN_TOP,
   MAX_QUESTION_GAP,
   MAX_QUESTIONS_PER_COLUMN,
@@ -35,8 +36,17 @@ function emptyPage(headerKind: PackedPage['headerKind']): PackedPage {
   return { headerKind, left: emptyColumn(), right: emptyColumn() }
 }
 
+/**
+ * 한 단에 담을 수 있는 높이.
+ *
+ * 넘겨받은 `contentHeight` 는 단이 **차지하는** 높이고, 그중 아래 `COLUMN_BOTTOM` 은
+ * `SheetColumn` 이 패딩으로 비워 둔다. 여기서 빼지 않으면 패킹이 그 자리까지
+ * 쓸 수 있다고 보고 마지막 문제를 밀어 넣어 잘린다.
+ * (위쪽 `COLUMN_TOP` 은 `ensureColumnTop` 이 `used` 로 먼저 깎는다.)
+ */
 function colHeight(c: Cursor): number {
-  return c.pageIndex === 0 ? c.contentHeightFirst : c.contentHeightContinued
+  const full = c.pageIndex === 0 ? c.contentHeightFirst : c.contentHeightContinued
+  return full - COLUMN_BOTTOM
 }
 
 function currentColumn(c: Cursor): PackedColumn {

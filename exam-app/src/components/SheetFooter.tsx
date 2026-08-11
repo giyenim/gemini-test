@@ -6,7 +6,13 @@ interface SheetFooterProps {
   totalPages: number
 }
 
-/** 수능형 푸터 — 가운데 페이지 박스(현재/전체) + 오른쪽 저작권 */
+/**
+ * 수능형 푸터 — 가운데 페이지 박스(현재/전체) + 오른쪽 저작권
+ *
+ * 위 여백(`mt-2.5`)은 **`layout/constants.ts` 의 `FOOTER_H` 와 같이 움직여야 한다.**
+ * 다만 본문과 푸터 사이를 벌리고 싶을 때 여기를 건드리지는 않는다 — 그 숨통은
+ * 단 아래 여백(`COLUMN_BOTTOM`)이 맡는다. 여기는 푸터 자체의 자리다.
+ */
 export function SheetFooter({ meta, pageNumber, totalPages }: SheetFooterProps) {
   return (
     <footer className="relative mt-2.5 flex h-10 shrink-0 items-center justify-center">

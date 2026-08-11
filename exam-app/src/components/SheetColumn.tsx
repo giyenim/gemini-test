@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { PlacedItem } from '../layout/types'
-import { COLUMN_TOP } from '../layout/constants'
+import { COLUMN_BOTTOM, COLUMN_TOP } from '../layout/constants'
 
 interface SheetColumnProps {
   items: PlacedItem[]
@@ -33,7 +33,8 @@ export function SheetColumn({ items, renderItem }: SheetColumnProps) {
   return (
     <div
       className="flex h-full min-h-0 flex-col"
-      style={{ paddingTop: COLUMN_TOP }}
+      /* 아래 여백은 packSheet 의 colHeight 에서도 빠진다 — 한쪽만 두면 마지막 문제가 잘린다 */
+      style={{ paddingTop: COLUMN_TOP, paddingBottom: COLUMN_BOTTOM }}
     >
       {items.map((item, i) => {
         const gapBefore = item.gapBefore
