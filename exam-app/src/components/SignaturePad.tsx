@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { MOBILE_MEDIA_QUERY } from '../layout/constants'
 import { Modal } from './result/Modal'
 
 /**
@@ -11,7 +12,10 @@ import { Modal } from './result/Modal'
  *
  * **쓰는 곳과 놓이는 곳을 나눈다.** 성명란은 148×34 라 거기에 대고 마우스로 이름을
  * 쓰기는 어렵다. 칸을 누르면 넉넉한 창이 열리고, 거기서 쓴 글씨가 칸에 담긴다.
- * 창의 캔버스는 칸과 **같은 가로세로 비**라 축소해 넣어도 획의 모양이 변하지 않는다.
+ *
+ * 도화지와 칸의 비율은 **같지 않아도 된다.** 넘길 때 획이 차지한 자리만 잘라내므로
+ * (`trimToInk`) 칸에서는 잘라낸 그림이 제 비율대로 놓인다. 덕분에 모바일에서는
+ * 도화지를 세로로 넉넉히 키울 수 있다 — 손가락으로 쓰려면 그 편이 낫다.
  *
  * 마우스와 터치를 따로 다루지 않는다 — Pointer 이벤트 하나로 둘 다 받는다.
  * `touch-none` 은 손가락으로 그을 때 화면이 같이 스크롤되는 것을 막는다.
@@ -24,11 +28,57 @@ const SCALE = 2
 const STROKE = 2.4
 
 /**
- * 서명 창의 캔버스 — 성명 칸(148×34)의 **6배**. 비율이 같아야 칸에 그대로 들어간다.
- * 좁은 화면에서는 `max-width` 로 함께 줄어든다.
+ * 서명 창의 도화지.
+ *
+ * 데스크톱은 성명 칸(148×34)의 6배 — 마우스로 긋기에 알맞은 가로로 긴 띠다.
+ * 모바일은 그 비율을 그대로 쓰면 폭에 맞춰 줄었을 때 세로가 90px 밖에 남지 않아
+ * 손가락으로 이름을 쓸 수 없다. 그래서 **모바일만 세로를 크게 잡는다.**
+ * (425px 화면 기준 90px → 226px)
+ *
+ * 실제 화면 크기는 폭에 맞춰 줄어들고, 여기 적힌 값은 비율과 내부 해상도를 정한다.
  */
-const PAD_W = 888
-const PAD_H = 204
+const PAD_DESKTOP = { w: 888, h: 204 }
+const PAD_MOBILE = { w: 660, h: 380 }
+
+/**
+ * 그린 획의 테두리 상자만 남기고 잘라낸다.
+ *
+ * 도화지는 넓고 칸은 좁다. 도화지째 넘기면 칸의 `object-contain` 이 **도화지** 비율에
+ * 맞춰 줄이므로, 세로로 키운 모바일 도화지에서는 글씨가 콩알만 해진다.
+ * 획이 놓인 자리만 남기면 어디에 얼마나 크게 쓰든 칸을 꽉 채운다.
+ *
+ * 빈 도화지면 그대로 돌려준다 — 부를 일이 없지만 0×0 캔버스를 만들지 않기 위해서다.
+ */
+function trimToInk(canvas: HTMLCanvasElement): string {
+  const ctx = canvas.getContext('2d')!
+  const { width: W, height: H } = canvas
+  const px = ctx.getImageData(0, 0, W, H).data
+
+  let minX = W, minY = H, maxX = -1, maxY = -1
+  for (let y = 0; y < H; y += 1) {
+    for (let x = 0; x < W; x += 1) {
+      if (px[(y * W + x) * 4 + 3] === 0) continue
+      if (x < minX) minX = x
+      if (x > maxX) maxX = x
+      if (y < minY) minY = y
+      if (y > maxY) maxY = y
+    }
+  }
+  if (maxX < 0) return canvas.toDataURL('image/png')
+
+  // 획 굵기만큼 숨통을 둔다 — 딱 붙여 자르면 칸 안에서 글씨가 테두리에 닿아 답답하다
+  const pad = Math.ceil(STROKE * SCALE)
+  const x0 = Math.max(0, minX - pad)
+  const y0 = Math.max(0, minY - pad)
+  const w = Math.min(W - 1, maxX + pad) - x0 + 1
+  const h = Math.min(H - 1, maxY + pad) - y0 + 1
+
+  const out = document.createElement('canvas')
+  out.width = w
+  out.height = h
+  out.getContext('2d')!.drawImage(canvas, x0, y0, w, h, 0, 0, w, h)
+  return out.toDataURL('image/png')
+}
 
 interface SignaturePadProps {
   /** PNG dataURL. 아직 쓰기 전이면 null */
@@ -85,7 +135,17 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
       return
     }
     const img = new Image()
-    img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+    /*
+     * 넘어온 그림은 **잘라낸 것**이라 도화지와 비율이 다르다. 도화지 가득 늘려 그리면
+     * 창을 다시 열 때마다 글씨가 납작해지거나 길쭉해진다. 칸에서 쓰는 `object-contain`
+     * 과 같은 규칙으로, 비율을 지킨 채 가운데에 놓는다.
+     */
+    img.onload = () => {
+      const s = Math.min(canvas.width / img.width, canvas.height / img.height)
+      const w = img.width * s
+      const h = img.height * s
+      ctx.drawImage(img, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h)
+    }
     img.src = value
     emitted.current = value
     setHasInk(true)
@@ -122,7 +182,7 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
   const commit = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const url = canvas.toDataURL('image/png')
+    const url = trimToInk(canvas)
     emitted.current = url
     onChange(url)
   }, [onChange])
@@ -266,6 +326,23 @@ export function SignatureField({
   const [draft, setDraft] = useState<string | null>(value)
 
   /*
+   * 어느 도화지를 쓸지. 창이 떠 있는 중에 가로세로를 돌려도 따라오도록 지켜본다.
+   * 획은 이미 그린 그림으로 남아 다시 그려지므로 (`value` → 캔버스 복원) 잃지 않는다.
+   */
+  const [pad, setPad] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia(MOBILE_MEDIA_QUERY).matches
+      ? PAD_MOBILE
+      : PAD_DESKTOP,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_MEDIA_QUERY)
+    const update = () => setPad(mq.matches ? PAD_MOBILE : PAD_DESKTOP)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  /*
    * 창이 떠 있는 동안 **문서 전체**의 글자 선택을 끈다.
    *
    * 창 안만 막아서는 모자랐다. 선택은 한 요소에 갇히지 않고 **문서 순서를 따라 번지는데**,
@@ -323,7 +400,7 @@ export function SignatureField({
              */
             <Modal
               title="성명 서명"
-              width={PAD_W + 2}
+              width={pad.w + 2}
               hideHeader
               /*
                * 창 전체를 선택 금지로 둔다. 이름을 쓰다 손이 캔버스를 조금 벗어나면
@@ -335,25 +412,34 @@ export function SignatureField({
             >
               <div className="relative">
                 <SignaturePad
+                  /* 도화지가 바뀌면 캔버스를 새로 잡는다 — 배경 크기가 바뀐 채로 이어 그리면 획이 어긋난다 */
+                  key={`${pad.w}x${pad.h}`}
                   value={draft}
                   onChange={setDraft}
-                  width={PAD_W}
-                  height={PAD_H}
+                  width={pad.w}
+                  height={pad.h}
                 />
-                {/* 지우기·닫기는 아이콘만, 오른쪽 위. 테두리를 두르면 도화지에 상자가 얹힌다 */}
-                <div className="absolute top-2.5 right-3 flex items-center gap-1">
+                {/*
+                  지우기·닫기는 아이콘만, 오른쪽 위. 테두리를 두르면 도화지에 상자가 얹힌다.
+
+                  모바일에서 한 단계 작다. 창은 성명 칸의 가로세로 비를 지키느라 폭에
+                  맞춰 줄어드는데(425px 화면에서 캔버스가 90px), 데스크톱 크기 그대로 두면
+                  버튼 하나가 도화지 높이의 36% 를 먹어 이름 쓸 자리를 가린다.
+                  `md:` 는 앱이 모바일로 보는 경계(767px)와 정확히 맞물린다.
+                */}
+                <div className="absolute top-1 right-1.5 flex items-center gap-0.5 md:top-2.5 md:right-3 md:gap-1">
                   <button
                     type="button"
                     onClick={() => setDraft(null)}
                     disabled={!draft}
                     aria-label="서명 지우기"
                     title="지우고 다시 쓰기"
-                    className="flex h-8 w-8 items-center justify-center bg-transparent text-ink-muted enabled:hover:text-ink disabled:cursor-not-allowed disabled:opacity-25"
+                    className="flex h-6 w-6 items-center justify-center bg-transparent text-ink-muted enabled:hover:text-ink disabled:cursor-not-allowed disabled:opacity-25 md:h-8 md:w-8"
                   >
                     <svg
                       viewBox="0 0 24 24"
                       aria-hidden
-                      className="h-[18px] w-[18px]"
+                      className="h-[14px] w-[14px] md:h-[18px] md:w-[18px]"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
@@ -369,12 +455,12 @@ export function SignatureField({
                     onClick={() => setOpen(false)}
                     aria-label="닫기"
                     title="닫기"
-                    className="flex h-8 w-8 items-center justify-center bg-transparent text-ink-muted hover:text-ink"
+                    className="flex h-6 w-6 items-center justify-center bg-transparent text-ink-muted hover:text-ink md:h-8 md:w-8"
                   >
                     <svg
                       viewBox="0 0 24 24"
                       aria-hidden
-                      className="h-[18px] w-[18px]"
+                      className="h-[14px] w-[14px] md:h-[18px] md:w-[18px]"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
@@ -393,7 +479,7 @@ export function SignatureField({
                     setOpen(false)
                   }}
                   disabled={!draft}
-                  className="absolute right-3 bottom-2.5 bg-transparent px-2 py-1 font-ui text-[14px] text-ink enabled:hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-30"
+                  className="absolute right-1.5 bottom-1 bg-transparent px-1.5 py-0.5 font-ui text-[12px] text-ink enabled:hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-30 md:right-3 md:bottom-2.5 md:px-2 md:py-1 md:text-[14px]"
                 >
                   확인
                 </button>

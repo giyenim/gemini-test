@@ -53,7 +53,11 @@ const NOTICES = [
 /** 필적 확인 띠가 들어갈 항목 (0부터) */
 const HANDWRITING_AFTER = 1
 
-/** 성명 칸 폭 — 서명 창의 캔버스도 이 칸과 같은 가로세로 비로 잡는다 (SignaturePad.tsx) */
+/**
+ * 성명 칸 폭. 서명 창의 도화지는 이 칸과 비율이 **달라도 된다** — 넘어올 때 획이
+ * 놓인 자리만 잘려 오고(`SignaturePad` 의 `trimToInk`) 여기서는 `object-contain`
+ * 으로 비율을 지킨 채 놓이므로, 어디에 얼마나 크게 쓰든 칸을 채운다.
+ */
 const NAME_W = 148
 
 interface CoverSheetProps {

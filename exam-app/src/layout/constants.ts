@@ -2,6 +2,15 @@
 export const PAGE_W = 842
 export const PAGE_H = 1191
 
+/**
+ * 모바일로 볼지 가르는 경계 — `App` 이 어느 화면을 그릴지 정하는 바로 그 값이다.
+ *
+ * 이 경계를 보는 곳이 둘 이상이므로 여기에 둔다. 갈라지면 레이아웃은 모바일인데
+ * 부품만 데스크톱인 구간이 생긴다. Tailwind 의 `md:`(768px~) 와 맞물려 있으니
+ * 이 값을 바꾸면 `md:` 를 쓴 자리도 같이 살펴야 한다.
+ */
+export const MOBILE_MEDIA_QUERY = '(max-width: 767px)'
+
 /** 단 시작(지문·문제 공통) 상단 여백 */
 export const COLUMN_TOP = 14
 

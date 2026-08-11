@@ -7,12 +7,11 @@ import { GradingOverlay } from './components/result/GradingOverlay'
 import { ResultView } from './components/result/ResultView'
 import { issueExaminee } from './examinee'
 import { gradeExam } from './grade'
-import { PAGE_H, PAGE_W } from './layout/constants'
+import { MOBILE_MEDIA_QUERY, PAGE_H, PAGE_W } from './layout/constants'
 import type { Answers, ChoiceIndex, ExamData, Examinee } from './types/exam'
 
 // JSON 리터럴은 문자열 유니온·튜플로 좁혀지지 않으므로 한 번에 단언한다
 const exam = examData as unknown as ExamData
-const MOBILE_MEDIA_QUERY = '(max-width: 767px)'
 
 /**
  * 시험지 최대 배율. 화면이 넓으면 이 값까지 **키워서** 보여 주고,
