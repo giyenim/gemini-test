@@ -108,6 +108,8 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
      * (`touch-action: none` 은 스크롤·확대만 막고 선택은 막지 못한다.)
      */
     e.preventDefault()
+    // 앞서 잡혀 있던 선택이 남아 있으면 획을 긋는 내내 파랗게 떠 있다. 시작할 때 털어 낸다
+    window.getSelection()?.removeAllRanges()
     /*
      * 칸 밖으로 나가도 획이 이어지도록 포인터를 잡아 둔다.
      * **반드시 감싸야 한다** — 활성 포인터가 아닌 입력(합성 이벤트 등)에서는
@@ -232,6 +234,29 @@ export function SignatureField({
    * `null` 로 되돌리면 `SignaturePad` 가 값이 바뀐 것을 보고 캔버스를 스스로 비운다.
    */
   const [draft, setDraft] = useState<string | null>(value)
+
+  /*
+   * 창이 떠 있는 동안 **문서 전체**의 글자 선택을 끈다.
+   *
+   * 창 안만 막아서는 모자랐다. 선택은 한 요소에 갇히지 않고 **문서 순서를 따라 번지는데**,
+   * 창은 포털로 `body` 끝에 붙어 시험지보다 뒤에 있다. 그래서 캔버스에서 시작한 끌기가
+   * 창 뒤에 깔린 표지의 글자(`이지스퍼블리싱평가원`)까지 범위에 넣어 파랗게 잡아냈다.
+   * 이름을 쓰는 내내 뒤에서 글자가 끌려 나오던 것이 이것이다.
+   *
+   * iOS 사파리는 아직 접두사가 붙은 속성을 본다. 원래 값으로 되돌려 두어야
+   * 창을 닫은 뒤 다른 화면(성적표 등)에서 글자를 고를 수 있다.
+   */
+  useEffect(() => {
+    if (!open) return
+    const style = document.body.style
+    const prev = { plain: style.userSelect, webkit: style.webkitUserSelect }
+    style.userSelect = 'none'
+    style.webkitUserSelect = 'none'
+    return () => {
+      style.userSelect = prev.plain
+      style.webkitUserSelect = prev.webkit
+    }
+  }, [open])
 
   const openPad = () => {
     setDraft(value)
