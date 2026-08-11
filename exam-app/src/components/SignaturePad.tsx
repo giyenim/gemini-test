@@ -102,6 +102,13 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = e.currentTarget
     /*
+     * 누르는 순간의 기본 동작을 막는다 — 이게 없으면 브라우저가 **글자 선택**을 시작한다.
+     * 캔버스 자체는 고를 글자가 없지만 선택은 문서 전체에 걸쳐 번지므로, 획을 그으면
+     * 창 안의 `확인` 같은 글자가 파랗게 잡히면서 획이 끊긴다. 이름이 잘 안 써지던 것이 이것이다.
+     * (`touch-action: none` 은 스크롤·확대만 막고 선택은 막지 못한다.)
+     */
+    e.preventDefault()
+    /*
      * 칸 밖으로 나가도 획이 이어지도록 포인터를 잡아 둔다.
      * **반드시 감싸야 한다** — 활성 포인터가 아닌 입력(합성 이벤트 등)에서는
      * `NotFoundError` 를 던지고, 이 줄이 핸들러 맨 앞이라 그 순간 획이 통째로 죽는다.
@@ -154,7 +161,7 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
      * 또 하나의 입력 상자로 보인다.
      */
     <div
-      className="relative w-full"
+      className="relative w-full touch-none select-none"
       style={{ maxWidth: width, aspectRatio: `${width} / ${height}` }}
     >
       <canvas
@@ -162,7 +169,12 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
         width={width * SCALE}
         height={height * SCALE}
         aria-label="성명 서명란"
-        className="h-full w-full cursor-crosshair touch-none"
+        /*
+         * `touch-none` 손가락 스크롤·확대 금지 / `select-none` 글자 선택 금지 /
+         * `-webkit-touch-callout` 길게 눌렀을 때 뜨는 iOS 팝업 금지.
+         * 셋 다 있어야 손가락으로 이름을 쓸 때 브라우저가 끼어들지 않는다.
+         */
+        className="h-full w-full cursor-crosshair touch-none select-none [-webkit-touch-callout:none]"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerEnd}
@@ -258,7 +270,12 @@ export function SignatureField({
               title="성명 서명"
               width={PAD_W + 2}
               hideHeader
-              bodyClassName="min-h-0 flex-1 overflow-hidden"
+              /*
+               * 창 전체를 선택 금지로 둔다. 이름을 쓰다 손이 캔버스를 조금 벗어나면
+               * 그 순간부터 창 안의 글자가 잡혀 끌려 나오기 때문이다 — 획은 캔버스가
+               * 계속 받고 있어도 화면은 글자를 고르는 중처럼 보인다.
+               */
+              bodyClassName="min-h-0 flex-1 overflow-hidden touch-none select-none"
               onClose={() => setOpen(false)}
             >
               <div className="relative">
