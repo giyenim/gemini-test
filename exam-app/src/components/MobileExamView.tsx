@@ -81,31 +81,23 @@ function MobileSheetHeader({
 /**
  * 표지 — 842×1191 고정 디자인이라 화면 폭에 맞춰 통째로 줄인다.
  * (`MobileSheetHeader` 와 같은 방식. 표지는 읽기만 하므로 축소해도 조작에 지장이 없다.)
+ *
+ * 배율은 밖에서 받는다. 문제 쪽도 이 배율로 종이 높이를 잡으므로 **한 곳에서 재야**
+ * 장을 넘길 때 종이 크기가 어긋나지 않는다 (`MobileExamView` 의 `sheetScale`).
  */
 function MobileCover({
   meta,
   examinee,
+  scale,
   onSignatureChange,
 }: {
   meta: ExamMeta
   examinee?: Examinee | null
+  scale: number
   onSignatureChange: (dataUrl: string | null) => void
 }) {
-  const hostRef = useRef<HTMLDivElement>(null)
-  const [scale, setScale] = useState(1)
-
-  useEffect(() => {
-    const el = hostRef.current
-    if (!el) return
-    const update = (width: number) => setScale(Math.min(1, width / PAGE_W))
-    update(el.clientWidth)
-    const ro = new ResizeObserver(([entry]) => update(entry.contentRect.width))
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
-
   return (
-    <div ref={hostRef} style={{ height: PAGE_H * scale }}>
+    <div style={{ height: PAGE_H * scale }}>
       <div style={{ width: PAGE_W, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
         <CoverSheet meta={meta} examinee={examinee} onSignatureChange={onSignatureChange} />
       </div>
@@ -266,6 +258,30 @@ export function MobileExamView({
   } | null>(null)
   const [dragging, setDragging] = useState(false)
 
+  /*
+   * 종이 한 장의 배율 — 표지(842×1191)를 화면 폭에 맞춘 값이다.
+   *
+   * 스크롤러에서 **한 번만** 재서 표지와 문제 쪽이 같이 쓴다. 장마다 따로 재면
+   * 값이 미세하게 갈려 넘길 때 종이가 들썩인다.
+   *
+   * 첫 렌더에 0 이면 종이가 납작하게 한 번 그려지므로 창 폭으로 어림잡아 시작한다
+   * — 스크롤러가 화면 폭을 그대로 쓰므로 대개 맞고, 어긋나도 곧 실측으로 덮인다.
+   */
+  const [sheetScale, setSheetScale] = useState(() =>
+    typeof window === 'undefined' ? 1 : Math.min(1, window.innerWidth / PAGE_W),
+  )
+  useEffect(() => {
+    const el = scrollerRef.current
+    if (!el) return
+    const update = () => setSheetScale(Math.min(1, el.clientWidth / PAGE_W))
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  /** 종이 한 장의 세로 — 표지가 차지하는 높이. 문제 쪽은 이걸 **최소** 높이로 쓴다 */
+  const sheetH = PAGE_H * sheetScale
+
   const endDrag = (pointerId: number) => {
     const drag = dragRef.current
     const el = scrollerRef.current
@@ -303,6 +319,20 @@ export function MobileExamView({
           if (event.pointerType !== 'mouse' || event.button !== 0) return
           const target = event.target as HTMLElement
           if (target.closest('button, a, input, label, textarea, select, [role="button"]')) {
+            return
+          }
+          /*
+           * 표지와 서명 창에서는 드래그를 시작하지 않는다.
+           *
+           * 서명 창은 `createPortal` 로 `body` 에 붙지만 **리액트 이벤트는 DOM 이 아니라
+           * 컴포넌트 트리를 타고 올라온다.** 그래서 창 안에서 누른 것이 표지를 거쳐 여기까지
+           * 닿았고, 8px 넘게 그으면 아래에서 `setPointerCapture` 로 포인터를 가져가
+           * 캔버스가 획을 잃었다. 이름이 안 써지던 것이 이것이다.
+           *
+           * 표지는 읽고 서명하는 장이라 끌 일이 없다. 넘기는 손짓(터치)은 위의
+           * `pointerType` 검사에서 이미 빠져 브라우저의 스냅 스크롤이 그대로 맡는다.
+           */
+          if (target.closest('[aria-label="표지"], [role="dialog"]')) {
             return
           }
 
@@ -346,12 +376,28 @@ export function MobileExamView({
           className="h-full w-full shrink-0 snap-start snap-always overflow-y-auto overscroll-y-contain bg-white"
           aria-label="표지"
         >
-          <MobileCover meta={exam.meta} examinee={examinee} onSignatureChange={onSignatureChange} />
-          {signed ? null : (
-            <p className="m-0 px-4 pt-3 pb-8 text-center font-gothic text-[12px] text-ink-muted">
-              이름을 쓰면 다음 페이지로 넘어갑니다.
-            </p>
-          )}
+          {/*
+            안내 문구를 따로 두지 않는다 — 표지가 열리면 서명 창이 바로 떠서
+            (`SignaturePad` 의 `SignatureField`) 무엇을 해야 하는지가 화면 그 자체다.
+            글로 한 번 더 이르면 종이 위에 군더더기가 얹힌다.
+
+            표지는 폭에 맞춰 통째로 줄어들어(`MobileCover`) 세로가 화면보다 짧게 남는다.
+            남는 자리를 위아래로 나눠 갖게 세로 가운데에 둔다 — 문제 페이지는 위에서부터
+            읽어 내려야 하므로 **표지에만** 준다.
+
+            `justify-center` 를 스크롤 상자에 바로 걸지 않고 `min-h-full` 을 두른 안쪽
+            상자에 거는 이유: 화면이 표지보다 짧으면 가운데 정렬이 위쪽을 잘라 먹고
+            스크롤로도 닿지 못한다. 안쪽 상자는 표지가 커지면 같이 늘어나 나눠 줄 여백이
+            없어지므로, 그때는 자연히 위에서부터 그려진다.
+          */}
+          <div className="flex min-h-full flex-col justify-center">
+            <MobileCover
+              meta={exam.meta}
+              examinee={examinee}
+              scale={sheetScale}
+              onSignatureChange={onSignatureChange}
+            />
+          </div>
         </article>
 
         {/*
@@ -368,63 +414,79 @@ export function MobileExamView({
               className="h-full w-full shrink-0 snap-start snap-always overflow-y-auto overscroll-y-contain bg-white text-[11.5px] leading-[1.48] break-words"
               aria-label={`${pageNumber} / ${pages.length} 페이지`}
             >
-              {/* min-h-full + flex-1: 짧은 콘텐츠면 풋터를 화면 하단 근처에, 길면 콘텐츠 아래로 밀어냄 */}
-              <div className="flex min-h-full flex-col px-4 pt-6 pb-8">
-                {index === 0 ? (
-                  <MobileSheetHeader
-                    meta={exam.meta}
-                    pageNumber={pageNumber}
-                    examinee={examinee}
-                  />
-                ) : (
-                  <div className="mb-4">
-                    <SheetHeaderContinued pageNumber={pageNumber} />
+              {/*
+                문제 쪽도 표지와 **같은 크기의 종이** 위에 올린다. 바깥은 표지와 똑같이
+                세로 가운데로 두고(`min-h-full` + `justify-center`), 안쪽 종이는
+                표지 높이(`sheetH`)를 최소값으로 갖는다. 그래야 장을 넘겨도 종이의
+                크기와 위아래 여백이 그대로 있어 화면이 들썩이지 않는다.
+
+                `minHeight` 이지 `height` 가 아니다 — 문제가 길면 종이가 늘어나고,
+                그때는 나눠 줄 여백이 없어져 위에서부터 그려진다 (표지와 같은 규칙).
+                flex-1 은 그 안에서 풋터를 종이 맨 아래로 밀어 준다.
+              */}
+              <div className="flex min-h-full flex-col justify-center">
+                <div className="flex flex-col px-4 py-6" style={{ minHeight: sheetH }}>
+                  {index === 0 ? (
+                    <MobileSheetHeader
+                      meta={exam.meta}
+                      pageNumber={pageNumber}
+                      examinee={examinee}
+                    />
+                  ) : (
+                    <div className="mb-4">
+                      <SheetHeaderContinued pageNumber={pageNumber} />
+                    </div>
+                  )}
+
+                  <div className="min-h-0 flex-1">
+                    <MobilePageContent
+                      page={page}
+                      answers={answers}
+                      onSelect={onSelect}
+                    />
+
+                    {isLast ? (
+                      <div className="mt-8 flex flex-col items-center gap-3">
+                        <ExamActionButton onClick={onSubmit}>제출</ExamActionButton>
+                      </div>
+                    ) : null}
                   </div>
-                )}
 
-                <div className="min-h-0 flex-1">
-                  <MobilePageContent
-                    page={page}
-                    answers={answers}
-                    onSelect={onSelect}
-                  />
-
-                  {isLast ? (
-                    <div className="mt-8 flex flex-col items-center gap-3">
-                      <ExamActionButton onClick={onSubmit}>제출</ExamActionButton>
-                    </div>
-                  ) : null}
-                </div>
-
-                <footer className="mt-8 shrink-0">
-                  <div className="relative flex h-7 items-center justify-center">
-                    <div className="relative h-[28px] w-[64px] border border-line">
-                      <svg
-                        className="pointer-events-none absolute inset-0 h-full w-full"
-                        aria-hidden
-                      >
-                        <line
-                          x1="100%"
-                          y1="0"
-                          x2="0"
-                          y2="100%"
-                          stroke="#111"
-                          strokeWidth="1.15"
-                          vectorEffect="non-scaling-stroke"
-                        />
-                      </svg>
-                      <span className="absolute top-[1px] left-[4px] font-serif text-[14px] font-semibold leading-none">
-                        {pageNumber}
-                      </span>
-                      <span className="absolute top-[11px] right-[4px] font-serif text-[14px] font-semibold leading-none">
-                        {pages.length}
-                      </span>
-                    </div>
-                    <p className="absolute right-0 bottom-0 m-0 max-w-[60%] truncate text-right font-serif text-[8px] leading-none text-[#6b8cae]">
+                  <footer className="mt-8 shrink-0">
+                    {/*
+                      저작권은 쪽 번호 **위 줄**에 둔다. PC 시험지처럼 오른쪽 끝에 붙이면
+                      좁은 화면에서는 가운데의 쪽 번호 상자와 겹친다 (425px 에서 이미 겹쳤다).
+                      한 줄을 통째로 쓰니 잘라낼 일도 없어 `truncate` 도 뗐다.
+                    */}
+                    <p className="m-0 mb-1.5 text-center font-serif text-[8px] leading-none text-[#6b8cae]">
                       {exam.meta.copyright}
                     </p>
-                  </div>
-                </footer>
+                    <div className="flex h-7 items-center justify-center">
+                      <div className="relative h-[28px] w-[64px] border border-line">
+                        <svg
+                          className="pointer-events-none absolute inset-0 h-full w-full"
+                          aria-hidden
+                        >
+                          <line
+                            x1="100%"
+                            y1="0"
+                            x2="0"
+                            y2="100%"
+                            stroke="#111"
+                            strokeWidth="1.15"
+                            vectorEffect="non-scaling-stroke"
+                          />
+                        </svg>
+                        <span className="absolute top-[1px] left-[4px] font-serif text-[14px] font-semibold leading-none">
+                          {pageNumber}
+                        </span>
+                        <span className="absolute top-[11px] right-[4px] font-serif text-[14px] font-semibold leading-none">
+                          {pages.length}
+                        </span>
+                      </div>
+                    </div>
+                  </footer>
+                </div>
               </div>
             </article>
           )
