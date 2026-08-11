@@ -195,6 +195,10 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
  *
  * 창 안의 획은 **확인을 눌러야** 칸에 담긴다. 그전까지는 `draft` 에만 머물러,
  * 쓰다 말고 닫으면 원래 서명이 그대로 남는다.
+ *
+ * **비어 있으면 창을 열어 둔 채로 시작한다.** 표지가 열리는 순간이 곧 응시 시작이고,
+ * 실제 시험도 성명부터 적고 들어간다. 이 칸이 놓이는 곳은 응시 중의 표지뿐이므로
+ * (`onSignatureChange` 를 받은 `CoverSheet`) 그대로 "시작하면 바로"가 된다.
  */
 export function SignatureField({
   value,
@@ -206,7 +210,11 @@ export function SignatureField({
   /** 칸의 논리 폭 — 높이는 칸(`Field`)이 정한다 */
   width: number
 }) {
-  const [open, setOpen] = useState(false)
+  /*
+   * 첫 렌더에서만 본다 — 효과가 아니라 초기값이라 창이 한 박자 늦게 뜨지 않는다.
+   * 서명하지 않고 닫으면 다시 뜨지 않는다. 그때는 칸을 눌러 다시 연다.
+   */
+  const [open, setOpen] = useState(() => !value)
   /**
    * 창에서 그리는 중인 그림. 확인을 눌러야 칸으로 넘어간다.
    * `null` 로 되돌리면 `SignaturePad` 가 값이 바뀐 것을 보고 캔버스를 스스로 비운다.
@@ -224,7 +232,9 @@ export function SignatureField({
         type="button"
         onClick={openPad}
         aria-label={value ? '성명 다시 서명하기' : '성명 서명하기'}
-        className="flex h-full items-center justify-center bg-transparent px-1 hover:bg-selected"
+        /* 호버 회색은 쪽 넘김·제출 버튼과 같은 값이다 — 누를 수 있는 곳은 다 같은 반응을 준다.
+           `bg-selected`(답 고른 칸의 파란기)를 쓰면 여기만 다른 뜻으로 읽힌다 */
+        className="flex h-full items-center justify-center bg-transparent px-1 hover:bg-[#f5f5f5]"
         style={{ width }}
       >
         {/*

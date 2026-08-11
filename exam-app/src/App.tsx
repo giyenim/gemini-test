@@ -93,18 +93,28 @@ export default function App() {
     setTotalPages(count)
   }, [])
 
+  // 표지에서 아직 서명하지 않았다 — 넘김 버튼도 방향키도 여기서 멈춘다
+  const needsSignature = pageIndex === 0 && !examinee.signature
+
   // ← → 로도 쪽을 넘긴다. 표지 성명 칸에 쓰는 중이면 건드리지 않는다
   useEffect(() => {
     if (phase !== 'exam' || isMobile) return
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null
       if (el?.closest('input, textarea, select')) return
+      /*
+       * 서명 창이 떠 있는 동안은 넘기지 않는다. 창은 `body` 에 포털로 붙어 있어
+       * 이 핸들러의 사정권 밖이고, 그대로 두면 창 뒤에서 표지가 넘어가면서
+       * 창까지 함께 사라진다.
+       */
+      if (document.querySelector('[role="dialog"]')) return
       if (e.key === 'ArrowLeft') goToPage(pageIndex - 1)
-      if (e.key === 'ArrowRight') goToPage(pageIndex + 1)
+      // 넘김 버튼과 같은 규칙이어야 한다 — 방향키만 서명을 건너뛸 수 있으면 안 된다
+      if (e.key === 'ArrowRight' && !needsSignature) goToPage(pageIndex + 1)
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [phase, isMobile, pageIndex, goToPage])
+  }, [phase, isMobile, pageIndex, goToPage, needsSignature])
 
   // 채점 중 화면을 3초 보여 준 뒤 성적표로 넘긴다
   useEffect(() => {
@@ -233,7 +243,7 @@ export default function App() {
         index={pageIndex}
         total={totalPages}
         onChange={goToPage}
-        needsSignature={pageIndex === 0 && !examinee.signature}
+        needsSignature={needsSignature}
       />
     </div>
   )
