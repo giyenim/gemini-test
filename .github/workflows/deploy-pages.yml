@@ -15,6 +15,9 @@ concurrency:
   group: pages
   cancel-in-progress: false
 
+# 액션 버전은 **다 함께** 올린다. 액션마다 자기 `action.yml` 에 자기를 돌릴 Node 를
+# 적어 두는데(`runs: using: node24`), 러너에서 빠진 버전을 적어 두면 언젠가 뜨지 않는다.
+# 아래 `node-version` 은 이것과 무관하다 — 그쪽은 우리 빌드가 쓸 Node 다.
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,10 +26,10 @@ jobs:
         working-directory: exam-app
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -41,8 +44,11 @@ jobs:
       # 빌드 결과를 저장소에 커밋하지 않고 Pages 아티팩트로 올린다.
       # 매 배포가 dist 전체로 교체되므로 옛 해시 파일이 쌓이지 않는다.
       # path 는 액션 입력이라 위의 working-directory 가 적용되지 않는다 — 저장소 루트 기준.
+      #
+      # 이 액션은 composite 라 자기 Node 가 없고 안에서 actions/upload-artifact 를 부른다.
+      # 그래서 안쪽 버전은 여기서 못 고른다 — 바깥을 올려야 안쪽이 따라 올라간다.
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: exam-app/dist
 
@@ -55,4 +61,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
