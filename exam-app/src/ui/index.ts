@@ -1,0 +1,2 @@
+/** UI 킷의 정문. 실제 화면에서는 여기서 가져다 쓴다. */
+export { PageTurnButton } from './PageTurnButton'

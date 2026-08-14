@@ -289,6 +289,23 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
 }
 
 /**
+ * 성명 칸에 붙는 표식. 시험지 **밖**의 조작부(쪽 넘김)가 이 칸을 찾아 대신 누른다.
+ *
+ * props 로 창을 여닫지 않는 것은, 이 칸이 `App → ExamSheet → CoverSheet` 와
+ * `App → MobileExamView → CoverSheet` 두 갈래 끝에 있어 상태를 끌어올리면 중간
+ * 네 곳이 아무 상관 없는 prop 을 나르게 되기 때문이다. 여는 길은 한 곳(`openPad`)
+ * 뿐이므로 그 버튼을 그대로 누른다.
+ */
+export const SIGNATURE_FIELD_ATTR = 'data-signature-field'
+
+/** 표지의 성명 칸을 눌러 서명 창을 연다. 표지가 떠 있지 않으면 아무 일도 없다. */
+export function openSignatureField() {
+  document
+    .querySelector<HTMLButtonElement>(`[${SIGNATURE_FIELD_ATTR}]`)
+    ?.click()
+}
+
+/**
  * 표지의 성명 칸 — **누르면 서명 창이 열린다.**
  *
  * 칸 자체에는 캔버스를 두지 않는다. 148×34 에 대고 마우스로 이름을 쓰기는 어렵고,
@@ -300,9 +317,9 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
  * 창 안의 획은 **확인을 눌러야** 칸에 담긴다. 그전까지는 `draft` 에만 머물러,
  * 쓰다 말고 닫으면 원래 서명이 그대로 남는다.
  *
- * **비어 있으면 창을 열어 둔 채로 시작한다.** 표지가 열리는 순간이 곧 응시 시작이고,
- * 실제 시험도 성명부터 적고 들어간다. 이 칸이 놓이는 곳은 응시 중의 표지뿐이므로
- * (`onSignatureChange` 를 받은 `CoverSheet`) 그대로 "시작하면 바로"가 된다.
+ * **스스로 열지 않는다.** 표지에 들어서자마자 창이 덮으면 표지를 읽기도 전에
+ * 이름부터 요구받는다. 여는 길은 둘이다 — 성명 칸을 누르거나, 쪽 넘김의
+ * `이름을 쓰세요` 를 누르거나 (`PageNav` 가 `SIGNATURE_FIELD_ATTR` 로 이 칸을 찾는다).
  */
 export function SignatureField({
   value,
@@ -314,11 +331,7 @@ export function SignatureField({
   /** 칸의 논리 폭 — 높이는 칸(`Field`)이 정한다 */
   width: number
 }) {
-  /*
-   * 첫 렌더에서만 본다 — 효과가 아니라 초기값이라 창이 한 박자 늦게 뜨지 않는다.
-   * 서명하지 않고 닫으면 다시 뜨지 않는다. 그때는 칸을 눌러 다시 연다.
-   */
-  const [open, setOpen] = useState(() => !value)
+  const [open, setOpen] = useState(false)
   /**
    * 창에서 그리는 중인 그림. 확인을 눌러야 칸으로 넘어간다.
    * `null` 로 되돌리면 `SignaturePad` 가 값이 바뀐 것을 보고 캔버스를 스스로 비운다.
@@ -374,6 +387,7 @@ export function SignatureField({
     <>
       <button
         type="button"
+        {...{ [SIGNATURE_FIELD_ATTR]: '' }}
         onClick={openPad}
         aria-label={value ? '성명 다시 서명하기' : '성명 서명하기'}
         /* 호버 회색은 쪽 넘김·제출 버튼과 같은 값이다 — 누를 수 있는 곳은 다 같은 반응을 준다.
@@ -383,7 +397,7 @@ export function SignatureField({
       >
         {/*
           비어 있을 때 아무것도 넣지 않는다 — 실제 시험지의 성명란도 빈 칸이다.
-          누를 수 있다는 것은 넘김 버튼의 `이름을 써 주세요` 와 칸의 hover 가 알려 준다.
+          누를 수 있다는 것은 넘김 버튼의 `이름을 쓰세요` 와 칸의 hover 가 알려 준다.
         */}
         {value ? (
           <SignatureMark src={value} className="max-h-full w-full object-contain" />
