@@ -40,11 +40,6 @@ export interface Question {
   explanation?: string
   /** 오답노트 하단의 책 안내 */
   source?: QuestionSource
-  /** @deprecated blocks의 type:'view' 사용 */
-  box?: {
-    title: string
-    body: string
-  }
 }
 
 /** 문제 안 콘텐츠 블록 — 자료(일반/표/그림) · 질문 문장 · 보기 */
@@ -83,10 +78,8 @@ export type Answers = Partial<Record<number, ChoiceIndex>>
 /** 응시자 — 표지에서 서명을 받고 수험 번호는 응시 시각으로 발급한다 */
 export interface Examinee {
   /**
-   * 성명 서명 — 표지에서 마우스·손가락으로 직접 쓴 글씨. PNG dataURL 이며 아직 쓰기 전이면 null.
-   *
-   * 이름을 **글자로 받지 않는다.** 성명 칸은 응시자가 손으로 적는 자리이고,
-   * 표지·시험지 헤더·성적통지표 세 곳에 같은 이미지가 축소되어 들어간다.
+   * 성명 서명 — 표지에서 직접 쓴 글씨. PNG dataURL, 아직 쓰기 전이면 null.
+   * 표지·시험지 헤더·성적통지표 세 곳에 같은 이미지가 들어간다.
    */
   signature: string | null
   /** 8자리. 시험지 헤더의 4-4 칸과 성적표에 같은 값이 찍힌다 */

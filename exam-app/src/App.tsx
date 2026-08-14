@@ -7,17 +7,15 @@ import { GradingOverlay } from './components/result/GradingOverlay'
 import { ResultView } from './components/result/ResultView'
 import { issueExaminee } from './examinee'
 import { gradeExam } from './grade'
-import { MOBILE_MEDIA_QUERY, PAGE_H, PAGE_W } from './layout/constants'
+import { MOBILE_MEDIA_QUERY, PAGE_W } from './layout/constants'
 import type { Answers, ChoiceIndex, ExamData, Examinee } from './types/exam'
 
 // JSON 리터럴은 문자열 유니온·튜플로 좁혀지지 않으므로 한 번에 단언한다
 const exam = examData as unknown as ExamData
 
 /**
- * 시험지 최대 배율. 화면이 넓으면 이 값까지 **키워서** 보여 주고,
- * 좁으면 폭에 맞춰 자동으로 줄인다 (가운데 정렬).
- * 1 = 원래 크기(842px). 키울수록 좌우 검은 여백이 줄고 글자가 커진다.
- * 레이아웃은 원래 크기로 계산한 뒤 CSS로 확대하므로 쪽수에는 영향이 없다.
+ * 시험지 최대 배율 — 화면이 넓으면 이 값까지 키우고, 좁으면 폭에 맞춰 줄인다.
+ * 레이아웃은 원래 크기(842px)로 계산한 뒤 확대하므로 쪽수에는 영향이 없다.
  */
 const SHEET_ZOOM = 1.35
 
@@ -28,15 +26,7 @@ const PAD_MIN = 0
 /** 제출 후 성적표까지 끄는 시간 (RESULT-PAGE.md §1) */
 const GRADING_MS = 3000
 
-export { PAGE_W, PAGE_H }
-
-/**
- * 응시 흐름 — 표지 → 시험 → 채점 중 → 성적표.
- *
- * 실제 시험지처럼 **표지부터 바로 시작한다.** 이름은 표지 성명 칸에 직접 적고,
- * 수험 번호는 화면에 들어온 시각으로 발급된다. 되돌아가는 길은 두지 않는다
- * (RESULT-PAGE.md §7 "다시 응시하기" 제외).
- */
+/** 응시 흐름 — 표지 → 시험 → 채점 중 → 성적표. 되돌아가는 길은 없다 (RESULT-PAGE.md) */
 type Phase = 'exam' | 'grading' | 'result'
 
 export default function App() {
@@ -101,11 +91,7 @@ export default function App() {
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null
       if (el?.closest('input, textarea, select')) return
-      /*
-       * 서명 창이 떠 있는 동안은 넘기지 않는다. 창은 `body` 에 포털로 붙어 있어
-       * 이 핸들러의 사정권 밖이고, 그대로 두면 창 뒤에서 표지가 넘어가면서
-       * 창까지 함께 사라진다.
-       */
+      // 서명 창이 떠 있는 동안은 넘기지 않는다 — 창 뒤에서 표지가 넘어가며 창까지 사라진다
       if (document.querySelector('[role="dialog"]')) return
       if (e.key === 'ArrowLeft') goToPage(pageIndex - 1)
       // 넘김 버튼과 같은 규칙이어야 한다 — 방향키만 서명을 건너뛸 수 있으면 안 된다
@@ -215,12 +201,7 @@ export default function App() {
           className="flex min-h-0 flex-1 items-start justify-center overflow-auto [scrollbar-gutter:stable]"
           style={{ padding: stagePad }}
         >
-          {/*
-            transform: scale 이 아니라 zoom 이다.
-            scale 은 11.5px 로 조판한 글자를 늘리는 것이라 획이 픽셀 격자에 어긋나 번진다
-            (조선신명조처럼 가로획이 얇은 명조에서 특히 자글자글해진다).
-            zoom 은 처음부터 확대된 크기로 조판하므로 획이 픽셀에 맞는다.
-          */}
+          {/* scale 이 아니라 zoom — scale 은 확대 시 획이 번진다 (LAYOUT.md "화면 배율") */}
           <div className="flex shrink-0 flex-col">
             <div style={{ zoom: scale }}>
               <ExamSheet

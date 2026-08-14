@@ -14,7 +14,7 @@ export function ExamActionButton({
     <button
       type="button"
       disabled={disabled}
-      className="border border-line bg-white px-5 py-2 font-serif text-[14px] font-semibold text-ink enabled:hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-50"
+      className="border border-line bg-white px-5 py-2 font-serif text-[14px] font-semibold text-ink enabled:hover:bg-hover disabled:opacity-50"
       onClick={onClick}
     >
       {children}

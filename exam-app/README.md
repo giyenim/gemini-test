@@ -12,7 +12,7 @@
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173/gemini-test/
+npm run dev      # http://localhost:5173/  (UI 킷 작업장은 /?ui)
 npm run build
 npm run preview
 ```
@@ -26,6 +26,7 @@ npm run preview
 | `src/components/ExamSheet.tsx` | 측정 → 패킹 → 페이지 렌더 |
 | `src/components/MobileExamView.tsx` | 모바일 가로 스와이프 페이지 뷰 |
 | `src/components/question/` | 지문·문제·선택지·보기 블록 (공용) |
+| `src/ui/` | 시험지 밖 화면 UI 킷 (손그림 버튼·서명 창) — [`src/ui/README.md`](./src/ui/README.md) |
 | `src/data/exam-sample.json` | 샘플 시험 데이터 |
 
 ## 배포

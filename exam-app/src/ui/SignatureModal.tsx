@@ -3,11 +3,8 @@ import type { ReactNode } from 'react'
 export type SignatureTool = 'pen' | 'eraser'
 
 /**
- * 아이콘 담는 버튼 — 테두리 없이 글리프만. 손이 닿는 자리는 글리프보다 넓게 둔다.
- * 호버 색은 확인 버튼·쪽 넘김 점과 같다.
- *
- * `selected` 는 도구를 고르는 버튼(펜·지우개)에만 준다. 고른 것은 잉크,
- * 고르지 않은 것은 회색 — 노랑은 호버가 이미 쓰고 있어 겹치지 않게 둔다.
+ * 아이콘 버튼 — 테두리 없이 글리프만, 손이 닿는 자리는 글리프보다 넓게.
+ * `selected` 는 도구 고르는 버튼(펜·지우개)에만 준다 — 고른 것은 잉크, 아닌 것은 회색.
  * `undefined` 면 고르는 버튼이 아니라는 뜻이고 늘 잉크다 (닫기).
  */
 function IconButton({
@@ -49,13 +46,9 @@ function IconButton({
 }
 
 /**
- * 서명 창의 **종이 한 장.**
- *
- * 창을 띄우는 일(어둡게 깔기·Esc·바깥 누르기)은 여기서 하지 않는다 — 쓰는 쪽이
- * `Modal` 로 감싼다. 킷은 생김새만 쥔다.
- *
- * 도화지는 `children` 으로 받는다. 캔버스가 어떻게 그리는지는 킷이 알 바가 아니고,
- * 여기서는 그것이 놓일 자리(가운데 660×380)만 비워 둔다.
+ * 서명 창의 종이 한 장 — 킷은 생김새만 쥔다.
+ * 창을 띄우는 일(어둡게 깔기·Esc·바깥 누르기)은 쓰는 쪽이 `Modal` 로 감싸고,
+ * 도화지는 `children` 으로 받아 가운데 자리(630×350)에 놓기만 한다.
  */
 export function SignatureModal({
   tool,
@@ -74,13 +67,9 @@ export function SignatureModal({
 }) {
   return (
     /*
-      viewBox 를 실제 크기와 1:1 로 둔다 — 좌표가 곧 px 이라 선을 옮길 때 눈대중과
-      숫자가 어긋나지 않는다. `aspect` 는 늘 viewBox 와 같아야 한다. 어긋나면 그림이
-      한쪽으로만 늘어나 둥근 모서리가 타원이 된다.
-
-      도화지는 데스크톱·모바일 한 벌이다. 예전 데스크톱 값(888×204)은 가로로 긴
-      슬롯이라 이름을 쓸 세로가 없었다.
-    */
+     * viewBox 를 실제 크기와 1:1 로 둔다 — 좌표가 곧 px 이라 선 옮기기가 쉽다.
+     * `aspect` 는 늘 viewBox 와 같아야 한다 — 어긋나면 둥근 모서리가 타원이 된다.
+     */
     <div className="relative aspect-662/382 w-full max-w-[662px]">
       <svg
         aria-hidden
@@ -101,17 +90,14 @@ export function SignatureModal({
       </svg>
 
       {/*
-        도화지 — 종이 안쪽을 다 쓴다. 아이콘과 확인은 그 위에 얹힌다.
-        `inset-4` 를 바꾸면 `SignaturePad` 의 `PAD`(630×350)도 같이 옮겨야 한다 —
-        비율이 어긋나면 캔버스가 상자 안에서 남거나 넘친다.
+        도화지 자리. `inset-4` 를 바꾸면 `SignaturePad` 의 `PAD`(630×350)도 같이
+        옮겨야 한다 — 비율이 어긋나면 캔버스가 상자 안에서 남거나 넘친다.
       */}
       <div className="absolute inset-4">{children}</div>
 
       {/*
-        아이콘은 Lucide 의 pen · eraser · x 를 출발점으로 삼되 좌표를 조금씩 어긋내고
-        끝을 둥글렸다. 자로 그은 24×24 격자 그대로 두면 손그림 상자 안에서 저것만
-        붙여넣은 것처럼 보인다. 패키지는 넣지 않는다 — 글리프 셋 때문에 의존성을
-        늘릴 일이 아니고, 이 저장소는 원래 path 를 직접 쓴다.
+        아이콘은 Lucide 의 pen·eraser·x 좌표를 조금씩 어긋내 손그림에 맞췄다.
+        패키지는 넣지 않는다 — 글리프 셋 때문에 의존성을 늘릴 일이 아니다.
       */}
       <div className="absolute top-5 left-12 flex gap-1">
         <IconButton
@@ -127,10 +113,7 @@ export function SignatureModal({
           selected={tool === 'eraser'}
           onClick={() => onToolChange('eraser')}
         >
-          {/*
-            Lucide `eraser` 의 바닥선(지우개가 놓인 면)은 뺐다 — 여기서는 아래
-            그림자처럼 읽혔다. 대신 블록을 `Z` 로 닫아 바닥을 만든다.
-          */}
+          {/* Lucide 의 바닥선은 그림자처럼 읽혀 뺐다 — 대신 블록을 `Z` 로 닫는다 */}
           <path d="M8.2 20.4L3.6 15.6C2.9 14.8 2.9 13.7 3.6 13L12.9 3.7C13.7 3 14.8 3 15.5 3.7L20.6 8.8C21.3 9.6 21.3 10.7 20.6 11.4L12.1 20.2Z" />
           <path d="M5.4 11.2Q9.5 15.3 13.6 19.3" />
         </IconButton>
@@ -143,14 +126,13 @@ export function SignatureModal({
         </IconButton>
       </div>
 
-      {/* 확인 — 아래쪽 가운데. 테두리 없이 글자만 */}
+      {/* 확인 — 아래쪽 가운데, 테두리 없이 글자만. 호버 색은 킷 공통 노랑 */}
       <div className="absolute inset-x-0 bottom-6 flex justify-center">
         <button
           type="button"
           onClick={onConfirm}
           disabled={confirmDisabled}
-          /* 호버 색은 쪽 넘김 버튼의 점과 같다 — 킷 안에서 "살아 있음"은 한 색으로 */
-          className="bg-transparent px-3 py-1 font-ui text-[15px] text-ink hover:text-yellow-300 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:text-gray-300"
+          className="bg-transparent px-3 py-1 font-ui text-[15px] text-ink hover:text-yellow-300 disabled:text-gray-300 disabled:hover:text-gray-300"
         >
           확인
         </button>

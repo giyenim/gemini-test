@@ -3,20 +3,11 @@
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 @import 'tailwindcss';
 
-/**
- * 조선굴림 — 방일영문화재단. 개인·기업 무료, 재배포·임베딩 허용.
- * 성적통지표와 응시자 기입란에만 쓴다.
- *
- * **저장소 안의 서브셋을 쓴다** (`public/fonts/`). CDN 의 원본은 한글 전체를 담은
- * 통짜 한 벌이라 1,441KB 였고, 그것만으로 이 페이지 글꼴 전송량의 96% 를 차지했다.
- * 실제로 쓰는 625자만 남기니 67KB 다. 성적표를 PNG 로 구울 때 base64 로 박는 양도
- * 같은 비율로 줄어든다 (`result/fontEmbed.ts` 가 **이 파일을 함께 가리켜야 한다**).
- *
- * 글자를 새로 쓰기 시작하면 서브셋에 없어 폴백(Gulim)으로 떨어진다. 그럴 때는
- * `tools/subset_chosungu.py` 를 다시 돌린다.
- *
- * woff2 하나만 둔다 — ttf·woff 폴백은 저장소에 없어 404 이고, 성적표를 구울 때
- * src 의 모든 URL 을 훑는 경로에서 매번 다시 때린다.
+/*
+ * 조선굴림 (방일영문화재단, 무료·임베딩 허용) — 성적통지표와 응시자 기입란 전용.
+ * 저장소 안의 서브셋(625자, 67KB)을 쓴다. CDN 원본은 1,441KB 로 전송량의 대부분을
+ * 차지했다. `result/fontEmbed.ts` 가 이 파일을 함께 가리켜야 한다.
+ * 서브셋에 없는 글자는 폴백(Gulim)으로 떨어진다 — `tools/subset_chosungu.py` 로 다시 만든다.
  */
 @font-face {
   font-family: 'ChosunGu';
@@ -27,28 +18,13 @@
 }
 
 @theme {
-  /*
-   * 본문·시험지. 조선신명조를 써 봤으나 가로획이 얇아 작은 글자가 자글거려 되돌렸다.
-   * Noto Serif KR 은 화면용으로 힌팅이 촘촘하고 굵기(400/600/700)가 실제로 있다.
-   */
+  /* 본문·시험지. 조선신명조는 가로획이 얇아 작은 글자가 자글거려 되돌렸다 */
   --font-serif: 'Noto Serif KR', Batang, 'Apple Myungjo', serif;
-  /**
-   * 굴림 계열 — 양식(form)의 인쇄된 부분.
-   * 시험지 헤더(시험명·과목명·기입란 라벨)와 성적통지표 전체에 쓴다.
-   * 본문은 명조, 양식은 굴림 — 실제 시험지·통지표의 조판과 같다.
-   */
+  /* 양식의 인쇄된 부분 — 시험지 헤더·성적통지표. 본문은 명조, 양식은 굴림 (실물 조판과 같다) */
   --font-gothic: 'ChosunGu', Gulim, sans-serif;
-  /**
-   * 응시자가 적어 넣는 칸 — 이름·수험 번호 (RESULT-PAGE.md §0).
-   * 나중에 **실제 사용자 손글씨**가 들어갈 자리라 굴림과 따로 둔다.
-   */
+  /* 응시자가 적어 넣는 칸 (이름·수험 번호) — 나중에 실제 손글씨가 들어갈 자리라 따로 둔다 */
   --font-write: 'ChosunGu', Gulim, sans-serif;
-  /**
-   * 시험지 **밖**의 것들 — 쪽 넘김 버튼, 서명 창의 안내처럼 종이가 아닌 요소.
-   *
-   * 인쇄물 글꼴(명조·굴림)을 여기까지 쓰면 조작부마저 시험지의 일부처럼 보여,
-   * 어디까지가 문제지고 어디부터가 화면인지 흐려진다. 화면용 산세리프로 갈라 둔다.
-   */
+  /* 시험지 밖의 것들 (쪽 넘김·서명 창) — 어디까지가 종이고 어디부터 화면인지 글꼴로 가른다 */
   --font-ui: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
     system-ui, sans-serif;
   --color-ink: #111;
@@ -59,34 +35,24 @@
   --color-correct: #1b6b3a;
   --color-wrong: #a33a2f;
   --color-check: #e11d2e;
+  /** 누를 수 있는 곳의 공통 호버 회색 — 성명 칸·제출·채점표 버튼이 같이 쓴다 */
+  --color-hover: #f5f5f5;
+  /** 시험지 저작권 문구 */
+  --color-copyright: #6b8cae;
   /** 표지의 필적 확인 띠·안내 배너 바탕 */
   --color-band: #d9d9d9;
-  /** 페이지 사이 구분선 — 흰 배경 위에서 쪽이 나뉘는 자리를 표시한다 */
-  --color-page-divider: #c8c8c8;
-  /**
-   * 시험지 **바깥** 바탕 — 모눈종이를 깐 책상. 시험지 자체는 `bg-white` 라
-   * 여기 칠한 모눈이 종이 밑으로 비치지 않는다.
-   *
-   * 바탕은 시험지와 **같은 흰색**이다. 종이와 배경을 색으로 나누지 않으므로
-   * 경계는 오직 모눈선이 끊기는 자리로만 드러난다. 종이를 띄워 보이고 싶으면
-   * 여기를 `#f4f4f4` 쯤으로 내린다.
-   * 선은 본문 잉크를 5% 로 묽힌 색이다. 회색을 따로 고르지 않고 잉크에서 뽑았으므로
-   * 잉크 색을 손보면 모눈도 같이 따라온다.
-   *
-   * 5% 는 tailwindcss.com 의 배경 패턴과 같은 농도다 (거기도 `oklab(0 0 0 / 0.05)`).
-   * 20% 로 해 봤더니 흰 바탕에서 #ccc 까지 올라와 본문과 시선을 나눠 가졌다.
-   * 배경 격자는 **있는 줄 모르게** 깔려야 한다.
+  /*
+   * 시험지 바깥 바탕 — 모눈종이를 깐 책상. 바탕은 시험지와 같은 흰색이라 경계는
+   * 모눈선이 끊기는 자리로만 드러난다. 선은 잉크를 5% 로 묽힌 색이라
+   * (tailwindcss.com 배경 패턴과 같은 농도) 잉크 색을 손보면 모눈도 따라온다.
    */
   --color-desk: #fff;
   --color-desk-grid: color-mix(in srgb, var(--color-ink) 5%, transparent);
 }
 
 /*
- * 요소 기본값은 반드시 `@layer base` 안에 둔다.
- *
- * 레이어 밖에 쓰면 **레이어에 든 규칙보다 무조건 이긴다.** Tailwind 유틸리티는
- * `@layer utilities` 안에 있으므로, 레이어 없이 쓴 `button { font: inherit }` 하나가
- * 모든 버튼의 `font-serif`·`font-gothic`·`font-bold` 를 통째로 무시하게 만들었다.
+ * 요소 기본값은 반드시 `@layer base` 안에 둔다 — 레이어 밖 규칙은 Tailwind 유틸리티
+ * (`@layer utilities`)를 무조건 이겨 `font-bold` 같은 것이 조용히 무시된다.
  */
 @layer base {
   html,
@@ -101,9 +67,8 @@
     font-family: var(--font-serif);
     color: var(--color-ink);
     /*
-     * 모눈 한 칸 20px = A4 기준 5mm (시험지 폭 842px ÷ 210mm ≈ 4px/mm).
-     * 스크롤은 body 가 아니라 안쪽 컨테이너에서 일어나므로(html/body 는 overflow:hidden)
-     * 이 모눈은 화면에 고정된 채 있고 시험지만 그 위를 지나간다.
+     * 모눈 한 칸 20px = A4 기준 5mm. 스크롤은 안쪽 컨테이너에서 일어나므로
+     * 모눈은 화면에 고정된 채 있고 시험지만 그 위를 지나간다.
      */
     background-color: var(--color-desk);
     background-image:
@@ -118,8 +83,8 @@
     cursor: pointer;
   }
 
+  /* 비활성의 흐림 정도는 각 버튼이 정한다 — 여기서는 커서만 */
   button:disabled {
     cursor: not-allowed;
-    opacity: 0.4;
   }
 }

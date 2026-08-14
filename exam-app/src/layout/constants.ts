@@ -3,11 +3,8 @@ export const PAGE_W = 842
 export const PAGE_H = 1191
 
 /**
- * 모바일로 볼지 가르는 경계 — `App` 이 어느 화면을 그릴지 정하는 바로 그 값이다.
- *
- * 이 경계를 보는 곳이 둘 이상이므로 여기에 둔다. 갈라지면 레이아웃은 모바일인데
- * 부품만 데스크톱인 구간이 생긴다. Tailwind 의 `md:`(768px~) 와 맞물려 있으니
- * 이 값을 바꾸면 `md:` 를 쓴 자리도 같이 살펴야 한다.
+ * 모바일 경계 — 보는 곳이 둘 이상이라 여기에 둔다. Tailwind 의 `md:`(768px~)와
+ * 맞물려 있으니 바꾸면 `md:` 를 쓴 자리도 같이 살핀다.
  */
 export const MOBILE_MEDIA_QUERY = '(max-width: 767px)'
 
@@ -15,16 +12,9 @@ export const MOBILE_MEDIA_QUERY = '(max-width: 767px)'
 export const COLUMN_TOP = 14
 
 /**
- * 단 끝 하단 여백 — `COLUMN_TOP` 의 짝.
- *
- * 단이 꽉 차면 마지막 선택지가 푸터의 `mt-2.5` 만 남기고 붙어 버려 숨이 막힌다.
- * 위와 같은 값을 아래에도 줘서 단이 위아래로 같은 여백을 갖게 한다.
- *
- * `SheetColumn` 의 `paddingBottom` 과 `packSheet` 의 `colHeight` 가 **함께** 본다.
- * 패딩만 주고 패킹에서 빼지 않으면 마지막 문제가 그 위로 밀려 나가 잘린다
- * (페이지가 `overflow-hidden` 이라 조용히 사라진다).
- *
- * 키울수록 한 단에 담기는 양이 줄어 쪽수(`TARGET_PAGES`)가 흔들릴 수 있다.
+ * 단 끝 하단 여백 — `COLUMN_TOP` 의 짝. `SheetColumn` 의 `paddingBottom` 과
+ * `packSheet` 의 `colHeight` 가 함께 본다 — 패딩만 주고 패킹에서 빼지 않으면
+ * 마지막 문제가 밀려 나가 `overflow-hidden` 에 조용히 잘린다.
  */
 export const COLUMN_BOTTOM = 14
 

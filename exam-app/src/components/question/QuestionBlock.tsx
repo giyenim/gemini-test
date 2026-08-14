@@ -70,11 +70,7 @@ interface QuestionBlockProps {
 }
 
 function resolveBlocks(question: Question): QuestionContentBlock[] {
-  if (question.blocks?.length) return question.blocks
-  if (question.box) {
-    return [{ type: 'view', title: question.box.title, body: question.box.body }]
-  }
-  return []
+  return question.blocks ?? []
 }
 
 function PointMark({ points }: { points: number }) {

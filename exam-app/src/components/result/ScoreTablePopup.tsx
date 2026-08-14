@@ -37,7 +37,7 @@ export function ScoreTablePopup({ results, onClose, onOpenWrongNote }: ScoreTabl
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="border border-line bg-white px-2.5 py-1 font-serif text-[12px] text-ink hover:bg-[#f5f5f5]"
+          className="border border-line bg-white px-2.5 py-1 font-serif text-[12px] text-ink hover:bg-hover"
         >
           {expanded ? '축소' : '확대'}
         </button>

@@ -5,7 +5,8 @@
 ## 프로젝트
 
 **이지스 AI 활용 능력 모의고사** — 수능 과학탐구 형식의 시험지 UI (`exam-app/`).
-React 19 + Vite + Tailwind 4 + Noto Serif KR. GitHub Pages 배포 (`base: /gemini-test/`).
+React 19 + Vite + Tailwind 4 + Noto Serif KR.
+GitHub Pages 배포 — 커스텀 도메인 https://gemini-test.easyspub.co.kr (`base: '/'`, `exam-app/README.md` 배포 절 참고).
 
 - 출제 범위: 이지스퍼블리싱 『구글 제미나이』 01~04장 → [`book/`](book/)에 장별 Markdown
 - 현재 시험지: **표지 1장 + 20문항 · 4쪽 · 50점**(3점 10 + 2점 10). 전부 단일 문제(지문 없음)
@@ -52,8 +53,12 @@ exam-app/
       SheetHeaderFirst.tsx  # 1페이지 헤더 (시험명 / 교시·과목 / 성명·수험 번호)
       SheetHeaderContinued.tsx  # 2페이지~ (페이지 번호)
       SheetFooter / SheetContent / SheetColumn / ExamActionButton
+      PageNav.tsx           # 쪽 넘김 (화면 좌우 고정) — 버튼 생김새는 ui/ 킷
+      SignaturePad.tsx      # 표지 성명 칸 + 서명 도화지 — 창 생김새는 ui/ 킷
       question/             # QuestionBlock, PassageBlock, ChoiceGroup,
                             # ViewBox(보기) GeneralBlock(자료) TableBlock(표) FigureBlock(그림)
+    ui/                     # 시험지 밖 화면 UI 킷 (손그림 스타일) — `?ui` 로 작업장 열림
+                            # PageTurnButton, SignatureModal, Workbench
     layout/                 # packSheet, constants, types (데스크톱 전용)
     data/exam-sample.json   # 실제 시험지 데이터 (20문항)
     types/exam.ts
@@ -93,7 +98,7 @@ exam-app/
 ```bash
 cd exam-app
 npm install
-npm run dev    # http://localhost:5173/gemini-test/
+npm run dev    # http://localhost:5173/  (UI 킷 작업장은 /?ui)
 npm run build
 ```
 

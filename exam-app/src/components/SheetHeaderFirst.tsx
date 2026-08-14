@@ -35,51 +35,39 @@ function DigitCells({ digits }: { digits?: string }) {
 
 export function SheetHeaderFirst({ meta, pageNumber, examinee }: SheetHeaderFirstProps) {
   return (
-    // 헤더 전체 박스 — h-[148px] 가 헤더 높이 (constants.ts의 HEADER_FIRST_H와 함께 고친다)
+    // h-[148px] 가 헤더 높이 — constants.ts 의 HEADER_FIRST_H 와 함께 고친다
     <header className="relative mt-1 flex h-[148px] shrink-0 flex-col box-border">
-      {/* ========== 페이지 번호 (예: 1) ==========
-          - 위치: top / right
-          - 크기: text-[32px]
-      */}
+      {/* 페이지 번호 */}
       <span className="absolute top-0 right-0 z-10 font-serif text-[32px] font-semibold leading-none">
         {pageNumber}
       </span>
 
-      {/* ========== 첫째 줄: 시험명 ==========
-          - 크기: text-[23px] / font-semibold / scale-x-90
-      */}
+      {/* 첫째 줄: 시험명 */}
       <div className="grid h-9 grid-cols-1 items-end pb-[3px]">
         <p className="m-0 justify-self-center scale-x-90 whitespace-nowrap font-gothic text-[23px] font-semibold leading-[1.15] tracking-[-0.02em]">
           {meta.year} {meta.title}
         </p>
       </div>
 
-      {/* ========== 둘째 줄: 교시 | 과목 ========== */}
+      {/* 둘째 줄: 교시 타원 | 과목명 */}
       <div className="grid min-h-0 flex-1 grid-cols-[1fr_auto_1fr] items-start gap-x-2 pt-3 pb-2">
-        {/* --- 왼쪽: 교시 타원 ---
-            - 높이 h-[34px] / 글자 text-[25px] / scale-x-80 origin-left
-        */}
         <div className="inline-flex h-[34px] origin-left scale-x-80 items-center justify-center justify-self-start whitespace-nowrap rounded-full border border-line px-3 font-serif text-[25px] font-bold leading-none">
           {meta.period}
         </div>
 
-        {/* --- 가운데: 과목명 ---
-            - 크기 text-[46px] / font-bold
-        */}
         <h1 className="m-0 justify-self-center whitespace-nowrap font-gothic text-[46px] font-bold leading-none tracking-[0.12em]">
           {meta.subject}
         </h1>
       </div>
 
-      {/* ========== 셋째 줄: 성명 · 수험 번호 기입란 ==========
-          레퍼런스 실측 — 박스 높이 26.5 / 성명 186.1(라벨 38.5) / 사이 15.3 / 수험 번호 258.6
-          레퍼런스의 `제( )선택` 칸은 쓰지 않는다 (선택 과목이 없다).
+      {/*
+        셋째 줄: 성명·수험 번호 기입란 — 레퍼런스 실측 (박스 26.5 / 성명 186.1 /
+        사이 15.3 / 수험 번호 258.6). `제( )선택` 칸은 쓰지 않는다 (선택 과목이 없다).
       */}
       <div
         className="flex shrink-0 items-stretch justify-center font-gothic text-[15px] leading-none"
         style={{ height: 26.5, gap: 15.3 }}
       >
-        {/* --- 성명 --- */}
         <div className="flex border border-line" style={{ width: 186.1 }}>
           <span
             className="flex items-center justify-center border-r border-line"
@@ -92,7 +80,6 @@ export function SheetHeaderFirst({ meta, pageNumber, examinee }: SheetHeaderFirs
           </span>
         </div>
 
-        {/* --- 수험 번호 --- */}
         <div className="flex border border-line" style={{ width: 258.6 }}>
           <span
             className="flex items-center justify-center border-r border-line whitespace-nowrap"
@@ -112,7 +99,6 @@ export function SheetHeaderFirst({ meta, pageNumber, examinee }: SheetHeaderFirs
         </div>
       </div>
 
-      {/* ========== 하단 구분선 ========== */}
       <div className="mt-2 shrink-0 border-t-[1.15px] border-line" />
     </header>
   )

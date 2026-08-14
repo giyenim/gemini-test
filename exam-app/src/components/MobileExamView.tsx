@@ -259,13 +259,9 @@ export function MobileExamView({
   const [dragging, setDragging] = useState(false)
 
   /*
-   * 종이 한 장의 배율 — 표지(842×1191)를 화면 폭에 맞춘 값이다.
-   *
-   * 스크롤러에서 **한 번만** 재서 표지와 문제 쪽이 같이 쓴다. 장마다 따로 재면
-   * 값이 미세하게 갈려 넘길 때 종이가 들썩인다.
-   *
-   * 첫 렌더에 0 이면 종이가 납작하게 한 번 그려지므로 창 폭으로 어림잡아 시작한다
-   * — 스크롤러가 화면 폭을 그대로 쓰므로 대개 맞고, 어긋나도 곧 실측으로 덮인다.
+   * 종이 한 장의 배율 — 표지(842×1191)를 화면 폭에 맞춘 값. 스크롤러에서 한 번만
+   * 재서 표지와 문제 쪽이 같이 쓴다 (장마다 따로 재면 넘길 때 종이가 들썩인다).
+   * 첫 렌더에는 창 폭으로 어림잡아 시작하고 곧 실측으로 덮인다.
    */
   const [sheetScale, setSheetScale] = useState(() =>
     typeof window === 'undefined' ? 1 : Math.min(1, window.innerWidth / PAGE_W),
@@ -322,15 +318,10 @@ export function MobileExamView({
             return
           }
           /*
-           * 표지와 서명 창에서는 드래그를 시작하지 않는다.
-           *
-           * 서명 창은 `createPortal` 로 `body` 에 붙지만 **리액트 이벤트는 DOM 이 아니라
-           * 컴포넌트 트리를 타고 올라온다.** 그래서 창 안에서 누른 것이 표지를 거쳐 여기까지
-           * 닿았고, 8px 넘게 그으면 아래에서 `setPointerCapture` 로 포인터를 가져가
-           * 캔버스가 획을 잃었다. 이름이 안 써지던 것이 이것이다.
-           *
-           * 표지는 읽고 서명하는 장이라 끌 일이 없다. 넘기는 손짓(터치)은 위의
-           * `pointerType` 검사에서 이미 빠져 브라우저의 스냅 스크롤이 그대로 맡는다.
+           * 표지와 서명 창에서는 드래그를 시작하지 않는다. 서명 창은 포털로 `body` 에
+           * 붙어도 리액트 이벤트는 컴포넌트 트리를 타고 여기까지 올라오는데, 8px 넘게
+           * 그으면 `setPointerCapture` 가 포인터를 가져가 캔버스가 획을 잃는다.
+           * 터치 스와이프는 위의 `pointerType` 검사에서 이미 빠져 스냅 스크롤이 맡는다.
            */
           if (target.closest('[aria-label="표지"], [role="dialog"]')) {
             return
@@ -377,18 +368,9 @@ export function MobileExamView({
           aria-label="표지"
         >
           {/*
-            안내 문구를 따로 두지 않는다 — 표지가 열리면 서명 창이 바로 떠서
-            (`SignaturePad` 의 `SignatureField`) 무엇을 해야 하는지가 화면 그 자체다.
-            글로 한 번 더 이르면 종이 위에 군더더기가 얹힌다.
-
-            표지는 폭에 맞춰 통째로 줄어들어(`MobileCover`) 세로가 화면보다 짧게 남는다.
-            남는 자리를 위아래로 나눠 갖게 세로 가운데에 둔다 — 문제 페이지는 위에서부터
-            읽어 내려야 하므로 **표지에만** 준다.
-
-            `justify-center` 를 스크롤 상자에 바로 걸지 않고 `min-h-full` 을 두른 안쪽
-            상자에 거는 이유: 화면이 표지보다 짧으면 가운데 정렬이 위쪽을 잘라 먹고
-            스크롤로도 닿지 못한다. 안쪽 상자는 표지가 커지면 같이 늘어나 나눠 줄 여백이
-            없어지므로, 그때는 자연히 위에서부터 그려진다.
+            표지는 폭에 맞춰 통째로 줄어 세로가 남으므로 가운데에 둔다.
+            `justify-center` 는 스크롤 상자가 아니라 `min-h-full` 안쪽 상자에 건다 —
+            화면이 표지보다 짧을 때 가운데 정렬이 위쪽을 잘라 먹지 않게.
           */}
           <div className="flex min-h-full flex-col justify-center">
             <MobileCover
@@ -415,14 +397,9 @@ export function MobileExamView({
               aria-label={`${pageNumber} / ${pages.length} 페이지`}
             >
               {/*
-                문제 쪽도 표지와 **같은 크기의 종이** 위에 올린다. 바깥은 표지와 똑같이
-                세로 가운데로 두고(`min-h-full` + `justify-center`), 안쪽 종이는
-                표지 높이(`sheetH`)를 최소값으로 갖는다. 그래야 장을 넘겨도 종이의
-                크기와 위아래 여백이 그대로 있어 화면이 들썩이지 않는다.
-
-                `minHeight` 이지 `height` 가 아니다 — 문제가 길면 종이가 늘어나고,
-                그때는 나눠 줄 여백이 없어져 위에서부터 그려진다 (표지와 같은 규칙).
-                flex-1 은 그 안에서 풋터를 종이 맨 아래로 밀어 준다.
+                문제 쪽도 표지와 같은 크기의 종이(`minHeight: sheetH`) 위에 올린다 —
+                장을 넘겨도 종이 크기와 여백이 그대로라 화면이 들썩이지 않는다.
+                `height` 가 아니라 `minHeight` — 문제가 길면 종이가 늘어난다.
               */}
               <div className="flex min-h-full flex-col justify-center">
                 <div className="flex flex-col px-4 py-6" style={{ minHeight: sheetH }}>
@@ -453,12 +430,8 @@ export function MobileExamView({
                   </div>
 
                   <footer className="mt-8 shrink-0">
-                    {/*
-                      저작권은 쪽 번호 **위 줄**에 둔다. PC 시험지처럼 오른쪽 끝에 붙이면
-                      좁은 화면에서는 가운데의 쪽 번호 상자와 겹친다 (425px 에서 이미 겹쳤다).
-                      한 줄을 통째로 쓰니 잘라낼 일도 없어 `truncate` 도 뗐다.
-                    */}
-                    <p className="m-0 mb-1.5 text-center font-serif text-[8px] leading-none text-[#6b8cae]">
+                    {/* 저작권은 쪽 번호 위 줄에 — 오른쪽 끝에 붙이면 좁은 화면에서 쪽 번호와 겹친다 */}
+                    <p className="m-0 mb-1.5 text-center font-serif text-[8px] leading-none text-copyright">
                       {exam.meta.copyright}
                     </p>
                     <div className="flex h-7 items-center justify-center">

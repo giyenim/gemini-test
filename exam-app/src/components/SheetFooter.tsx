@@ -7,22 +7,14 @@ interface SheetFooterProps {
 }
 
 /**
- * 수능형 푸터 — 가운데 페이지 박스(현재/전체) + 오른쪽 저작권
- *
- * 위 여백(`mt-2.5`)은 **`layout/constants.ts` 의 `FOOTER_H` 와 같이 움직여야 한다.**
- * 다만 본문과 푸터 사이를 벌리고 싶을 때 여기를 건드리지는 않는다 — 그 숨통은
- * 단 아래 여백(`COLUMN_BOTTOM`)이 맡는다. 여기는 푸터 자체의 자리다.
+ * 수능형 푸터 — 가운데 페이지 박스(현재/전체) + 오른쪽 저작권.
+ * 위 여백(`mt-2.5`)은 `layout/constants.ts` 의 `FOOTER_H` 와 같이 움직인다.
+ * 본문과 푸터 사이를 벌리는 것은 `COLUMN_BOTTOM` 의 몫이다.
  */
 export function SheetFooter({ meta, pageNumber, totalPages }: SheetFooterProps) {
   return (
     <footer className="relative mt-2.5 flex h-10 shrink-0 items-center justify-center">
-      {/* ========== 가운데: 페이지 번호 박스 ==========
-          PDF 기준:
-          - 박스 ≈ 50×22
-          - 대각선: 우상단 → 좌하단 (/)
-          - 현재 페이지: 왼쪽 위
-          - 전체 페이지: 오른쪽 아래쪽
-      */}
+      {/* 페이지 번호 박스 — 대각선 위 왼쪽이 현재, 아래 오른쪽이 전체 (레퍼런스 양식) */}
       <div className="relative h-[28px] w-[64px] border border-line">
         <svg
           className="pointer-events-none absolute inset-0 h-full w-full"
@@ -46,8 +38,7 @@ export function SheetFooter({ meta, pageNumber, totalPages }: SheetFooterProps) 
         </span>
       </div>
 
-      {/* ========== 오른쪽: 저작권 ========== */}
-      <p className="absolute right-0 bottom-0 m-0 font-serif text-[10px] leading-none text-[#6b8cae]">
+      <p className="absolute right-0 bottom-0 m-0 font-serif text-[10px] leading-none text-copyright">
         {meta.copyright}
       </p>
     </footer>

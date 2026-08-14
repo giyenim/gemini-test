@@ -41,10 +41,6 @@ interface ExamSheetProps {
   onPageCount: (count: number) => void
 }
 
-function appendHighlighted(el: HTMLElement, text: string) {
-  el.appendChild(document.createTextNode(text))
-}
-
 /**
  * 데이터 순서를 시험지 배치 단위로 묶는다.
  * 지문에 묶인 문제는 지문 묶음으로, 나머지는 연속 구간(run)으로 모은다.
@@ -139,7 +135,7 @@ function measurePassageDom(
       const isLast = i === segments.length - 1
       p.className = seg.indent ? 'indent-[1em]' : ''
       p.style.marginBottom = isLast ? '0' : '0.5em'
-      appendHighlighted(p, seg.text)
+      p.appendChild(document.createTextNode(seg.text))
       inner.appendChild(p)
     })
     box.appendChild(inner)

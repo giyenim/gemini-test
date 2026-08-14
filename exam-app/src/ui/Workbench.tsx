@@ -19,10 +19,7 @@ export function Workbench() {
         <PageTurnButton dotClass="fill-yellow-300">이름을 쓰세요</PageTurnButton>
       </div>
 
-      {/*
-        도화지 자리는 비워 둔다 — 진짜 캔버스(`SignaturePad`)는 시험지 쪽 물건이라
-        킷이 가져다 쓰지 않는다. 여기서 보는 것은 종이의 생김새다.
-      */}
+      {/* 도화지 자리는 비워 둔다 — 여기서 보는 것은 종이의 생김새다 */}
       <div className="mt-10">
         <SignatureModal
           tool={tool}

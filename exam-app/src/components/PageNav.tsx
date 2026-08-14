@@ -6,14 +6,9 @@ import { openSignatureField } from './SignaturePad'
 const EDGE = 16
 
 /**
- * 세로 스크롤바 폭을 잰다.
- *
- * 시험지 스테이지가 `scrollbar-gutter: stable` 로 오른쪽에 스크롤바 자리를 **늘**
- * 잡아 두는데, 이 `nav` 는 `fixed` 라 그 위까지 덮는다. 좌우에 같은 값을 주면
- * 오른쪽은 그 대부분이 스크롤바에 먹혀 버튼이 끝에 붙은 것처럼 보인다.
- *
- * 폭은 OS·브라우저마다 다르다 (윈도 크롬 15px, 맥 오버레이 스크롤바 0px).
- * 그래서 상수로 박지 않고 잰다.
+ * 세로 스크롤바 폭을 잰다 — 스테이지가 `scrollbar-gutter: stable` 로 잡아 둔 자리를
+ * `fixed` 인 이 nav 가 덮으므로, 그만큼 더하지 않으면 오른쪽 버튼만 끝에 붙어 보인다.
+ * 폭은 OS·브라우저마다 달라 (윈도 크롬 15px, 맥 오버레이 0px) 상수로 박지 않고 잰다.
  */
 function useScrollbarWidth() {
   const [width, setWidth] = useState(0)
@@ -38,19 +33,12 @@ interface PageNavProps {
 }
 
 /**
- * 쪽 넘김 — **화면 좌우 가장자리**, 세로 가운데에 하나씩.
- *
- * 시험지 아래에 붙여 두었을 때는 쪽을 끝까지 읽어 내려야 손이 닿았다. 지금은 화면에
- * 고정해 두어 어느 쪽을 보고 있든 같은 자리에 있다.
+ * 쪽 넘김 — 화면 좌우 가장자리, 세로 가운데에 하나씩. 생김새는 UI 킷
+ * (`ui/PageTurnButton`)이 쥐고 여기서는 자리만 잡는다.
  *
  * `nav` 는 화면을 덮지만 `pointer-events-none` 이라 시험지 클릭을 가로채지 않는다.
- * 버튼만 `pointer-events-auto` 로 되살린다.
- *
- * 지금 몇 쪽인지는 시험지 푸터의 쪽 번호 칸이 이미 알려 주므로 여기서 또 세지 않는다.
- * 양 끝에서는 숨기지 않고 **문구를 바꿔** 지금 어디인지 알린다 (`첫 페이지` /
- * `마지막 페이지`). 사라지게 두면 남은 버튼이 자리를 옮긴다.
- *
- * 버튼 생김새는 UI 킷이 쥐고 있다 (`ui/PageTurnButton`). 여기서는 **자리만** 잡는다.
+ * 양 끝에서는 버튼을 숨기지 않고 문구를 바꾼다 (`첫 페이지` / `마지막 페이지`) —
+ * 사라지게 두면 남은 버튼이 자리를 옮긴다.
  */
 export function PageNav({ index, total, onChange, needsSignature }: PageNavProps) {
   const isFirst = index <= 0
