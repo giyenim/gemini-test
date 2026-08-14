@@ -17,6 +17,11 @@ interface ModalProps {
    * Esc 와 바깥 누르기가 유일한 취소 수단이 된다.
    */
   hideHeader?: boolean
+  /**
+   * 껍데기가 **자기 모양을 그리지 않는다** — 테두리도 바탕도 두지 않고, 어둡게 깔기와
+   * Esc·바깥 누르기만 맡는다. 내용이 스스로 모양을 갖고 있을 때 쓴다 (서명 창의 종이).
+   */
+  bare?: boolean
   onClose: () => void
   children: ReactNode
 }
@@ -33,6 +38,7 @@ export function Modal({
   width,
   bodyClassName,
   hideHeader,
+  bare,
   onClose,
   children,
 }: ModalProps) {
@@ -66,7 +72,9 @@ export function Modal({
         aria-modal
         aria-label={title}
         tabIndex={-1}
-        className="flex max-h-full w-full flex-col overflow-hidden border border-line bg-white outline-none"
+        className={`flex max-h-full w-full flex-col outline-none ${
+          bare ? '' : 'overflow-hidden border border-line bg-white'
+        }`}
         style={{ maxWidth: width }}
       >
         {hideHeader ? null : (

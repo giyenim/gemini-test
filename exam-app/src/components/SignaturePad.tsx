@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { MOBILE_MEDIA_QUERY } from '../layout/constants'
+import { SignatureModal } from '../ui'
 import { Modal } from './result/Modal'
 
 /**
@@ -28,17 +28,27 @@ const SCALE = 2
 const STROKE = 2.4
 
 /**
- * 서명 창의 도화지.
+ * 지우개 굵기 (논리 px). 펜보다 두 배쯤 굵다 — 획 한 가닥을 따라가며 지우는 것이
+ * 아니라 문질러 지우는 도구다. 손가락으로 쓰는 모바일에서는 정밀하게 짚지 못하므로
+ * 펜과 같은 굵기로 두면 지우는 데만 한참 걸린다.
+ */
+const ERASER = 5
+
+/** 도화지에서 쥘 수 있는 도구 */
+export type Tool = 'pen' | 'eraser'
+
+/**
+ * 서명 창의 도화지 — **데스크톱·모바일 한 벌.**
  *
- * 데스크톱은 성명 칸(148×34)의 6배 — 마우스로 긋기에 알맞은 가로로 긴 띠다.
- * 모바일은 그 비율을 그대로 쓰면 폭에 맞춰 줄었을 때 세로가 90px 밖에 남지 않아
- * 손가락으로 이름을 쓸 수 없다. 그래서 **모바일만 세로를 크게 잡는다.**
- * (425px 화면 기준 90px → 226px)
+ * 예전에는 화면에 따라 둘로 갈랐다. 데스크톱은 성명 칸(148×34)의 6배인 888×204 라
+ * 가로로 긴 슬롯이었는데, 마우스로 긋기에도 세로가 모자랐고 무엇보다 창이 화면마다
+ * 다른 물건처럼 보였다. 손가락 기준으로 잡아 둔 모바일 쪽 비율이 양쪽에 다 맞다.
  *
  * 실제 화면 크기는 폭에 맞춰 줄어들고, 여기 적힌 값은 비율과 내부 해상도를 정한다.
+ * `ui/SignatureModal` 의 종이(662×382)에서 안쪽 여백 16 을 뺀 크기다 —
+ * **비율이 어긋나면 캔버스가 상자 안에서 남거나 넘치므로 한쪽만 바꾸지 않는다.**
  */
-const PAD_DESKTOP = { w: 888, h: 204 }
-const PAD_MOBILE = { w: 660, h: 380 }
+const PAD = { w: 630, h: 350 }
 
 /**
  * 그린 획의 테두리 상자만 남기고 잘라낸다.
@@ -47,9 +57,11 @@ const PAD_MOBILE = { w: 660, h: 380 }
  * 맞춰 줄이므로, 세로로 키운 모바일 도화지에서는 글씨가 콩알만 해진다.
  * 획이 놓인 자리만 남기면 어디에 얼마나 크게 쓰든 칸을 꽉 채운다.
  *
- * 빈 도화지면 그대로 돌려준다 — 부를 일이 없지만 0×0 캔버스를 만들지 않기 위해서다.
+ * **획이 하나도 없으면 `null` 을 돌려준다.** 지우개로 다 지운 경우가 여기로 온다.
+ * 빈 캔버스를 그대로 구우면 투명한 PNG 한 장이 나오는데, 그것도 값은 값이라
+ * "서명했다"로 세어져 쪽 넘김이 열리고 성적표에 빈 그림이 실린다.
  */
-function trimToInk(canvas: HTMLCanvasElement): string {
+function trimToInk(canvas: HTMLCanvasElement): string | null {
   const ctx = canvas.getContext('2d')!
   const { width: W, height: H } = canvas
   const px = ctx.getImageData(0, 0, W, H).data
@@ -64,7 +76,7 @@ function trimToInk(canvas: HTMLCanvasElement): string {
       if (y > maxY) maxY = y
     }
   }
-  if (maxX < 0) return canvas.toDataURL('image/png')
+  if (maxX < 0) return null
 
   // 획 굵기만큼 숨통을 둔다 — 딱 붙여 자르면 칸 안에서 글씨가 테두리에 닿아 답답하다
   const pad = Math.ceil(STROKE * SCALE)
@@ -87,9 +99,17 @@ interface SignaturePadProps {
   /** 캔버스의 논리 크기 — 가로세로 비도 이 값에서 나온다 */
   width: number
   height: number
+  /** 지금 쥔 도구. 창(`SignatureModal`)이 정하고 여기서는 굿는 방식만 바꾼다 */
+  tool?: Tool
 }
 
-export function SignaturePad({ value, onChange, width, height }: SignaturePadProps) {
+export function SignaturePad({
+  value,
+  onChange,
+  width,
+  height,
+  tool = 'pen',
+}: SignaturePadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const drawing = useRef(false)
   const last = useRef<{ x: number; y: number } | null>(null)
@@ -98,13 +118,24 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
    * 획을 그을 때마다 캔버스를 지웠다 그리게 되어 깜빡인다.
    */
   const emitted = useRef<string | null>(null)
-  const [hasInk, setHasInk] = useState(Boolean(value))
 
-  const ctxOf = (c: HTMLCanvasElement) => {
+  /**
+   * 붓 설정.
+   *
+   * 지우개는 흰색으로 덧칠하지 않고 `destination-out` 으로 **알파를 깎는다.**
+   * 이 도화지는 배경이 투명이라 흰색으로 칠하면 흰 얼룩이 남고, `trimToInk` 가
+   * 그 얼룩까지 잉크로 세어 잘라내는 범위가 엉뚱해진다.
+   *
+   * 되살리기처럼 **그려 넣는** 경로에서는 반드시 `'pen'` 으로 부른다 — 지우개 상태로
+   * `drawImage` 를 하면 그림이 들어가는 대신 그 모양대로 파인다.
+   */
+  const ctxOf = (c: HTMLCanvasElement, mode: Tool) => {
     const ctx = c.getContext('2d')!
+    const erasing = mode === 'eraser'
+    ctx.globalCompositeOperation = erasing ? 'destination-out' : 'source-over'
     ctx.strokeStyle = '#111'
     ctx.fillStyle = '#111'
-    ctx.lineWidth = STROKE * SCALE
+    ctx.lineWidth = (erasing ? ERASER : STROKE) * SCALE
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     return ctx
@@ -128,12 +159,9 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
     if (value === emitted.current) return
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = ctxOf(canvas)
+    const ctx = ctxOf(canvas, 'pen')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    if (!value) {
-      setHasInk(false)
-      return
-    }
+    if (!value) return
     const img = new Image()
     /*
      * 넘어온 그림은 **잘라낸 것**이라 도화지와 비율이 다르다. 도화지 가득 늘려 그리면
@@ -148,7 +176,6 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
     }
     img.src = value
     emitted.current = value
-    setHasInk(true)
   }, [value])
 
   /*
@@ -209,21 +236,20 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
     } catch {
       // 캡처 없이 진행한다. 칸을 벗어나는 순간은 onPointerLeave 가 마무리한다
     }
-    const ctx = ctxOf(canvas)
+    const ctx = ctxOf(canvas, tool)
     const p = posOf(canvas, e.clientX, e.clientY)
     drawing.current = true
     last.current = p
-    // 톡 찍기만 해도 점이 남아야 한다 (마침표·점획)
+    // 톡 찍기만 해도 점이 남아야 한다 (마침표·점획). 지우개면 그만큼 파인다
     ctx.beginPath()
-    ctx.arc(p.x, p.y, (STROKE * SCALE) / 2, 0, Math.PI * 2)
+    ctx.arc(p.x, p.y, ctx.lineWidth / 2, 0, Math.PI * 2)
     ctx.fill()
-    setHasInk(true)
   }
 
   const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!drawing.current) return
     const canvas = e.currentTarget
-    const ctx = ctxOf(canvas)
+    const ctx = ctxOf(canvas, tool)
     const p = posOf(canvas, e.clientX, e.clientY)
     const l = last.current
     if (!l) return
@@ -276,14 +302,6 @@ export function SignaturePad({ value, onChange, width, height }: SignaturePadPro
           if (!e.currentTarget.hasPointerCapture(e.pointerId)) onPointerEnd()
         }}
       />
-      {hasInk ? null : (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 flex items-center justify-center font-ui text-[15px] text-ink-muted/35"
-        >
-          이 안에 이름을 쓰세요
-        </span>
-      )}
     </div>
   )
 }
@@ -337,23 +355,8 @@ export function SignatureField({
    * `null` 로 되돌리면 `SignaturePad` 가 값이 바뀐 것을 보고 캔버스를 스스로 비운다.
    */
   const [draft, setDraft] = useState<string | null>(value)
-
-  /*
-   * 어느 도화지를 쓸지. 창이 떠 있는 중에 가로세로를 돌려도 따라오도록 지켜본다.
-   * 획은 이미 그린 그림으로 남아 다시 그려지므로 (`value` → 캔버스 복원) 잃지 않는다.
-   */
-  const [pad, setPad] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia(MOBILE_MEDIA_QUERY).matches
-      ? PAD_MOBILE
-      : PAD_DESKTOP,
-  )
-  useEffect(() => {
-    const mq = window.matchMedia(MOBILE_MEDIA_QUERY)
-    const update = () => setPad(mq.matches ? PAD_MOBILE : PAD_DESKTOP)
-    update()
-    mq.addEventListener('change', update)
-    return () => mq.removeEventListener('change', update)
-  }, [])
+  /** 창을 다시 열면 늘 펜부터 — 지우개를 쥔 채 닫았다고 다음에도 지우개일 이유가 없다 */
+  const [tool, setTool] = useState<Tool>('pen')
 
   /*
    * 창이 떠 있는 동안 **문서 전체**의 글자 선택을 끈다.
@@ -380,6 +383,7 @@ export function SignatureField({
 
   const openPad = () => {
     setDraft(value)
+    setTool('pen')
     setOpen(true)
   }
 
@@ -407,97 +411,40 @@ export function SignatureField({
       {open
         ? createPortal(
             /*
-             * 창은 **도화지 한 장** 그 자체다. 제목 줄도 본문 여백도 두지 않아 캔버스가
-             * 껍데기를 꽉 채우고, 지우기·닫기·확인만 그 위에 얹는다.
-             * 제목이 사라져도 `title` 은 `aria-label` 로 남아 화면 낭독기에 읽힌다.
-             * 껍데기의 닫기 ✕ 대신 도화지 위의 ✕ 를 쓴다 (Esc·바깥 누르기도 그대로).
+             * 껍데기(`Modal`)는 어둡게 깔기와 Esc·바깥 누르기만 맡는다. 종이의 생김새는
+             * 킷(`ui/SignatureModal`)이 쥐고 있으므로 `bare` 로 껍데기의 테두리·바탕을
+             * 끈다. 제목 줄은 없지만 `title` 이 `aria-label` 로 남아 낭독기에 읽힌다.
+             *
+             * 창 전체를 선택 금지로 둔다. 이름을 쓰다 손이 캔버스를 조금 벗어나면
+             * 그 순간부터 창 안의 글자가 잡혀 끌려 나오기 때문이다 — 획은 캔버스가
+             * 계속 받고 있어도 화면은 글자를 고르는 중처럼 보인다.
              */
             <Modal
               title="성명 서명"
-              width={pad.w + 2}
+              width={PAD.w + 32}
               hideHeader
-              /*
-               * 창 전체를 선택 금지로 둔다. 이름을 쓰다 손이 캔버스를 조금 벗어나면
-               * 그 순간부터 창 안의 글자가 잡혀 끌려 나오기 때문이다 — 획은 캔버스가
-               * 계속 받고 있어도 화면은 글자를 고르는 중처럼 보인다.
-               */
-              bodyClassName="min-h-0 flex-1 overflow-hidden touch-none select-none"
+              bare
+              bodyClassName="min-h-0 flex-1 touch-none select-none"
               onClose={() => setOpen(false)}
             >
-              <div className="relative">
+              <SignatureModal
+                tool={tool}
+                onToolChange={setTool}
+                onClose={() => setOpen(false)}
+                onConfirm={() => {
+                  onChange(draft)
+                  setOpen(false)
+                }}
+                confirmDisabled={!draft}
+              >
                 <SignaturePad
-                  /* 도화지가 바뀌면 캔버스를 새로 잡는다 — 배경 크기가 바뀐 채로 이어 그리면 획이 어긋난다 */
-                  key={`${pad.w}x${pad.h}`}
                   value={draft}
                   onChange={setDraft}
-                  width={pad.w}
-                  height={pad.h}
+                  width={PAD.w}
+                  height={PAD.h}
+                  tool={tool}
                 />
-                {/*
-                  지우기·닫기는 아이콘만, 오른쪽 위. 테두리를 두르면 도화지에 상자가 얹힌다.
-
-                  모바일에서 한 단계 작다. 창은 성명 칸의 가로세로 비를 지키느라 폭에
-                  맞춰 줄어드는데(425px 화면에서 캔버스가 90px), 데스크톱 크기 그대로 두면
-                  버튼 하나가 도화지 높이의 36% 를 먹어 이름 쓸 자리를 가린다.
-                  `md:` 는 앱이 모바일로 보는 경계(767px)와 정확히 맞물린다.
-                */}
-                <div className="absolute top-1 right-1.5 flex items-center gap-0.5 md:top-2.5 md:right-3 md:gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setDraft(null)}
-                    disabled={!draft}
-                    aria-label="서명 지우기"
-                    title="지우고 다시 쓰기"
-                    className="flex h-6 w-6 items-center justify-center bg-transparent text-ink-muted enabled:hover:text-ink disabled:cursor-not-allowed disabled:opacity-25 md:h-8 md:w-8"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      aria-hidden
-                      className="h-[14px] w-[14px] md:h-[18px] md:w-[18px]"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M9 14 4 9l5-5" />
-                      <path d="M4 9h11a5 5 0 0 1 0 10H8" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOpen(false)}
-                    aria-label="닫기"
-                    title="닫기"
-                    className="flex h-6 w-6 items-center justify-center bg-transparent text-ink-muted hover:text-ink md:h-8 md:w-8"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      aria-hidden
-                      className="h-[14px] w-[14px] md:h-[18px] md:w-[18px]"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    >
-                      <path d="M6 6 18 18M18 6 6 18" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* 확인 — 쪽 넘김 버튼과 같은 결(시험지 밖 글꼴, 테두리 없음) */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    onChange(draft)
-                    setOpen(false)
-                  }}
-                  disabled={!draft}
-                  className="absolute right-1.5 bottom-1 bg-transparent px-1.5 py-0.5 font-ui text-[12px] text-ink enabled:hover:bg-[#f5f5f5] disabled:cursor-not-allowed disabled:opacity-30 md:right-3 md:bottom-2.5 md:px-2 md:py-1 md:text-[14px]"
-                >
-                  확인
-                </button>
-              </div>
+              </SignatureModal>
             </Modal>,
             document.body,
           )

@@ -79,6 +79,8 @@ export function PageNav({ index, total, onChange, needsSignature }: PageNavProps
         */}
         <PageTurnButton
           disabled={isLast}
+          /* 서명을 부르는 동안만 점을 노랑으로 — 쪽을 넘기는 것과 다른 일이라서 */
+          dotClass={blocked ? 'fill-yellow-300' : undefined}
           onClick={blocked ? openSignatureField : () => onChange(index + 1)}
         >
           {isLast ? '마지막 페이지' : blocked ? '이름을 쓰세요' : '다음 페이지'}

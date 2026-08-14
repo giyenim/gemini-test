@@ -4,10 +4,13 @@ export function PageTurnButton({
   children,
   disabled,
   onClick,
+  dotClass = 'fill-rose-500',
 }: {
   children: ReactNode
   disabled?: boolean
   onClick?: () => void
+  /** 호버 점 색. 비활성일 때는 무시된다 (`group-disabled:` 가 이긴다) */
+  dotClass?: string
 }) {
   return (
     <button
@@ -56,12 +59,12 @@ export function PageTurnButton({
           />
 
           {/*
-            왼쪽 가운데 빨간 점 — cx 13 cy 25 반지름 3.4. 선이 아니라 채운 것.
+            왼쪽 가운데 점 — cx 13 cy 25 반지름 3.4. 선이 아니라 채운 것.
             평소엔 숨어 있다가 버튼에 손이 닿으면 켜진다. `hover:` 가 아니라
             `group-hover:` 인 것은, 점 자체가 아니라 **버튼 전체**가 기준이기 때문이다.
           */}
           <path
-            className="fill-rose-500 opacity-0 group-hover:opacity-100 group-disabled:fill-indigo-600"
+            className={`${dotClass} opacity-0 group-hover:opacity-100 group-disabled:fill-indigo-600`}
             stroke="none"
             d="M13 21.6C14.9 21.7 16.5 23.2 16.4 25.1C16.3 27 14.7 28.5 12.8 28.4C10.9 28.3 9.5 26.6 9.6 24.7C9.7 22.9 11.1 21.5 13 21.6Z"
           />
