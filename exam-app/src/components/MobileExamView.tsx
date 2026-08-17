@@ -10,7 +10,7 @@ import type {
   Question,
 } from '../types/exam'
 import { CoverSheet } from './CoverSheet'
-import { ExamActionButton } from './ExamActionButton'
+import { SubmitButton } from '../ui'
 import { PassageBlock } from './question/PassageBlock'
 import { QuestionBlock } from './question/QuestionBlock'
 import { SheetHeaderContinued } from './SheetHeaderContinued'
@@ -424,7 +424,7 @@ export function MobileExamView({
 
                     {isLast ? (
                       <div className="mt-8 flex flex-col items-center gap-3">
-                        <ExamActionButton onClick={onSubmit}>제출</ExamActionButton>
+                        <SubmitButton onSubmit={onSubmit} />
                       </div>
                     ) : null}
                   </div>

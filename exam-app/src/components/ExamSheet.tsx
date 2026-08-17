@@ -18,7 +18,7 @@ import type {
   PlacedItem,
 } from '../layout/types'
 import { CoverSheet } from './CoverSheet'
-import { ExamActionButton } from './ExamActionButton'
+import { SubmitButton } from '../ui'
 import { PassageBlock, type PassageBoxMode } from './question/PassageBlock'
 import { QuestionBlock } from './question/QuestionBlock'
 import { SheetColumn } from './SheetColumn'
@@ -284,7 +284,7 @@ function renderPlacedItem(
   if (item.type === 'submit-action') {
     return (
       <div className="flex flex-col items-end gap-2">
-        <ExamActionButton onClick={onSubmit}>제출</ExamActionButton>
+        <SubmitButton onSubmit={onSubmit} />
       </div>
     )
   }
