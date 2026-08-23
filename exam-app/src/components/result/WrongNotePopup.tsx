@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import type { QuestionResult } from '../../grade'
 import { columnWidth, PAGE_W } from '../../layout/constants'
 import type { ExamData } from '../../types/exam'
+import { IconButton, PaperWindow } from '../../ui'
 import { choiceMark } from '../question/choiceMarks'
 import { QuestionBlock } from '../question/QuestionBlock'
 import { highlightTerms } from '../examText'
-import { BOOK_URL } from './constants'
 import { Modal } from './Modal'
 
 /**
@@ -13,6 +13,21 @@ import { Modal } from './Modal'
  * `QuestionBlock` 은 단 폭 기준으로 만들어졌으므로 이 폭을 벗어나면 조판이 흐트러진다.
  */
 const QUESTION_W = columnWidth(PAGE_W)
+
+/**
+ * 문항을 이만큼 키워 보여 준다. 시험지는 11.5px 로 조판되어 있어 창에 그대로 옮기면
+ * 작다 — 여기서는 한 문제만 들여다보는 자리라 키워도 조판이 흐트러지지 않는다.
+ * `transform: scale` 이 아니라 `zoom` 인 것은 확대해도 획이 번지지 않아서다 (LAYOUT.md).
+ */
+const NOTE_ZOOM = 1.4
+
+/**
+ * 출처에서 쪽수 괄호만 뽑는다 — `02-1 (p.55)` 에서 `(p.55)`.
+ * 절 번호는 책을 펴 든 사람에게만 쓸모가 있어 뺐다. 괄호가 없으면 있는 그대로 쓴다.
+ */
+function pageOf(detail: string): string {
+  return detail.match(/\([^)]*\)/)?.[0] ?? detail
+}
 
 interface WrongNotePopupProps {
   exam: ExamData
@@ -25,7 +40,8 @@ interface WrongNotePopupProps {
 /**
  * 오답노트 (RESULT-PAGE.md §4) — **한 문제씩** 넘겨 본다. 목록으로 쌓지 않는다.
  *
- * 마지막 오답 다음에 한 장을 더 둔다. 넘기다 보면 자연스럽게 책 안내에 도착한다.
+ * 창은 채점표와 같은 손그림 종이(`ui/PaperWindow`)다. 창의 글꼴은 킷 글꼴(Pretendard)이지만
+ * **문항 전문만은 명조**로 감싼다 — 시험지에서 오려 붙인 조각이라 거기서 보던 그대로여야 한다.
  */
 export function WrongNotePopup({
   exam,
@@ -39,9 +55,7 @@ export function WrongNotePopup({
   )
   const [index, setIndex] = useState(initial)
 
-  // 마지막 인덱스는 오답이 아니라 책 안내 장이다
-  const ctaIndex = wrong.length
-  const last = ctaIndex
+  const last = wrong.length - 1
   const go = useCallback(
     (next: number) => setIndex(Math.min(last, Math.max(0, next))),
     [last],
@@ -56,132 +70,69 @@ export function WrongNotePopup({
     return () => document.removeEventListener('keydown', onKey)
   }, [index, go])
 
-  const current = index < ctaIndex ? wrong[index] : null
+  const current = wrong[index] ?? null
   const question = current ? exam.questions.find((q) => q.id === current.id) : null
-
-  // 틀린 문항이 걸쳐 있는 장 목록 — 책 안내에 그대로 쓴다
-  const chapters = [
-    ...new Set(
-      wrong
-        .map((w) => exam.questions.find((q) => q.id === w.id)?.source?.chapter)
-        .filter((c): c is string => Boolean(c)),
-    ),
-  ]
 
   return (
     <Modal
       title="오답노트"
-      width={QUESTION_W + 120}
+      width={Math.round(QUESTION_W * NOTE_ZOOM) + 176}
+      bare
+      hideHeader
+      bodyClassName="contents"
       onClose={onClose}
-      aside={index < ctaIndex ? `${index + 1} / ${wrong.length}` : '정리'}
     >
-      <div className="mx-auto w-full" style={{ maxWidth: QUESTION_W }}>
-        {question && current ? (
-          <>
-            <QuestionBlock
-              question={question}
-              selected={current.selected ?? undefined}
-              submitted
-              onSelect={() => {}}
-              renderText={(text) => <>{highlightTerms(text)}</>}
-              anchor={false}
-            />
+      <PaperWindow
+        title="오답노트"
+        aside={`${index + 1} / ${wrong.length}`}
+        left={
+          <IconButton label="이전 오답" disabled={index === 0} onClick={() => go(index - 1)}>
+            {/* 손그림 갈매기 — 서명 창의 ✕ 와 같은 획 굵기다 */}
+            <path d="M15.4 5.2Q9.4 11.6 8.7 12Q9.5 12.5 15.2 19" />
+          </IconButton>
+        }
+        right={
+          <IconButton label="다음 오답" disabled={index === last} onClick={() => go(index + 1)}>
+            <path d="M8.6 5.2Q14.6 11.6 15.3 12Q14.5 12.5 8.8 19" />
+          </IconButton>
+        }
+        onClose={onClose}
+      >
+        <div className="mx-auto w-full font-serif" style={{ maxWidth: QUESTION_W, zoom: NOTE_ZOOM }}>
+          {question && current ? (
+            <>
+              <QuestionBlock
+                question={question}
+                selected={current.selected ?? undefined}
+                submitted
+                onSelect={() => {}}
+                renderText={(text) => <>{highlightTerms(text)}</>}
+                anchor={false}
+              />
 
-            <p className="m-0 mt-4 border-t border-line pt-3 font-serif text-[12.5px]">
-              내 답 <b>{current.selected === null ? '—' : choiceMark(current.selected)}</b>
-              <span className="mx-2 text-ink-muted">·</span>
-              정답 <b className="text-correct">{choiceMark(current.answer)}</b>
-            </p>
-
-            {question.explanation ? (
-              <p className="m-0 mt-2 font-serif text-[12.5px] leading-[1.65] whitespace-pre-line">
-                {question.explanation}
+              <p className="m-0 mt-4 border-t border-line pt-3 font-serif text-[12.5px]">
+                내 답 <b>{current.selected === null ? '—' : choiceMark(current.selected)}</b>
+                <span className="mx-2 text-ink-muted">·</span>
+                정답 <b className="text-correct">{choiceMark(current.answer)}</b>
               </p>
-            ) : null}
 
-            {question.source ? (
-              <p className="m-0 mt-3 font-serif text-[12px] leading-[1.5] text-ink-muted">
-                📖 {question.source.chapter}
-                <br />
-                <span className="text-[11.5px]">{question.source.detail}</span>
-              </p>
-            ) : null}
-          </>
-        ) : (
-          /* 마지막 장 — 넘기다 보면 도착하는 자리. 가장 잘 눌리는 곳이다 */
-          <div className="py-6 text-center font-serif">
-            {wrong.length > 0 ? (
-              <>
-                <p className="m-0 text-[15px] font-bold">
-                  {wrong.length}문항을 틀렸습니다.
+              {question.explanation ? (
+                <p className="m-0 mt-2 font-serif text-[12.5px] leading-[1.65] whitespace-pre-line">
+                  {question.explanation}
                 </p>
-                {chapters.length > 0 ? (
-                  <p className="m-0 mt-3 text-[12.5px] leading-[1.7] text-ink-muted">
-                    이 내용은 책의 다음 장에 있습니다.
-                    <br />
-                    {chapters.map((c) => (
-                      <span key={c} className="mt-1 block text-ink">
-                        {c}
-                      </span>
-                    ))}
-                  </p>
-                ) : null}
-              </>
-            ) : (
-              /* 만점자 — 지금은 오답노트 링크가 죽어 있어 여기까지 오지 않지만 분기는 남겨 둔다 */
-              <p className="m-0 text-[15px] font-bold">
-                이미 이 책의 독자시군요 — 주변에 추천해 주세요.
-              </p>
-            )}
+              ) : null}
 
-            <a
-              href={BOOK_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-5 inline-block border border-accent bg-accent px-5 py-2.5 text-[13px] font-semibold text-white no-underline hover:opacity-90"
-            >
-              📖 책에서 확인하기
-            </a>
-          </div>
-        )}
-      </div>
-
-      {/* 인디케이터는 점이 아니라 틀린 문항 번호 — 바로 점프할 수 있다 */}
-      <nav className="mt-5 flex items-center justify-between gap-3 border-t border-line pt-3">
-        <button
-          type="button"
-          onClick={() => go(index - 1)}
-          disabled={index === 0}
-          className="shrink-0 border-0 bg-transparent px-1 font-serif text-[12.5px] whitespace-nowrap text-ink disabled:opacity-30"
-        >
-          ‹ 이전
-        </button>
-
-        <div className="flex min-w-0 flex-wrap items-center justify-center gap-x-2 gap-y-1">
-          {wrong.map((w, i) => (
-            <button
-              key={w.id}
-              type="button"
-              onClick={() => go(i)}
-              aria-current={i === index}
-              className={`border-0 bg-transparent px-0.5 font-serif text-[12.5px] ${
-                i === index ? 'font-bold text-wrong underline' : 'text-ink-muted'
-              }`}
-            >
-              {w.id}
-            </button>
-          ))}
+              {/* 출처는 시험지 조각이 아니라 안내다 — 명조를 벗고 화면 글꼴을 쓴다 */}
+              {question.source ? (
+                <p className="m-0 mt-3 font-ui text-[12px] leading-[1.5] text-ink-muted">
+                  {question.source.chapter} {pageOf(question.source.detail)}
+                </p>
+              ) : null}
+            </>
+          ) : null}
         </div>
 
-        <button
-          type="button"
-          onClick={() => go(index + 1)}
-          disabled={index === last}
-          className="shrink-0 border-0 bg-transparent px-1 font-serif text-[12.5px] whitespace-nowrap text-ink disabled:opacity-30"
-        >
-          다음 ›
-        </button>
-      </nav>
+      </PaperWindow>
     </Modal>
   )
 }
