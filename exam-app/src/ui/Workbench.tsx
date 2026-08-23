@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { PageTurnButton } from './PageTurnButton'
+import { PaperWindow } from './PaperWindow'
 import { SignatureModal, type SignatureTool } from './SignatureModal'
 import { SubmitButton, SubmitButtonFace } from './SubmitButton'
 
@@ -55,6 +56,14 @@ export function Workbench() {
             <SubmitButton onSubmit={() => {}} />
           </div>
         </Swatch>
+      </div>
+
+      <div className="mt-10 max-w-[560px]">
+        <PaperWindow title="손그림 창 (PaperWindow)" onClose={() => {}}>
+          <p className="m-0 text-[13px] text-ink-muted">
+            서명 창과 같은 윤곽을 내용 크기에 맞춰 늘여 쓴다. 채점표가 이 창을 쓴다.
+          </p>
+        </PaperWindow>
       </div>
 
       {/* 도화지 자리는 비워 둔다 — 여기서 보는 것은 종이의 생김새다 */}
