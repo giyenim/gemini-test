@@ -37,15 +37,21 @@ export function ReportCard({
 }) {
   return (
     <div
-      className={`${CARD_W} ${CARD_TEXT} mx-auto border-[1.5px] border-line bg-white px-8 py-8 text-ink`}
+      /* 좁은 화면에서는 좌우 여백을 줄인다 — px-8 이면 320px 에서 글자 자리가 216px 밖에 안 남는다 */
+      className={`${CARD_W} ${CARD_TEXT} mx-auto border-[1.5px] border-line bg-white px-5 py-8 text-ink md:px-8`}
     >
-      <header className="flex items-baseline justify-center whitespace-nowrap text-center text-2xl font-semibold mb-7">
+      {/*
+        제목은 PC 에서 한 줄이다. 좁은 화면에서는 줄을 풀어 두 줄로 앉힌다 —
+        `keep-all` 이라 낱말 가운데가 아니라 띄어쓰기에서만 갈린다.
+      */}
+      <header className="mb-7 flex items-baseline justify-center text-center text-lg font-semibold [word-break:keep-all] md:whitespace-nowrap md:text-2xl">
         <span>
           {meta.year} {meta.title} 성적통지표
         </span>
       </header>
 
-      <div className="flex justify-between font-semibold mb-7">
+      {/* 좁은 화면에서는 수험번호와 성명이 한 줄씩 — 나란히 두면 서로 밀어낸다 */}
+      <div className="mb-7 flex flex-col gap-1 font-semibold md:flex-row md:justify-between md:gap-0">
         <p>
           수험번호 <span className="ml-1 font-normal">{examinee.id}</span>
         </p>
@@ -85,12 +91,20 @@ export function ReportCard({
         ))}
       </ol>
 
-      {actions ? <div className="mb-7 flex items-center justify-center gap-50">{actions}</div> : null}
+      {/* 좁은 화면에서는 두 링크를 한 줄씩 가운데로 — 나란히 두면 글자가 세로로 눌린다 */}
+      {actions ? (
+        <div className="mb-7 flex flex-col items-center gap-1 md:flex-row md:justify-center md:gap-50">
+          {actions}
+        </div>
+      ) : null}
 
       <footer className="text-center">
-        <p className="text-xl font-semibold mb-5">{examinee.takenAt}</p>
-        {/* 관인처럼 글자 사이를 한 칸씩 벌린다 */}
-        <p className="text-3xl font-semibold">{[...meta.publisher].join(' ')}</p>
+        <p className="mb-5 text-sm font-semibold md:text-xl">{examinee.takenAt}</p>
+        {/*
+          관인처럼 글자 사이를 한 칸씩 벌린다. 그만큼 가로로 길어져서 좁은 화면에서는
+          많이 줄여야 한 줄에 앉는다 — 두 줄로 갈리면 관인으로 안 보인다.
+        */}
+        <p className="text-base font-semibold md:text-3xl">{[...meta.publisher].join(' ')}</p>
       </footer>
     </div>
   )
