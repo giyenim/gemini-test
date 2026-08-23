@@ -19,11 +19,6 @@ function Swatch({ label, children }: { label: string; children: ReactNode }) {
  */
 export function Workbench() {
   const [tool, setTool] = useState<SignatureTool>('pen')
-  /*
-   * 확인 견본을 다시 재생시키는 열쇠. 도는 애니메이션은 한 바퀴만 돌고 멈추므로
-   * 견본을 누를 때마다 이 값을 올려 통째로 다시 태운다 — 그래야 처음부터 다시 돈다.
-   */
-  const [replay, setReplay] = useState(0)
 
   return (
     <div className="h-full overflow-auto bg-white p-8">
@@ -41,14 +36,24 @@ export function Workbench() {
         맨 끝 하나만 진짜로, 두 번 눌러 넘어가는 흐름을 확인한다.
       */}
       <div className="mt-10 flex flex-wrap items-start gap-6">
+        {/*
+          제출 버튼은 폭을 담긴 자리에서 받는다 (`w-full`). 여기서는 기댈 자리가 없으므로
+          시험지 한 단(318 = `columnWidth(PAGE_W)`)을 흉내 낸 상자에 넣어 세운다.
+        */}
         <Swatch label="기본">
-          <SubmitButtonFace />
+          <div className="w-[318px]">
+            <SubmitButtonFace />
+          </div>
         </Swatch>
-        <Swatch label="확인을 묻는 중 (눌러서 다시 재생)">
-          <SubmitButtonFace key={replay} asking onClick={() => setReplay((n) => n + 1)} />
+        <Swatch label="확인을 묻는 중">
+          <div className="w-[318px]">
+            <SubmitButtonFace asking />
+          </div>
         </Swatch>
         <Swatch label="실제 동작 (두 번 눌러 보기)">
-          <SubmitButton onSubmit={() => {}} />
+          <div className="w-[318px]">
+            <SubmitButton onSubmit={() => {}} />
+          </div>
         </Swatch>
       </div>
 
