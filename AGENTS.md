@@ -49,7 +49,8 @@ exam-app/
       result/               # 제출 이후 화면 (RESULT-PAGE.md)
                             # GradingOverlay(채점 중) ResultView(성적표 화면)
                             # ReportCard(성적통지표) ScoreTablePopup WrongNotePopup Modal
-                            # fontEmbed(이미지 캡처용 폰트) constants
+                            # constants
+                            # ResultPreview — `?result` 로 이 화면만 열기 (개발용)
       examText.tsx          # 공통 텍스트 렌더 훅
       SheetHeader.tsx       # 헤더 분기 (first → 1페이지 / continued → 2페이지~)
       SheetHeaderFirst.tsx  # 1페이지 헤더 (시험명 / 교시·과목 / 성명·수험 번호)
@@ -62,7 +63,8 @@ exam-app/
                             # ViewBox(보기) GeneralBlock(자료) TableBlock(표) FigureBlock(그림)
                             # choiceMarks.ts — ①~⑤ 기호·조합형 판별 (컴포넌트 아님)
     ui/                     # 시험지 밖 화면 UI 킷 (손그림 스타일) — `?ui` 로 작업장 열림
-                            # PageTurnButton, SignatureModal, SubmitButton, Workbench
+                            # PageTurnButton, SignatureModal, SubmitButton
+                            # PaperWindow(손그림 창) IconButton, Workbench
     layout/                 # packSheet, constants, types (데스크톱 전용)
     data/exam-sample.json   # 실제 시험지 데이터 (20문항)
     types/exam.ts
@@ -102,7 +104,9 @@ exam-app/
 ```bash
 cd exam-app
 npm install
-npm run dev    # http://localhost:5173/  (UI 킷 작업장은 /?ui)
+npm run dev    # http://localhost:5173/
+               #   /?ui      UI 킷 작업장
+               #   /?result  성적표 화면만 (RESULT-PAGE.md "이 화면만 열기")
 npm run build
 ```
 
