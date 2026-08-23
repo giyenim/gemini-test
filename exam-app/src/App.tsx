@@ -15,9 +15,12 @@ const exam = examData as unknown as ExamData
 
 /**
  * 시험지 최대 배율 — 화면이 넓으면 이 값까지 키우고, 좁으면 폭에 맞춰 줄인다.
- * 레이아웃은 원래 크기(842px)로 계산한 뒤 확대하므로 쪽수에는 영향이 없다.
+ *
+ * **1 = 확대하지 않는다.** 시험지를 조판한 크기(842×1191) 그대로 보여 준다.
+ * 그래야 시험지 위의 것과 시험지 밖의 것(쪽 넘김 버튼)이 같은 자로 재진다 —
+ * 확대를 걸면 안쪽만 커져서 제출 버튼의 글자·점·획을 따로 되나눠야 했다.
  */
-const SHEET_ZOOM = 1.35
+const SHEET_ZOOM = 1
 
 /** 바깥 여백(스테이지 패딩) — 폭이 줄면 스케일보다 여백이 먼저 줄어듦 */
 const PAD_MAX = 24
@@ -202,7 +205,12 @@ export default function App() {
           style={{ padding: stagePad }}
         >
           {/* scale 이 아니라 zoom — scale 은 확대 시 획이 번진다 (LAYOUT.md "화면 배율") */}
-          <div className="flex shrink-0 flex-col">
+          {/*
+            세로 가운데. `items-center` 가 아니라 `m-auto` 인 것은, 시험지가 화면보다
+            길 때 `items-center` 는 위쪽을 스크롤로 닿을 수 없게 잘라 먹기 때문이다.
+            auto 여백은 남는 자리가 없으면 0 이 되어 그런 일이 없다.
+          */}
+          <div className="m-auto flex shrink-0 flex-col">
             <div style={{ zoom: scale }}>
               <ExamSheet
                 exam={exam}

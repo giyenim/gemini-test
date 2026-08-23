@@ -51,9 +51,16 @@ export const SUBMIT_ACTION_GAP = 24
 export const SUBMIT_ACTION_H = 64
 export const SUBMIT_ACTION_BLOCK = SUBMIT_ACTION_GAP + SUBMIT_ACTION_H
 
-/** 페이지 외곽 패딩 (ExamSheet) — 수능 문제지의 좁은 상하 여백 */
-export const PAGE_PAD_TOP = 76
-export const PAGE_PAD_BOTTOM = 50
+/**
+ * 페이지 외곽 패딩 (ExamSheet) — 수능 문제지의 좁은 상하 여백.
+ *
+ * `contentHeight()` 를 통해 단 높이를 정하므로 **쪽수를 직접 좌우한다.**
+ * 76/50 이던 것을 64/44 로 줄였다 — `SHEET_ZOOM` 을 1 로 내리면서 확대가 사라지자
+ * 본문이 배율 있을 때보다 한 줄씩 더 접혀 20 문항이 8 단에 들어가지 않았다.
+ * 지금은 가장 빠듯한 단에 약 16px 이 남는다 (재는 법은 LAYOUT.md "쪽수 확인").
+ */
+export const PAGE_PAD_TOP = 64
+export const PAGE_PAD_BOTTOM = 44
 
 /** 첫 장 헤더: mt-1 + h-[148px] (시험명 / 교시·과목 / 성명·수험 번호) */
 export const HEADER_FIRST_H = 4 + 148
