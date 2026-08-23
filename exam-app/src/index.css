@@ -83,8 +83,12 @@
     cursor: pointer;
   }
 
-  /* 비활성의 흐림 정도는 각 버튼이 정한다 — 여기서는 커서만 */
+  /*
+   * 못 누르는 버튼에 금지 커서를 띄우지 않는다 — 회색으로 죽인 모습이 이미 신호다.
+   * 다만 pointer 는 남으면 안 되므로 평범한 커서로 되돌린다.
+   * 흐림 정도는 각 버튼이 정한다.
+   */
   button:disabled {
-    cursor: not-allowed;
+    cursor: default;
   }
 }

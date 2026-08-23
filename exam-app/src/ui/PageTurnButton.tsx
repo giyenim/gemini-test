@@ -23,7 +23,7 @@ export function PageTurnButton({
        * `aspect-120/50` 는 viewBox 비율과 같아야 한다 — 어긋나면 그림이 한쪽으로만
        * 늘어나 동그라미가 타원이 된다. 높이는 이 비율이 정하므로 `py-*` 는 쓰지 않는다.
        */
-      className="group relative flex aspect-120/50 w-38 items-center justify-center pl-4 pr-8 font-ui text-sm text-ink disabled:cursor-default"
+      className="group relative flex aspect-120/50 w-38 items-center justify-center pl-4 pr-8 font-ui text-sm text-ink"
     >
       <svg
         aria-hidden

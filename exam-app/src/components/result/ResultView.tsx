@@ -17,7 +17,7 @@ type Popup = null | { kind: 'scoreTable' } | { kind: 'wrongNote' }
 
 /** 성적표 아래 링크 셋이 같이 쓰는 생김새 — 버튼도 바깥 링크도 이것 하나다 */
 const LINK =
-  'border-0 bg-transparent py-1.5 text-ink no-underline underline-offset-4 hover:underline disabled:cursor-default disabled:text-ink-muted/50 disabled:no-underline'
+  'border-0 bg-transparent py-1.5 text-ink no-underline underline-offset-4 hover:underline disabled:text-ink-muted/50 disabled:no-underline'
 
 function ActionLink({
   onClick,
