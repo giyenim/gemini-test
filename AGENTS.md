@@ -49,16 +49,20 @@ exam-app/
       result/               # 제출 이후 화면 (RESULT-PAGE.md)
                             # GradingOverlay(채점 중) ResultView(성적표 화면)
                             # ReportCard(성적통지표) ScoreTablePopup WrongNotePopup Modal
+                            # fontEmbed(이미지 캡처용 폰트) constants
       examText.tsx          # 공통 텍스트 렌더 훅
+      SheetHeader.tsx       # 헤더 분기 (first → 1페이지 / continued → 2페이지~)
       SheetHeaderFirst.tsx  # 1페이지 헤더 (시험명 / 교시·과목 / 성명·수험 번호)
       SheetHeaderContinued.tsx  # 2페이지~ (페이지 번호)
-      SheetFooter / SheetContent / SheetColumn / ExamActionButton
+      SheetFooter / SheetContent / SheetColumn
       PageNav.tsx           # 쪽 넘김 (화면 좌우 고정) — 버튼 생김새는 ui/ 킷
       SignaturePad.tsx      # 표지 성명 칸 + 서명 도화지 — 창 생김새는 ui/ 킷
-      question/             # QuestionBlock, PassageBlock, ChoiceGroup,
+      signatureField.ts     # 성명 칸 표식·여는 길 (PageNav 가 대신 누른다)
+      question/             # QuestionBlock, PassageBlock, ChoiceGroup, BodyLines(머리표 행잉 인덴트)
                             # ViewBox(보기) GeneralBlock(자료) TableBlock(표) FigureBlock(그림)
+                            # choiceMarks.ts — ①~⑤ 기호·조합형 판별 (컴포넌트 아님)
     ui/                     # 시험지 밖 화면 UI 킷 (손그림 스타일) — `?ui` 로 작업장 열림
-                            # PageTurnButton, SignatureModal, Workbench
+                            # PageTurnButton, SignatureModal, SubmitButton, Workbench
     layout/                 # packSheet, constants, types (데스크톱 전용)
     data/exam-sample.json   # 실제 시험지 데이터 (20문항)
     types/exam.ts
