@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { PageTurnButton } from '../ui'
-import { openSignatureField } from './SignaturePad'
+import { openSignatureField } from './signatureField'
 
 /** 좌우 여백 (px) */
 const EDGE = 16

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { SignatureModal } from '../ui'
 import { Modal } from './result/Modal'
+import { SIGNATURE_FIELD_ATTR } from './signatureField'
 
 /**
  * 성명 서명 — 이름을 글자로 받지 않고 마우스·손가락으로 직접 쓴다.
@@ -238,20 +239,6 @@ export function SignaturePad({
       />
     </div>
   )
-}
-
-/**
- * 성명 칸에 붙는 표식 — 시험지 밖의 조작부(쪽 넘김)가 이 칸을 찾아 대신 누른다.
- * props 로 여닫지 않는 것은, 칸이 두 컴포넌트 갈래의 끝에 있어 상태를 끌어올리면
- * 중간 네 곳이 상관없는 prop 을 나르게 되기 때문이다.
- */
-export const SIGNATURE_FIELD_ATTR = 'data-signature-field'
-
-/** 표지의 성명 칸을 눌러 서명 창을 연다. 표지가 떠 있지 않으면 아무 일도 없다. */
-export function openSignatureField() {
-  document
-    .querySelector<HTMLButtonElement>(`[${SIGNATURE_FIELD_ATTR}]`)
-    ?.click()
 }
 
 /**

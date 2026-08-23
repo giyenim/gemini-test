@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { QuestionResult } from '../../grade'
-import { choiceMark } from '../question/ChoiceGroup'
+import { choiceMark } from '../question/choiceMarks'
 import { Modal } from './Modal'
 
 interface ScoreTablePopupProps {
