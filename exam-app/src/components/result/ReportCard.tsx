@@ -1,102 +1,96 @@
-import type { Ref } from 'react'
+import type { ReactNode } from 'react'
 import type { ExamScore } from '../../grade'
 import type { Examinee, ExamMeta } from '../../types/exam'
 import { SignatureMark } from '../SignaturePad'
 
-interface ReportCardProps {
+/** 카드 폭 — 여기 한 곳에서만 정한다 */
+const CARD_W = 'w-[800px] max-w-full'
+
+/** 글자 — 카드 안 모든 글자가 이 글꼴·크기·굵기 하나를 쓴다. 개별 덮어쓰기 없음 */
+const CARD_TEXT = 'font-gothic font-normal'
+
+/**
+ * 표 아래 설명 — 실물 수능 성적통지표의 그 자리다.
+ * `grade.ts` 가 실제로 하는 계산을 그대로 옮긴 문구다 (BASE_MEAN 30 / BASE_SD 9,
+ * 표준점수 20z+100, 백분위 정규분포 누적확률, 등급 구간 GRADE_CUTS).
+ * 등급 구간의 원점수와 예시 값은 그 식에 실제로 넣어 뽑은 것이다.
+ * **계산을 고치면 이 문구도 같이 고친다.**
+ */
+const NOTES = [
+  '원점수는 맞힌 문항의 배점 합계임. 3점 10문항, 2점 10문항으로 50점 만점임.',
+  '표준점수는 원점수 30점을 100으로 두고 9점마다 20점씩 더하거나 뺀 점수임. (50점 144, 30점 100, 10점 56)',
+  '백분위는 평균 30점, 표준편차 9점의 정규분포에서 그 점수보다 낮은 비율이며 1에서 99로 표기함. (40점 87, 30점 50, 20점 13)',
+  '등급은 원점수 46점 이상 1등급, 41점 이상 2등급, 37점 이상 3등급, 33점 이상 4등급, 28점 이상 5등급, 24점 이상 6등급, 19점 이상 7등급, 14점 이상 8등급, 13점 이하 9등급임.',
+]
+
+export function ReportCard({
+  meta,
+  examinee,
+  score,
+  actions,
+}: {
   meta: ExamMeta
   examinee: Examinee
   score: ExamScore
-  /** 이미지로 저장할 때 잘라낼 영역 — 이 카드가 곧 캡처 경계다 */
-  captureRef?: Ref<HTMLDivElement>
-}
-
-function HeadCell({ children }: { children: string }) {
-  return (
-    <th className="border border-line px-2 py-1.5 text-[12px] font-semibold">{children}</th>
-  )
-}
-
-/**
- * 성적통지표 카드 — 수능 성적통지표 양식 (RESULT-PAGE.md §2).
- *
- * **이미지로 저장되는 유일한 영역**이므로 캡처 경계를 이 컴포넌트의 바깥 div 하나로 둔다.
- * 안에 기관명·시험명이 박혀 있어 이미지 자체가 책 홍보물이 된다.
- */
-export function ReportCard({ meta, examinee, score, captureRef }: ReportCardProps) {
+  /** 카드 안에 들어가는 링크 — 글꼴·크기는 카드 것을 그대로 물려받는다 */
+  actions?: ReactNode
+}) {
   return (
     <div
-      ref={captureRef}
-      className="mx-auto w-full max-w-[420px] border-[1.5px] border-line bg-white px-6 py-7 font-gothic text-ink"
+      className={`${CARD_W} ${CARD_TEXT} mx-auto border-[1.5px] border-line bg-white px-8 py-8 text-ink`}
     >
-      {/* 시험명과 문서명을 한 줄에 둔다 — 실물 통지표의 머리글 한 줄과 같게 */}
-      <header className="flex items-baseline justify-center gap-1.5 whitespace-nowrap text-center">
-        <span className="text-[12px] tracking-[-0.02em]">
-          {meta.year} {meta.title}
+      <header className="flex items-baseline justify-center whitespace-nowrap text-center text-2xl font-semibold mb-7">
+        <span>
+          {meta.year} {meta.title} 성적통지표
         </span>
-        <span className="text-[12px] tracking-[0.06em]">성적통지표</span>
       </header>
 
-      <div className="mt-6 flex items-end justify-between gap-4 text-[12.5px]">
-        <p className="m-0">
-          수험번호 <span className="ml-1 font-write text-[13px]">{examinee.id}</span>
+      <div className="flex justify-between font-semibold mb-7">
+        <p>
+          수험번호 <span className="ml-1 font-normal">{examinee.id}</span>
         </p>
-        {/* 성명은 표지에서 직접 쓴 서명이 그대로 온다 — 글자가 아니라 이미지다 */}
-        <p className="m-0 flex items-end gap-1">
+        <p className="m-0 flex text-md">
           성명
           <SignatureMark src={examinee.signature} className="ml-1 h-[22px] w-auto object-contain" />
         </p>
       </div>
 
-      <table className="mt-2.5 w-full border-collapse text-center">
+      <table className="w-full mb-7 border-collapse text-center [&_th]:border [&_th]:border-line [&_th]:py-3 [&_td]:border [&_td]:border-line [&_td]:py-3">
         <thead>
           <tr>
-            <HeadCell>영역</HeadCell>
-            <HeadCell>원점수</HeadCell>
-            <HeadCell>표준점수</HeadCell>
-            <HeadCell>백분위</HeadCell>
-            <HeadCell>등급</HeadCell>
+            <th>영역</th>
+            <th>원점수</th>
+            <th>표준점수</th>
+            <th>백분위</th>
+            <th>등급</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td className="border border-line px-2 py-3 text-[12.5px] leading-tight">
-              {meta.subject.replace(/\s+/g, ' ')}
-            </td>
-            <td className="border border-line px-2 py-3 text-[14px]">
+            <td className="leading-tight">{meta.subject.replace(/\s+/g, ' ')}</td>
+            <td>
               {score.earned}
-              <span className="text-[11px] text-ink-muted">/{score.max}</span>
+              <span className="text-ink-muted">/{score.max}</span>
             </td>
-            <td className="border border-line px-2 py-3 text-[14px]">{score.standard}</td>
-            <td className="border border-line px-2 py-3 text-[14px]">{score.percentile}</td>
-            {/* 등급을 가장 크게 — 공유 욕구를 만드는 값이다 (§2) */}
-            <td className="border border-line px-2 py-1 text-[30px] font-bold leading-none">
-              {score.grade}
-            </td>
+            <td>{score.standard}</td>
+            <td>{score.percentile}</td>
+            <td>{score.grade}</td>
           </tr>
         </tbody>
       </table>
 
-      {/*
-        비고란 — 지금은 비워 둔다.
-        부정행위 감지가 붙으면 여기에 무효 처리 문구가 들어간다 (RESULT-PAGE.md §6).
-      */}
-      <div className="mt-2 min-h-[26px] border border-line px-2 py-1.5 text-[11px] leading-snug text-ink-muted">
-        <span className="mr-1.5 font-semibold text-ink">비고</span>
-      </div>
+      <ol className="list-decimal list-outside pl-5 text-sm mb-7">
+        {NOTES.map((note) => (
+          <li className="my-2" key={note}>{note}</li>
+        ))}
+      </ol>
 
-      <footer className="mt-7 text-center">
-        <p className="m-0 text-[12.5px]">{examinee.takenAt}</p>
-        <div className="mt-1.5 flex items-center justify-center gap-2">
-          <p className="m-0 text-[15px] font-bold tracking-[0.02em]">{meta.publisher}</p>
-          {/* 직인 */}
-          <span
-            aria-label="직인"
-            className="inline-flex h-[30px] w-[30px] rotate-[-8deg] items-center justify-center rounded-full border-[1.5px] border-check text-[9px] leading-none font-bold text-check"
-          >
-            이지스
-          </span>
-        </div>
+      {actions ? <div className="mb-7 flex items-center justify-center gap-50">{actions}</div> : null}
+
+      <footer className="text-center">
+        <p className="text-xl font-semibold mb-5">{examinee.takenAt}</p>
+        {/* 관인처럼 글자 사이를 한 칸씩 벌린다 */}
+        <p className="text-3xl font-semibold">{[...meta.publisher].join(' ')}</p>
       </footer>
     </div>
   )

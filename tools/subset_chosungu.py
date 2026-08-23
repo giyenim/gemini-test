@@ -40,6 +40,7 @@ ALWAYS = (
     "0123456789"
     ".,·:;()[]{}<>/\\-—–~!?%&*+=`^_|@#$'\" "
     "《》〈〉「」『』"
+    "↗›"
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     "년월일점등급백분위표준원영역만제교시성명수험번호비고"
 )
