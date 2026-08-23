@@ -249,14 +249,8 @@ export function MobileExamView({
   // 표지에 서명하기 전에는 문제 페이지를 붙이지 않는다 (아래 렌더 참고)
   const signed = Boolean(examinee?.signature)
   const scrollerRef = useRef<HTMLDivElement>(null)
-  const dragRef = useRef<{
-    pointerId: number
-    startX: number
-    startY: number
-    scrollLeft: number
-    axis: 'none' | 'x' | 'y'
-  } | null>(null)
-  const [dragging, setDragging] = useState(false)
+  /** 지금 붙어 있는 장 수 — 표지 한 장 + (서명 뒤) 문제 쪽 */
+  const pageCount = signed ? pages.length + 1 : 1
 
   /*
    * 종이 한 장의 배율 — 표지(842×1191)를 화면 폭에 맞춘 값. 스크롤러에서 한 번만
@@ -278,93 +272,51 @@ export function MobileExamView({
   /** 종이 한 장의 세로 — 표지가 차지하는 높이. 문제 쪽은 이걸 **최소** 높이로 쓴다 */
   const sheetH = PAGE_H * sheetScale
 
-  const endDrag = (pointerId: number) => {
-    const drag = dragRef.current
-    const el = scrollerRef.current
-    if (!drag || drag.pointerId !== pointerId) return
+  /*
+   * 키보드 좌·우로 장을 넘긴다 — 터치가 없는 화면에서 장을 넘기는 유일한 길이다.
+   * 스냅이 붙는 자리는 장 폭의 배수이므로, 지금 위치를 폭으로 나눠 반올림한 것이
+   * 곧 보고 있는 장 번호다.
+   */
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
 
-    if (el && drag.axis === 'x') {
-      const width = el.clientWidth
-      if (width > 0) {
-        const index = Math.round(el.scrollLeft / width)
-        el.scrollTo({
-          left: Math.max(0, Math.min(pages.length - 1, index)) * width,
-          behavior: 'smooth',
-        })
-      }
-      if (el.hasPointerCapture(pointerId)) {
-        el.releasePointerCapture(pointerId)
-      }
+      // 글자를 적는 중이면 커서를 옮기는 방향키다 (PC 쪽 App.tsx 와 같은 규칙)
+      const focused = event.target as HTMLElement | null
+      if (focused?.closest('input, textarea, select')) return
+      // 서명 창이 떠 있으면 창이 먼저다 — 뒤에서 종이가 넘어가면 안 된다
+      if (document.querySelector('[role="dialog"]')) return
+
+      const el = scrollerRef.current
+      const width = el?.clientWidth ?? 0
+      if (!el || width === 0) return
+
+      const index = Math.round(el.scrollLeft / width)
+      const next = index + (event.key === 'ArrowRight' ? 1 : -1)
+      if (next < 0 || next > pageCount - 1) return
+
+      event.preventDefault()
+      el.scrollTo({ left: next * width, behavior: 'smooth' })
     }
 
-    dragRef.current = null
-    setDragging(false)
-  }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [pageCount])
 
   return (
-    <div className="h-full overflow-hidden bg-white text-ink">
-      {/* 가로 스와이프 · 마우스 드래그 · 스크롤로 페이지 전환 */}
+    <div className="h-full overflow-hidden text-ink">
+      {/*
+        장 넘김은 **터치 스와이프와 키보드 좌·우** 둘뿐이다. 마우스 드래그는 두지
+        않는다 — 종이 위에서 손가락으로 미는 동작을 흉내 내려다 서명 캔버스·선택지와
+        포인터를 두고 다퉜다. 가로 이동은 브라우저의 스냅 스크롤에 맡긴다.
+      */}
       <div
         ref={scrollerRef}
-        className={
-          dragging
-            ? 'flex h-full cursor-grabbing snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain select-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
-            : 'flex h-full cursor-grab snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
-        }
-        onPointerDown={(event) => {
-          if (event.pointerType !== 'mouse' || event.button !== 0) return
-          const target = event.target as HTMLElement
-          if (target.closest('button, a, input, label, textarea, select, [role="button"]')) {
-            return
-          }
-          /*
-           * 표지와 서명 창에서는 드래그를 시작하지 않는다. 서명 창은 포털로 `body` 에
-           * 붙어도 리액트 이벤트는 컴포넌트 트리를 타고 여기까지 올라오는데, 8px 넘게
-           * 그으면 `setPointerCapture` 가 포인터를 가져가 캔버스가 획을 잃는다.
-           * 터치 스와이프는 위의 `pointerType` 검사에서 이미 빠져 스냅 스크롤이 맡는다.
-           */
-          if (target.closest('[aria-label="표지"], [role="dialog"]')) {
-            return
-          }
-
-          const el = scrollerRef.current
-          if (!el) return
-          dragRef.current = {
-            pointerId: event.pointerId,
-            startX: event.clientX,
-            startY: event.clientY,
-            scrollLeft: el.scrollLeft,
-            axis: 'none',
-          }
-        }}
-        onPointerMove={(event) => {
-          const drag = dragRef.current
-          const el = scrollerRef.current
-          if (!drag || !el || drag.pointerId !== event.pointerId) return
-
-          const dx = event.clientX - drag.startX
-          const dy = event.clientY - drag.startY
-
-          if (drag.axis === 'none') {
-            if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return
-            drag.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
-            if (drag.axis === 'x') {
-              el.setPointerCapture(event.pointerId)
-              setDragging(true)
-            }
-          }
-
-          if (drag.axis !== 'x') return
-
-          event.preventDefault()
-          el.scrollLeft = drag.scrollLeft - dx
-        }}
-        onPointerUp={(event) => endDrag(event.pointerId)}
-        onPointerCancel={(event) => endDrag(event.pointerId)}
+        className="flex h-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
         {/* 표지 — 문제 페이지 앞의 한 장. 쪽 번호를 받지 않는다 */}
         <article
-          className="h-full w-full shrink-0 snap-start snap-always overflow-y-auto overscroll-y-contain bg-white"
+          className="h-full w-full shrink-0 snap-start snap-always overflow-y-auto overscroll-y-contain"
           aria-label="표지"
         >
           {/*
@@ -393,16 +345,19 @@ export function MobileExamView({
           return (
             <article
               key={page.key}
-              className="h-full w-full shrink-0 snap-start snap-always overflow-y-auto overscroll-y-contain bg-white text-[11.5px] leading-[1.48] break-words"
+              className="h-full w-full shrink-0 snap-start snap-always overflow-y-auto overscroll-y-contain text-[11.5px] leading-[1.48] break-words"
               aria-label={`${pageNumber} / ${pages.length} 페이지`}
             >
               {/*
                 문제 쪽도 표지와 같은 크기의 종이(`minHeight: sheetH`) 위에 올린다 —
                 장을 넘겨도 종이 크기와 여백이 그대로라 화면이 들썩이지 않는다.
                 `height` 가 아니라 `minHeight` — 문제가 길면 종이가 늘어난다.
+
+                흰 바탕은 바깥 `<article>` 이 아니라 **이 종이**가 깐다. 그래야 종이가
+                화면보다 짧을 때 위아래로 책상(`body` 의 모눈)이 드러난다 — 표지와 같다.
               */}
               <div className="flex min-h-full flex-col justify-center">
-                <div className="flex flex-col px-4 py-6" style={{ minHeight: sheetH }}>
+                <div className="flex flex-col bg-white px-4 py-6" style={{ minHeight: sheetH }}>
                   {index === 0 ? (
                     <MobileSheetHeader
                       meta={exam.meta}
@@ -435,7 +390,12 @@ export function MobileExamView({
                       {exam.meta.copyright}
                     </p>
                     <div className="flex h-7 items-center justify-center">
-                      <div className="relative h-[28px] w-[64px] border border-line">
+                      {/*
+                        쪽 번호 상자 — PC 푸터(`SheetFooter`)의 28×64 를 0.85 로 줄인 값이다.
+                        모바일 종이는 폭이 좁아 같은 크기로 두면 상자만 커 보인다.
+                        글자와 자리 값도 같은 비율로 줄여야 대각선에 걸리지 않는다.
+                      */}
+                      <div className="relative h-[24px] w-[54px] border border-line">
                         <svg
                           className="pointer-events-none absolute inset-0 h-full w-full"
                           aria-hidden
@@ -450,10 +410,10 @@ export function MobileExamView({
                             vectorEffect="non-scaling-stroke"
                           />
                         </svg>
-                        <span className="absolute top-[1px] left-[4px] font-serif text-[14px] font-semibold leading-none">
+                        <span className="absolute top-[1px] left-[3px] font-serif text-[12px] font-semibold leading-none">
                           {pageNumber}
                         </span>
-                        <span className="absolute top-[11px] right-[4px] font-serif text-[14px] font-semibold leading-none">
+                        <span className="absolute top-[9px] right-[3px] font-serif text-[12px] font-semibold leading-none">
                           {pages.length}
                         </span>
                       </div>
