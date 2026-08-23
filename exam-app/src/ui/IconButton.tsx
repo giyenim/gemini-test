@@ -8,11 +8,14 @@ import type { ReactNode } from 'react'
 export function IconButton({
   label,
   selected,
+  disabled,
   onClick,
   children,
 }: {
   label: string
   selected?: boolean
+  /** 더 갈 곳이 없을 때 — 자리는 지키고 회색으로 죽인다 (사라지면 옆 것이 자리를 옮긴다) */
+  disabled?: boolean
   onClick?: () => void
   children: ReactNode
 }) {
@@ -22,9 +25,10 @@ export function IconButton({
       aria-label={label}
       title={label}
       aria-pressed={selected}
+      disabled={disabled}
       onClick={onClick}
-      className={`flex h-8 w-8 items-center justify-center bg-transparent hover:text-yellow-300 ${
-        selected === false ? 'text-gray-300' : 'text-ink'
+      className={`flex h-8 w-8 items-center justify-center bg-transparent hover:text-yellow-300 disabled:hover:text-gray-300 ${
+        selected === false || disabled ? 'text-gray-300' : 'text-ink'
       }`}
     >
       <svg

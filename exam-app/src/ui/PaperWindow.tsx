@@ -19,10 +19,18 @@ const PAD_BOTTOM = 'pb-12'
 
 export function PaperWindow({
   title,
+  aside,
+  left,
+  right,
   onClose,
   children,
 }: {
   title: string
+  /** 제목 오른쪽 보조 표시 — 예: `2 / 7` */
+  aside?: ReactNode
+  /** 창 왼쪽·오른쪽 세로 가운데 자리 — 넘김 화살표가 여기 붙는다 */
+  left?: ReactNode
+  right?: ReactNode
   onClose: () => void
   children: ReactNode
 }) {
@@ -49,6 +57,7 @@ export function PaperWindow({
       {/* 제목 줄 — 구분선을 긋지 않는다. 종이 위에 적어 넣은 것처럼 둔다 */}
       <div className={`relative flex shrink-0 items-center ${PAD_TOP} ${PAD_X}`}>
         <h2 className="m-0 text-base font-semibold">{title}</h2>
+        {aside ? <span className="ml-3 text-sm text-ink-muted">{aside}</span> : null}
         <div className="ml-auto">
           <CloseIconButton onClick={onClose} />
         </div>
@@ -57,6 +66,10 @@ export function PaperWindow({
       <div className={`relative min-h-0 flex-1 overflow-y-auto overscroll-contain pt-4 ${PAD_BOTTOM} ${PAD_X}`}>
         {children}
       </div>
+
+      {/* 좌우 가운데 — 종이 안쪽 여백(PAD_X) 자리에 앉으므로 내용과 겹치지 않는다 */}
+      {left ? <div className="absolute top-1/2 left-4 -translate-y-1/2">{left}</div> : null}
+      {right ? <div className="absolute top-1/2 right-4 -translate-y-1/2">{right}</div> : null}
     </div>
   )
 }
