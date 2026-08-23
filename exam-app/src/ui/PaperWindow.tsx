@@ -13,6 +13,10 @@ import { CloseIconButton } from './IconButton'
 /** 좌우 안쪽 여백 — 제목 줄과 본문이 같은 값을 써야 글자가 한 세로선에 선다 */
 const PAD_X = 'px-16'
 
+/** 위아래 안쪽 여백 — 종이 윤곽이 둥글어서 네모 창보다 넉넉해야 안 답답하다 */
+const PAD_TOP = 'pt-9'
+const PAD_BOTTOM = 'pb-12'
+
 export function PaperWindow({
   title,
   onClose,
@@ -43,14 +47,14 @@ export function PaperWindow({
       </svg>
 
       {/* 제목 줄 — 구분선을 긋지 않는다. 종이 위에 적어 넣은 것처럼 둔다 */}
-      <div className={`relative flex shrink-0 items-center pt-6 ${PAD_X}`}>
+      <div className={`relative flex shrink-0 items-center ${PAD_TOP} ${PAD_X}`}>
         <h2 className="m-0 text-base font-semibold">{title}</h2>
         <div className="ml-auto">
           <CloseIconButton onClick={onClose} />
         </div>
       </div>
 
-      <div className={`relative min-h-0 flex-1 overflow-y-auto overscroll-contain pt-4 pb-9 ${PAD_X}`}>
+      <div className={`relative min-h-0 flex-1 overflow-y-auto overscroll-contain pt-4 ${PAD_BOTTOM} ${PAD_X}`}>
         {children}
       </div>
     </div>
