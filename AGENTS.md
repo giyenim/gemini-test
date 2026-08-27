@@ -8,9 +8,9 @@
 React 19 + Vite + Tailwind 4 + Noto Serif KR.
 GitHub Pages 배포 — 커스텀 도메인 https://gemini-test.easyspub.co.kr (`base: '/'`, `exam-app/README.md` 배포 절 참고).
 
-- 출제 범위: 이지스퍼블리싱 『구글 제미나이』 01~04장 → [`book/`](book/)에 장별 Markdown
+- 출제 범위: 이지스퍼블리싱 『된다! 하루 만에 끝내는 제미나이 활용법』(전면 개정판) 01~07장 전체 → [`book/`](book/)에 장별 Markdown
 - 현재 시험지: **표지 1장 + 20문항 · 4쪽 · 50점**(3점 10 + 2점 10). 전부 단일 문제(지문 없음)
-- 후보 문항 40제와 해설: [`exam/후보문항-40.md`](exam/후보문항-40.md)
+- 후보 문항 64제와 해설: [`exam/후보문항.md`](exam/후보문항.md)
 
 응시 흐름: **표지 → 시험지 → 채점 중 3초 → 성적통지표**. 되돌아가는 길은 없다.
 이름은 표지 성명 칸에 직접 적고, 적는 즉시 속지 헤더와 성적표에 반영된다.
@@ -27,7 +27,7 @@ GitHub Pages 배포 — 커스텀 도메인 https://gemini-test.easyspub.co.kr (
 | [`exam-app/RESULT-PAGE.md`](exam-app/RESULT-PAGE.md) | **제출 이후 화면** — 성적통지표·채점표·오답노트 명세와 구현 상태 |
 | [`exam-app/README.md`](exam-app/README.md) | 앱 개요·실행 |
 | [`book/README.md`](book/README.md) | 원본 교재 Markdown (출제 근거) |
-| [`exam/후보문항-40.md`](exam/후보문항-40.md) | 후보 문항·정답·해설 |
+| [`exam/후보문항.md`](exam/후보문항.md) | 후보 문항·정답·해설 |
 | [`레퍼런스/01 물리학Ⅰ_문제.pdf`](레퍼런스/) | 문항 유형·조판 레퍼런스 (과탐) |
 
 레이아웃·여백을 바꿀 때는 **먼저 `LAYOUT.md`와 `src/layout/constants.ts`를 확인**한다.
@@ -36,7 +36,7 @@ GitHub Pages 배포 — 커스텀 도메인 https://gemini-test.easyspub.co.kr (
 
 ```
 book/                       # 원본 교재 장별 Markdown (출제 근거)
-exam/후보문항-40.md          # 후보 문항 40제 · 정답 · 해설
+exam/후보문항.md             # 후보 문항 64제 · 정답 · 해설
 tools/                      # 교재 PDF → book/*.md 변환기, 학생 대화 그림 생성기
 exam-app/
   public/figures/           # 문항 그림 (교재 PDF에서 잘라낸 캡처)
