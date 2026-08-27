@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { QuestionResult } from '../../grade'
 import { columnWidth, PAGE_W } from '../../layout/constants'
 import type { ExamData } from '../../types/exam'
@@ -18,6 +18,9 @@ const QUESTION_W = columnWidth(PAGE_W)
  * 문항을 이만큼 키워 보여 준다. 시험지는 11.5px 로 조판되어 있어 창에 그대로 옮기면
  * 작다 — 여기서는 한 문제만 들여다보는 자리라 키워도 조판이 흐트러지지 않는다.
  * `transform: scale` 이 아니라 `zoom` 인 것은 확대해도 획이 번지지 않아서다 (LAYOUT.md).
+ *
+ * 이 값은 **상한**이다. 좁은 화면에서는 창 폭에 맞춰 배율을 내린다 — 배율을 고정하면
+ * 문항이 창보다 넓어져, nowrap 인 조합 선택지 다섯 칸이 서로 겹쳐 보인다.
  */
 const NOTE_ZOOM = 1.4
 
@@ -73,6 +76,20 @@ export function WrongNotePopup({
   const current = wrong[index] ?? null
   const question = current ? exam.questions.find((q) => q.id === current.id) : null
 
+  // 확대 배율 = min(NOTE_ZOOM, 실제 폭 / 문항 폭). 배율을 바깥 폭에서 재는 것은
+  // zoom 이 걸린 요소는 자기 좌표계로 측정돼 값이 순환하기 때문이다.
+  const outerRef = useRef<HTMLDivElement>(null)
+  const [zoom, setZoom] = useState(NOTE_ZOOM)
+  useEffect(() => {
+    const outer = outerRef.current
+    if (!outer) return
+    const fit = () => setZoom(Math.min(NOTE_ZOOM, outer.clientWidth / QUESTION_W))
+    fit()
+    const ro = new ResizeObserver(fit)
+    ro.observe(outer)
+    return () => ro.disconnect()
+  }, [])
+
   return (
     <Modal
       title="오답노트"
@@ -98,7 +115,8 @@ export function WrongNotePopup({
         }
         onClose={onClose}
       >
-        <div className="mx-auto w-full font-serif" style={{ maxWidth: QUESTION_W, zoom: NOTE_ZOOM }}>
+        <div ref={outerRef} className="w-full">
+        <div className="mx-auto font-serif" style={{ width: QUESTION_W, zoom }}>
           {question && current ? (
             <>
               <QuestionBlock
@@ -130,6 +148,7 @@ export function WrongNotePopup({
               ) : null}
             </>
           ) : null}
+        </div>
         </div>
 
       </PaperWindow>
