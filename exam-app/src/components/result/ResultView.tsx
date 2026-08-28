@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { ExamScore } from '../../grade'
 import type { ExamData, Examinee } from '../../types/exam'
-import { BOOK_URL } from './constants'
+import { PageTurnButton } from '../../ui'
+import { BOOK_URL, SHARE_URL } from './constants'
 import { ReportCard } from './ReportCard'
 import { ScoreTablePopup } from './ScoreTablePopup'
 import { WrongNotePopup } from './WrongNotePopup'
@@ -47,6 +48,26 @@ export function ResultView({ exam, examinee, score }: ResultViewProps) {
   const wrongCount = score.wrong.length
   const perfect = wrongCount === 0
 
+  // 공유 버튼 — 누르면 시험 링크가 클립보드로 가고, 문구가 잠시 바뀌어 알려 준다
+  const [copied, setCopied] = useState(false)
+  const copiedTimer = useRef<number | undefined>(undefined)
+  const share = async () => {
+    try {
+      await navigator.clipboard.writeText(SHARE_URL)
+    } catch {
+      // 클립보드 API 가 막힌 환경(http 등) — 옛 방식으로 한 번 더
+      const ta = document.createElement('textarea')
+      ta.value = SHARE_URL
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      ta.remove()
+    }
+    setCopied(true)
+    window.clearTimeout(copiedTimer.current)
+    copiedTimer.current = window.setTimeout(() => setCopied(false), 1600)
+  }
+
   return (
     /* PC 는 시험지와 같은 842×1191 종이 위, 모바일은 그냥 흰 바탕 */
     <div className="h-full overflow-auto md:flex md:justify-center md:p-6 md:[scrollbar-gutter:stable]">
@@ -73,16 +94,13 @@ export function ResultView({ exam, examinee, score }: ResultViewProps) {
             }
           />
 
-          {/* 책 링크만 카드 밖에 남는다 — 시험지 밖으로 나가는 유일한 길이라서 */}
-          <div className="mt-7 flex flex-col items-center">
-            <a
-              href={BOOK_URL}
-              target="_blank"
-              rel="noreferrer"
-              className={`${LINK} font-serif text-[13px]`}
-            >
-              책에서 확인하기 ›
-            </a>
+          {/* 책 링크·공유만 카드 밖에 남는다 — 시험지 밖으로 나가는 길이라서,
+              쪽 넘김과 같은 손그림 버튼으로 도드라지게 둔다 */}
+          <div className="mt-7 flex flex-col items-center gap-3">
+            <PageTurnButton href={BOOK_URL}>책에서 확인하기</PageTurnButton>
+            <PageTurnButton onClick={share}>
+              {copied ? '링크 복사 완료!' : '테스트 공유하기'}
+            </PageTurnButton>
           </div>
         </div>
 
