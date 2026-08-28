@@ -28,7 +28,7 @@ GitHub Pages 배포 — 커스텀 도메인 https://gemini-test.easyspub.co.kr (
 | [`exam-app/README.md`](exam-app/README.md) | 앱 개요·실행 |
 | [`book/README.md`](book/README.md) | 원본 교재 Markdown (출제 근거) |
 | [`exam/후보문항.md`](exam/후보문항.md) | 후보 문항·정답·해설 |
-| [`레퍼런스/01 물리학Ⅰ_문제.pdf`](레퍼런스/) | 문항 유형·조판 레퍼런스 (과탐) |
+| ~~레퍼런스/01 물리학Ⅰ_문제.pdf~~ | 조판 레퍼런스(과탐)였던 PDF — 실측값은 `LAYOUT.md`와 코드 주석에 옮겨졌고 파일은 저장소에서 내렸다 |
 
 레이아웃·여백을 바꿀 때는 **먼저 `LAYOUT.md`와 `src/layout/constants.ts`를 확인**한다.
 
