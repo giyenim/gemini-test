@@ -35,6 +35,14 @@ export const MIN_QUESTION_GAP = 56
 export const MAX_QUESTION_GAP = 96
 
 /**
+ * 줄 맞춤(두 단의 n번째 문제를 같은 높이에서 시작) 때만 허용하는 최소 간격.
+ * 줄 높이를 두 단의 최대값으로 통일하면 빠듯한 페이지에서는 간격이
+ * `MIN_QUESTION_GAP` 아래로 내려가야 한다 — 줄이 어긋나는 것보다 조금
+ * 좁은 간격이 낫다. 이 값보다도 좁아지면 줄 맞춤을 포기한다.
+ */
+export const MIN_ALIGNED_GAP = 40
+
+/**
  * 문제 다음 지문(같은 단) 사이 고정 여백 (= 문제 사이 최소 간격).
  * 지문 이어짐(open-top) 조각에는 쓰지 않음.
  */

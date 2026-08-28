@@ -34,3 +34,4 @@ __pycache__/
 /favicon.svg
 /icons.svg
 /.nojekyll
+/.playwright-mcp/

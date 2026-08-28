@@ -3,6 +3,7 @@ import {
   COLUMN_TOP,
   MAX_QUESTION_GAP,
   MAX_QUESTIONS_PER_COLUMN,
+  MIN_ALIGNED_GAP,
   MIN_QUESTION_GAP,
   QUESTION_TO_PASSAGE_GAP,
   SUBMIT_ACTION_BLOCK,
@@ -17,6 +18,7 @@ import type {
   PassageSegment,
   PlacedItem,
   PlacedPassage,
+  PlacedQuestion,
 } from './types'
 
 type Cursor = {
@@ -456,6 +458,76 @@ function placeQuestions(
   }
 }
 
+/** 단이 문제로만 이뤄져 있으면 그 문제들을 돌려준다 (끝의 제출 블록은 눈감아 준다) */
+function questionOnlyItems(col: PackedColumn): PlacedQuestion[] | null {
+  const qs: PlacedQuestion[] = []
+  for (let i = 0; i < col.items.length; i += 1) {
+    const it = col.items[i]!
+    if (it.type === 'question') {
+      qs.push(it)
+    } else if (it.type === 'submit-action' && i === col.items.length - 1) {
+      // 제출 블록은 단 맨 아래 고정(marginTop: auto)이라 줄 맞추기와 무관
+    } else {
+      return null
+    }
+  }
+  return qs
+}
+
+/**
+ * 두 단의 문제 줄 맞추기.
+ *
+ * 남는 세로를 단마다 따로 나누면 옆 단과 n번째 문제의 시작 높이가 어긋난다.
+ * 문제만 담긴 페이지는 줄 높이를 두 단의 최대값으로 통일해 n번째 문제가
+ * 양 단에서 같은 높이에서 시작하게 한다. 지문이 낀 단은 줄 개념이 없어 그대로 둔다.
+ */
+function alignQuestionRows(pages: PackedPage[], input: PackInput) {
+  pages.forEach((page, pageIndex) => {
+    const left = questionOnlyItems(page.left)
+    const right = questionOnlyItems(page.right)
+    if (!left?.length || !right?.length) return
+
+    const rows = Math.max(left.length, right.length)
+    if (rows < 2) return
+
+    const rowH: number[] = []
+    for (let i = 0; i < rows; i += 1) {
+      rowH.push(
+        Math.max(
+          ...[left[i], right[i]]
+            .filter((q): q is PlacedQuestion => q !== undefined)
+            .map((q) => questionHeight(input, q.questionId)),
+        ),
+      )
+    }
+
+    const full =
+      pageIndex === 0 ? input.contentHeightFirst : input.contentHeightContinued
+    const colH = full - COLUMN_BOTTOM
+    const hasSubmit = [page.left, page.right].some((col) =>
+      col.items.some((it) => it.type === 'submit-action'),
+    )
+    const tail = hasSubmit ? SUBMIT_ACTION_BLOCK : 0
+    const free =
+      colH - COLUMN_TOP - rowH.reduce((a, b) => a + b, 0) - tail
+
+    // 양 단의 큰 문제가 서로 다른 줄에 있으면 최대 줄 높이 합이 단을 넘을 수 있다.
+    // 간격을 MIN_ALIGNED_GAP 까지는 좁혀서라도 줄을 맞추고, 그마저 안 되면
+    // 줄을 맞추다 잘리느니 원래 배치를 둔다.
+    if (free < (rows - 1) * MIN_ALIGNED_GAP) return
+    const gap = Math.min(MAX_QUESTION_GAP, free / (rows - 1))
+
+    for (const col of [left, right]) {
+      col.forEach((q, i) => {
+        if (i === 0) return
+        const prev = col[i - 1]!
+        q.gapBefore =
+          gap + rowH[i - 1]! - questionHeight(input, prev.questionId)
+      })
+    }
+  })
+}
+
 export function packSheet(input: PackInput): PackedPage[] {
   const c: Cursor = {
     pages: [],
@@ -480,6 +552,8 @@ export function packSheet(input: PackInput): PackedPage[] {
       placeQuestions(c, input, item.questionIds, isLast)
     }
   }
+
+  alignQuestionRows(c.pages, input)
 
   return c.pages.length > 0 ? c.pages : [emptyPage('first')]
 }

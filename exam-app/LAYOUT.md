@@ -234,6 +234,7 @@ ExamSheet
 | 한 단 최대 개수 | **3** (`MAX_QUESTIONS_PER_COLUMN`) |
 | 문제 사이 간격 | **56~96px** (`MIN`/`MAX_QUESTION_GAP`) — 남는 세로를 균등 분배하되 이 범위를 벗어나지 않는다 |
 | 남는 공간 | 최대 간격을 넘는 여백은 **단 아래**에 남는다 (수능 문제지의 실제 모습) |
+| **줄 맞춤** | 문제만 담긴 페이지는 패킹 뒤 `alignQuestionRows()`가 줄 높이를 **두 단의 최대값**으로 통일해 n번째 문제가 양 단에서 같은 높이에서 시작한다. 빠듯한 페이지는 간격을 `MIN_ALIGNED_GAP`(40)까지 좁혀서라도 맞추고, 그마저 안 되면 단별 배치를 그대로 둔다. 지문이 낀 단은 줄 개념이 없어 제외 |
 | 마지막 단 | 제출 블록 높이를 뺀 나머지로 같은 규칙을 적용한다 (마지막 두 문항이 붙지 않게) |
 | 단별 개수 균등화 | `targetColumns`가 주어지면 `ceil(남은 문제 수 / 남은 단 수)`로 한 단에 담을 개수를 제한한다. 한 단에 몰아 담아 마지막 단이 비는 것을 막는다 |
 | 쪼개기 | 문제는 **단/페이지로 쪼개지 않음**. 통째로 다음 단으로 이동 |
@@ -328,6 +329,7 @@ document.querySelectorAll('[data-page]').length            // 쪽수
 | `TARGET_PAGES` / `TARGET_COLUMNS` | 목표 쪽수 / 단 수 | 4 / 8 |
 | `COLUMN_TOP` | 단 시작·지문 직후 문제 공통 상단 여백 | 14 |
 | `MIN_QUESTION_GAP` / `MAX_QUESTION_GAP` | 문제 사이 간격 범위 | 56 / 96 |
+| `MIN_ALIGNED_GAP` | 줄 맞춤 때만 허용하는 최소 간격 | 40 |
 | `QUESTION_TO_PASSAGE_GAP` | 문제 다음 새 지문 간격 | = `MIN_QUESTION_GAP` |
 | `MAX_QUESTIONS_PER_COLUMN` | 한 단 최대 문제 수 | 3 |
 | `PAGE_PAD_TOP` / `PAGE_PAD_BOTTOM` | 페이지 상·하 여백 | 64 / 44 |
