@@ -96,7 +96,8 @@ export function ResultView({ exam, examinee, score }: ResultViewProps) {
 
           {/* 책 링크·공유만 카드 밖에 남는다 — 시험지 밖으로 나가는 길이라서,
               쪽 넘김과 같은 손그림 버튼으로 도드라지게 둔다 */}
-          <div className="mt-7 flex flex-col items-center gap-3">
+          {/* 모바일은 세로로 쌓고, PC(md~)는 한 줄로 나란히 */}
+          <div className="mt-7 flex flex-col items-center gap-3 md:flex-row md:justify-center md:gap-6">
             <PageTurnButton href={BOOK_URL}>책에서 확인하기</PageTurnButton>
             <PageTurnButton onClick={share}>
               {copied ? '링크 복사 완료!' : '테스트 공유하기'}
