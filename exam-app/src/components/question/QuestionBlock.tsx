@@ -52,7 +52,7 @@ const STEM_TO_CHOICE_GAP = 6
  *   질문 문장 첫 줄 109.5 · 보기 박스 99.0 · 선택지 99.3
  * → 본문은 모두 11.3 들여쓰고, 번호만 그 왼쪽으로 내민다.
  */
-const BODY_INDENT = 11.3
+export const BODY_INDENT = 11.3
 /** 발문 첫 줄에서 번호와 글자 사이 */
 const NUMBER_GAP = 7.8
 /** 질문 문장 첫 줄만 한 글자 더 (109.5 − 99.2) */

@@ -12,7 +12,7 @@ import type {
 import { CoverSheet } from './CoverSheet'
 import { SubmitButton } from '../ui'
 import { PassageBlock } from './question/PassageBlock'
-import { QuestionBlock } from './question/QuestionBlock'
+import { BODY_INDENT, QuestionBlock } from './question/QuestionBlock'
 import { SheetHeaderContinued } from './SheetHeaderContinued'
 import { SheetHeaderFirst } from './SheetHeaderFirst'
 import { highlightTerms } from './examText'
@@ -184,6 +184,17 @@ function buildMobilePages(exam: ExamData): MobilePage[] {
   return pages
 }
 
+/**
+ * 문제 본문 오른쪽에 `BODY_INDENT` 만큼 여백을 더 준다.
+ *
+ * 문제 블록은 번호만 왼쪽으로 내밀고 본문·보기 박스·선택지를 `BODY_INDENT` 들여쓴다.
+ * 상자가 단 오른쪽 끝까지 닿는 것은 레퍼런스 문제지 그대로지만(보기 박스 99.0~405.5
+ * = 단 오른쪽 끝), 옆 단이 없는 모바일에서는 그 11.3px 때문에 상자가 화면 오른쪽으로
+ * 밀려 보인다. 오른쪽에 같은 값을 물려 좌우를 맞춘다.
+ * **데스크톱 2단은 건드리지 않는다** — 폭이 바뀌면 패킹이 4쪽에서 흔들린다.
+ */
+const CONTENT_PAD_RIGHT = { paddingRight: BODY_INDENT }
+
 function MobilePageContent({
   page,
   answers,
@@ -195,7 +206,7 @@ function MobilePageContent({
 }) {
   if (page.type === 'passage-group') {
     return (
-      <section>
+      <section style={CONTENT_PAD_RIGHT}>
         <PassageBlock
           label={page.passage.label}
           intro={page.passage.intro}
@@ -225,7 +236,7 @@ function MobilePageContent({
   }
 
   return (
-    <section>
+    <section style={CONTENT_PAD_RIGHT}>
       <QuestionBlock
         question={page.question}
         selected={answers[page.question.id]}
