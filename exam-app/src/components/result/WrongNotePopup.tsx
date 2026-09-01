@@ -170,20 +170,36 @@ export function WrongNotePopup({
 
               <p className="m-0 mt-4 border-t border-line pt-3 font-serif text-[12.5px]">
                 내 답 <b>{current.selected === null ? '—' : choiceMark(current.selected)}</b>
-                <span className="mx-2 text-ink-muted">·</span>
+                <span className="mx-2 text-ink-muted">/</span>
                 정답 <b className="text-correct">{choiceMark(current.answer)}</b>
               </p>
 
+              {/*
+                해설·출처는 `머리말)` 로 연다 — 어디부터 무엇인지 한 덩어리로 알린다.
+                해설은 머리말이 **제 줄을 차지한다**(`block`) — 여러 줄짜리 해설(ㄱ/ㄴ/ㄷ)에서
+                머리말을 첫 줄에 얹으면 ㄱ 만 안쪽으로 밀려 ㄴ·ㄷ 와 어긋난다.
+                `</b>` 와 본문 사이 줄바꿈은 JSX 가 지우므로 `whitespace-pre-line` 이어도
+                빈 줄이 생기지 않는다.
+              */}
               {question.explanation ? (
                 <p className="m-0 mt-2 font-serif text-[12.5px] leading-[1.65] whitespace-pre-line">
+                  <b className="block font-semibold">해설)</b>
                   {question.explanation}
                 </p>
               ) : null}
 
-              {/* 출처는 시험지 조각이 아니라 안내다 — 명조를 벗고 화면 글꼴을 쓴다 */}
+              {/*
+                출처는 시험지 조각이 아니라 안내다 — 명조를 벗고 화면 글꼴을 쓴다.
+                해설 바로 밑에 같은 크기·색으로 두면 **해설의 마지막 문단**으로 읽힌다.
+                장 제목이 길어 두 줄로 넘어갈 때 특히 그렇다. 그래서 네 가지로 갈랐다 —
+                간격(해설 문단 사이보다 넓게) · 크기(해설보다 작게) · 색(한 단계 더 물린 회색) ·
+                `출처)` 머리말. 머리말은 두 글자지만 이것만으로 문장이 아님이 확정된다.
+                한 줄짜리라 머리말을 굵히지 않고 뒤따르는 글과 같은 굵기로 둔다 —
+                이미 색과 크기로 본문에서 물러나 있어 여기서 더 힘을 주면 도로 눈에 걸린다.
+              */}
               {question.source ? (
-                <p className="m-0 mt-3 font-ui text-[12px] leading-[1.5] text-ink-muted">
-                  {question.source.chapter} {pageOf(question.source.detail)}
+                <p className="m-0 mt-5 font-ui text-[11.5px] leading-[1.5] text-source">
+                  출처) {question.source.chapter} {pageOf(question.source.detail)}
                 </p>
               ) : null}
             </>

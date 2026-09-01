@@ -69,9 +69,15 @@ export function ResultView({ exam, examinee, score }: ResultViewProps) {
   }
 
   return (
-    /* PC 는 시험지와 같은 842×1191 종이 위, 모바일은 그냥 흰 바탕 */
+    /*
+      시험을 마친 화면이라 종이를 깔지 않는다 — 성적표 카드와 버튼이 책상(모눈·표지 벽지)
+      위에 그대로 놓인다. 흰 바탕은 카드가 제 몫으로 가지고 있다 (`ReportCard`).
+      시험지와 같은 842 폭만 지켜 성적표가 앞 화면들과 같은 자에 맞는다.
+      세로 가운데는 `items-center` 가 아니라 `m-auto` 로 잡는다 — 내용이 화면보다
+      길어지면 auto 여백이 0 이 되어 위쪽이 스크롤 밖으로 잘리지 않는다 (App.tsx 와 같은 이유).
+    */
     <div className="h-full overflow-auto md:flex md:justify-center md:p-6 md:[scrollbar-gutter:stable]">
-      <div className="min-h-full w-full bg-white text-ink md:m-auto md:flex md:h-[1191px] md:w-[842px] md:min-h-0 md:shrink-0 md:flex-col md:justify-center">
+      <div className="min-h-full w-full text-ink md:m-auto md:h-auto md:w-[842px] md:min-h-0 md:shrink-0">
         <div className="w-full px-5 py-10">
           <ReportCard
             meta={exam.meta}

@@ -42,7 +42,8 @@ export function ScoreTablePopup({ results, onClose }: ScoreTablePopupProps) {
                 {/* 한 줄에 다 넣는다 — 줄이 갈리면 칸 높이가 문항마다 달라진다. 좁은 화면은 글자를 한 단계 줄여 점수와 붙지 않게 한다 */}
                 <div className="mt-1 flex gap-1 text-[12.5px] sm:text-sm justify-between whitespace-nowrap text-ink-muted">
                 <span>
-                  내 답 {answerMark(r.selected)} · 정답 {choiceMark(r.answer)}
+                  {/* 구분자는 오답노트의 같은 줄과 맞춘다 (`WrongNotePopup`) */}
+                  내 답 {answerMark(r.selected)} / 정답 {choiceMark(r.answer)}
                 </span>
                 <span>
                   {r.points}점

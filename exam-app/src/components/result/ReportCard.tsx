@@ -24,7 +24,7 @@ export function ReportCard({
   return (
     <div
       /* 좁은 화면에서는 좌우 여백을 줄인다 — px-8 이면 320px 에서 글자 자리가 216px 밖에 안 남는다 */
-      className={`${CARD_W} ${CARD_TEXT} mx-auto border-[1.5px] border-line bg-white px-5 py-8 text-ink md:px-8`}
+      className={`${CARD_W} ${CARD_TEXT} mx-auto border-[3px] border-line bg-white px-5 py-8 text-ink md:px-8`}
     >
       {/*
         제목은 PC 에서 한 줄이다. 좁은 화면에서는 줄을 풀어 두 줄로 앉힌다 —
