@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type TouchEvent } from 'react'
 import type { QuestionResult } from '../../grade'
 import { columnWidth, PAGE_W } from '../../layout/constants'
 import type { ExamData } from '../../types/exam'
@@ -23,6 +23,13 @@ const QUESTION_W = columnWidth(PAGE_W)
  * 문항이 창보다 넓어져, nowrap 인 조합 선택지 다섯 칸이 서로 겹쳐 보인다.
  */
 const NOTE_ZOOM = 1.4
+
+/**
+ * 스와이프로 인정하는 최소 가로 이동(px) — 모바일에서 장을 넘기는 유일한 길이다.
+ * 세로로 더 많이 민 손짓은 본문 스크롤이므로 넘기지 않고, `preventDefault` 도 하지
+ * 않는다 — 스크롤을 막으면 긴 해설을 읽다가 손이 걸린다.
+ */
+const SWIPE_MIN = 48
 
 /**
  * 출처에서 쪽수 괄호만 뽑는다 — `02-1 (p.55)` 에서 `(p.55)`.
@@ -90,6 +97,29 @@ export function WrongNotePopup({
     return () => ro.disconnect()
   }, [])
 
+  /*
+   * 스와이프 — 손을 뗄 때 한 번만 판단한다. 미는 도중에 장을 갈아 끼우면 손가락 아래
+   * 글자가 바뀌어 읽던 자리를 잃는다.
+   */
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const onTouchStart = (event: TouchEvent) => {
+    const touch = event.touches[0]
+    touchStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null
+  }
+  const onTouchEnd = (event: TouchEvent) => {
+    const start = touchStart.current
+    const touch = event.changedTouches[0]
+    touchStart.current = null
+    if (!start || !touch) return
+
+    const dx = touch.clientX - start.x
+    const dy = touch.clientY - start.y
+    if (Math.abs(dx) < SWIPE_MIN || Math.abs(dx) <= Math.abs(dy)) return
+
+    // 왼쪽으로 밀면 다음 장 — 종이를 손으로 밀어내는 방향이다 (시험지 스와이프와 같다)
+    go(index + (dx < 0 ? 1 : -1))
+  }
+
   return (
     <Modal
       title="오답노트"
@@ -102,20 +132,30 @@ export function WrongNotePopup({
       <PaperWindow
         title="오답노트"
         aside={`${index + 1} / ${wrong.length}`}
+        /* 화살표는 PC 것이다 — 모바일은 손으로 밀어 넘긴다 (아래 `onTouchEnd`) */
         left={
-          <IconButton label="이전 오답" disabled={index === 0} onClick={() => go(index - 1)}>
-            {/* 손그림 갈매기 — 서명 창의 ✕ 와 같은 획 굵기다 */}
-            <path d="M15.4 5.2Q9.4 11.6 8.7 12Q9.5 12.5 15.2 19" />
-          </IconButton>
+          <span className="hidden md:block">
+            <IconButton label="이전 오답" disabled={index === 0} onClick={() => go(index - 1)}>
+              {/* 손그림 갈매기 — 서명 창의 ✕ 와 같은 획 굵기다 */}
+              <path d="M15.4 5.2Q9.4 11.6 8.7 12Q9.5 12.5 15.2 19" />
+            </IconButton>
+          </span>
         }
         right={
-          <IconButton label="다음 오답" disabled={index === last} onClick={() => go(index + 1)}>
-            <path d="M8.6 5.2Q14.6 11.6 15.3 12Q14.5 12.5 8.8 19" />
-          </IconButton>
+          <span className="hidden md:block">
+            <IconButton label="다음 오답" disabled={index === last} onClick={() => go(index + 1)}>
+              <path d="M8.6 5.2Q14.6 11.6 15.3 12Q14.5 12.5 8.8 19" />
+            </IconButton>
+          </span>
         }
         onClose={onClose}
       >
-        <div ref={outerRef} className="w-full">
+        <div
+          ref={outerRef}
+          className="w-full"
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
         <div className="mx-auto font-serif" style={{ width: QUESTION_W, zoom }}>
           {question && current ? (
             <>
@@ -149,6 +189,13 @@ export function WrongNotePopup({
             </>
           ) : null}
         </div>
+
+          {/* 화살표가 없는 모바일에만 — 넘기는 길이 안 보이면 첫 장에서 멈춘다 */}
+          {wrong.length > 1 ? (
+            <p className="m-0 mt-6 text-center font-ui text-[11.5px] text-ink-muted md:hidden">
+              좌우로 밀어서 넘기기
+            </p>
+          ) : null}
         </div>
 
       </PaperWindow>
