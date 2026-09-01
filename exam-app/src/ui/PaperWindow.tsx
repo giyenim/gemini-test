@@ -13,9 +13,13 @@ import { CloseIconButton } from './IconButton'
 /** 좌우 안쪽 여백 — 제목 줄과 본문이 같은 값을 써야 글자가 한 세로선에 선다. 좁은 화면은 여백을 줄여 내용에 양보한다 */
 const PAD_X = 'px-7 sm:px-16'
 
-/** 위아래 안쪽 여백 — 종이 윤곽이 둥글어서 네모 창보다 넉넉해야 안 답답하다 */
-const PAD_TOP = 'pt-9'
-const PAD_BOTTOM = 'pb-8 sm:pb-12'
+/**
+ * 위아래 안쪽 여백 — 종이 윤곽이 둥글어서 네모 창보다 넉넉해야 안 답답하다.
+ * 창이 세로로 늘어나면 윗변·아랫변의 굽은 정도도 같이 늘어나(`preserveAspectRatio="none"`)
+ * 글자가 선에 다가붙는다. 그래서 좁은 화면에서도 넉넉한 쪽으로 잡는다.
+ */
+const PAD_TOP = 'pt-12'
+const PAD_BOTTOM = 'pb-12 sm:pb-14'
 
 /**
  * 종이 윤곽 path 를 0~1 좌표로 옮긴 것 (662×382 로 나눔) — 내용 클리핑용.

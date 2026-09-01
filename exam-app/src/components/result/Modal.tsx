@@ -53,8 +53,15 @@ export function Modal({
   }, [onClose])
 
   return (
+    /*
+      `inset-0` 만 두면 상자 높이가 **레이아웃 뷰포트**(주소 표시줄이 보일 때 화면보다
+      큰 값)로 잡힌다. 그 안에서 가운데 정렬하면 창이 보이는 화면의 가운데보다 아래로
+      내려앉아 **아래 여백만 좁아 보인다** — 모바일에서만 나던 증상이다.
+      `h-dvh` 로 지금 보이는 높이에 묶는다 (PaperWindow 의 `max-h-[calc(100dvh-2rem)]`
+      과 같은 기준 — `2rem` 은 아래 `p-4` 의 위아래 합이다).
+    */
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4"
+      className="fixed inset-0 z-50 flex h-dvh items-center justify-center bg-black/45 p-4"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
