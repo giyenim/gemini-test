@@ -65,6 +65,7 @@ exam-app/
                             # choiceMarks.ts — ①~⑤ 기호·조합형 판별 (컴포넌트 아님)
     ui/                     # 시험지 밖 화면 UI 킷 (손그림 스타일) — `?ui` 로 작업장 열림
                             # PageTurnButton, SignatureModal, SubmitButton
+                            # ProgressBar(채점 중 화면의 띠)
                             # PaperWindow(손그림 창) IconButton, Workbench
     layout/                 # packSheet, constants, types (데스크톱 전용)
     data/exam-sample.json   # 실제 시험지 데이터 (20문항)

@@ -10,3 +10,10 @@ export const BOOK_URL = 'https://www.yes24.com/product/goods/193852891'
  * 열었을 때도 늘 공식 도메인이 복사되게 하기 위해서다.
  */
 export const SHARE_URL = 'https://gemini-test.easyspub.co.kr'
+
+/**
+ * 제출 후 성적표까지 끄는 시간 (RESULT-PAGE.md §1).
+ * **App 의 타이머와 `GradingOverlay` 의 띠가 같은 값을 봐야 한다** — 따로 두면
+ * 띠가 덜 찬 채로 화면이 넘어가거나, 다 찬 뒤 빈 시간이 남는다.
+ */
+export const GRADING_MS = 3000

@@ -3,6 +3,7 @@ import examData from './data/exam-sample.json'
 import { ExamSheet } from './components/ExamSheet'
 import { MobileExamView } from './components/MobileExamView'
 import { PageNav } from './components/PageNav'
+import { GRADING_MS } from './components/result/constants'
 import { GradingOverlay } from './components/result/GradingOverlay'
 import { ResultView } from './components/result/ResultView'
 import { issueExaminee } from './examinee'
@@ -25,9 +26,6 @@ const SHEET_ZOOM = 1
 /** 바깥 여백(스테이지 패딩) — 폭이 줄면 스케일보다 여백이 먼저 줄어듦 */
 const PAD_MAX = 24
 const PAD_MIN = 0
-
-/** 제출 후 성적표까지 끄는 시간 (RESULT-PAGE.md §1) */
-const GRADING_MS = 3000
 
 /** 응시 흐름 — 표지 → 시험 → 채점 중 → 성적표. 되돌아가는 길은 없다 (RESULT-PAGE.md) */
 type Phase = 'exam' | 'grading' | 'result'

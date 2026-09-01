@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { PageTurnButton } from './PageTurnButton'
+import { ProgressBar, PROGRESS_BAR_W } from './ProgressBar'
 import { PaperWindow } from './PaperWindow'
 import { SignatureModal, type SignatureTool } from './SignatureModal'
 import { SubmitButton, SubmitButtonFace } from './SubmitButton'
@@ -56,6 +57,25 @@ export function Workbench() {
             <SubmitButton onSubmit={() => {}} />
           </div>
         </Swatch>
+      </div>
+
+      {/*
+        채워지는 띠 — 앞 셋은 값을 못 박아 세워 둔 견본이다. 저 혼자 시간을 재면
+        중간 모양을 붙잡고 그릴 수가 없어 `value` 를 밖에서 준다.
+        폭은 제출 버튼과 같이 시험지 한 단(318)을 흉내 낸 상자에서 받는다.
+      */}
+      <div className="mt-10 flex flex-wrap items-start gap-6">
+        {[
+          { label: '빈 띠', value: 0 },
+          { label: '절반', value: 0.5 },
+          { label: '가득', value: 1 },
+        ].map(({ label, value }) => (
+          <Swatch key={label} label={label}>
+            <div className="max-w-full" style={{ width: PROGRESS_BAR_W }}>
+              <ProgressBar value={value} label={label} />
+            </div>
+          </Swatch>
+        ))}
       </div>
 
       <div className="mt-10 max-w-[560px]">
