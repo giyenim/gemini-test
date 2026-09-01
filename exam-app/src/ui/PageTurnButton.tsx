@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react'
 
 /*
- * 폭 고정 152px — 글자 수에 맡기면 문구가 바뀔 때마다 상자가 커졌다 작아진다.
- * 오른쪽 여백이 더 넓은 것은 빗금 자리(폭의 79%~)에 글자가 닿지 않게 하기 위해서다.
+ * 폭 고정 168px — 글자 수에 맡기면 문구가 바뀔 때마다 상자가 커졌다 작아진다.
+ * 좌우 여백은 빗금 자리(폭의 79%~)에 맞춘 오른쪽 값으로 통일한다 — 한쪽만 넓히면
+ * 글자가 상자 가운데에서 왼쪽으로 밀린다.
  * `aspect-120/50` 는 viewBox 비율과 같아야 한다 — 어긋나면 그림이 한쪽으로만
  * 늘어나 동그라미가 타원이 된다. 높이는 이 비율이 정하므로 `py-*` 는 쓰지 않는다.
  */
 const FRAME =
-  'group relative flex aspect-120/50 w-38 items-center justify-center pl-4 pr-8 font-ui text-sm text-ink'
+  'group relative flex aspect-120/50 w-42 items-center justify-center px-8 font-ui text-sm text-ink'
 
 function ButtonArt({ dotClass }: { dotClass: string }) {
   return (

@@ -9,20 +9,6 @@ const CARD_W = 'w-[800px] max-w-full'
 /** 글자 — 카드 안 모든 글자가 이 글꼴·크기·굵기 하나를 쓴다. 개별 덮어쓰기 없음 */
 const CARD_TEXT = 'font-gothic font-normal'
 
-/**
- * 표 아래 설명 — 실물 수능 성적통지표의 그 자리다.
- * `grade.ts` 가 실제로 하는 계산을 그대로 옮긴 문구다 (BASE_MEAN 30 / BASE_SD 9,
- * 표준점수 20z+100, 백분위 정규분포 누적확률, 등급 구간 GRADE_CUTS).
- * 등급 구간의 원점수와 예시 값은 그 식에 실제로 넣어 뽑은 것이다.
- * **계산을 고치면 이 문구도 같이 고친다.**
- */
-const NOTES = [
-  '원점수는 맞힌 문항의 배점 합계임. 3점 10문항, 2점 10문항으로 50점 만점임.',
-  '표준점수는 원점수 30점을 100으로 두고 9점마다 20점씩 더하거나 뺀 점수임. (50점 144, 30점 100, 10점 56)',
-  '백분위는 평균 30점, 표준편차 9점의 정규분포에서 그 점수보다 낮은 비율이며 1에서 99로 표기함. (40점 87, 30점 50, 20점 13)',
-  '등급은 원점수 46점 이상 1등급, 41점 이상 2등급, 37점 이상 3등급, 33점 이상 4등급, 28점 이상 5등급, 24점 이상 6등급, 19점 이상 7등급, 14점 이상 8등급, 13점 이하 9등급임.',
-]
-
 export function ReportCard({
   meta,
   examinee,
@@ -61,7 +47,18 @@ export function ReportCard({
         </p>
       </div>
 
-      <table className="w-full mb-7 border-collapse text-center [&_th]:border [&_th]:border-line [&_th]:py-3 [&_td]:border [&_td]:border-line [&_td]:py-3">
+      {/*
+        `table-fixed` + colgroup — 점수 네 칸은 글자 수(원점수·표준점수·백분위·등급)에
+        맡기면 제각각 넓어진다. 폭을 못박아 넷을 똑같이 두고, 남는 자리는 영역 칸이 갖는다.
+      */}
+      <table className="w-full mb-7 table-fixed border-collapse text-center [&_th]:border [&_th]:border-line [&_th]:py-3 [&_td]:border [&_td]:border-line [&_td]:py-3">
+        <colgroup>
+          <col />
+          <col className="w-[17%]" />
+          <col className="w-[17%]" />
+          <col className="w-[17%]" />
+          <col className="w-[17%]" />
+        </colgroup>
         <thead>
           <tr>
             <th>영역</th>
@@ -84,12 +81,6 @@ export function ReportCard({
           </tr>
         </tbody>
       </table>
-
-      <ol className="list-decimal list-outside pl-5 text-sm mb-7">
-        {NOTES.map((note) => (
-          <li className="my-2" key={note}>{note}</li>
-        ))}
-      </ol>
 
       {/* 좁은 화면에서는 두 링크를 한 줄씩 가운데로 — 나란히 두면 글자가 세로로 눌린다 */}
       {actions ? (
