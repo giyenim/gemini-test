@@ -36,14 +36,20 @@ export function ReportCard({
         </span>
       </header>
 
-      {/* 좁은 화면에서는 수험번호와 성명이 한 줄씩 — 나란히 두면 서로 밀어낸다 */}
-      <div className="mb-7 flex flex-col gap-1 font-semibold md:flex-row md:justify-between md:gap-0">
-        <p>
-          수험번호 <span className="ml-1 font-normal">{examinee.id}</span>
-        </p>
+      {/*
+        성명이 왼쪽, 수험번호가 오른쪽 — 실물 통지표와 같은 차례다.
+        폭이 어떻든 **한 줄에 양 끝으로** 벌린다. 화면 크기로 가르지 않고 `flex-wrap` 에
+        맡겨, 둘이 서로 닿을 때에만 저절로 두 줄이 된다 — 넉넉한 모바일에서까지
+        미리 쌓아 두면 빈 자리를 버리는 셈이다.
+        `gap-x` 는 붙기 직전의 최소 사이, `gap-y` 는 줄이 갈렸을 때의 사이다.
+      */}
+      <div className="mb-7 flex flex-wrap justify-between gap-x-4 gap-y-1 font-semibold">
         <p className="m-0 flex text-md">
           성명
           <SignatureMark src={examinee.signature} className="ml-1 h-[22px] w-auto object-contain" />
+        </p>
+        <p className="m-0">
+          수험번호 <span className="ml-1 font-normal">{examinee.id}</span>
         </p>
       </div>
 
