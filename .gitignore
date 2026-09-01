@@ -24,6 +24,12 @@ __pycache__/
 # 완성본만 exam-app/public/figures/ 에 커밋한다.
 /preview.png
 
+# 교재 표지 원본 (수 MB 인쇄용). 책상 벽지를 다시 구우려면 저장소 루트에 두고
+# `python tools/make_desk_wallpaper.py` 를 실행한다.
+# 결과물 exam-app/public/desk-wallpaper.webp 만 커밋한다.
+/된다! 제미나이 활용법_개정_표지_입체_1.png
+/된다! 제미나이 활용법_앞표지.jpg
+
 # 예전에는 exam-app/dist 를 저장소 루트에 되커밋해 Pages 가 그걸 서빙했다.
 # 지금은 Actions 아티팩트로 배포하므로(.github/workflows/deploy-pages.yml)
 # 루트에 빌드 결과가 있을 이유가 없다. 실수로 다시 들어오지 않게 막는다.

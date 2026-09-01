@@ -37,9 +37,10 @@ GitHub Pages 배포 — 커스텀 도메인 https://gemini-test.easyspub.co.kr (
 ```
 book/                       # 원본 교재 장별 Markdown (출제 근거)
 exam/후보문항.md             # 후보 문항 64제 · 정답 · 해설
-tools/                      # 교재 PDF → book/*.md 변환기, 학생 대화 그림 생성기
+tools/                      # 교재 PDF → book/*.md 변환기, 그림·벽지 생성기
 exam-app/
   public/figures/           # 문항 그림 (교재 PDF에서 잘라낸 캡처)
+  public/desk-wallpaper.webp  # 시험지 바깥 책상에 깔 표지 벽지 타일 (tools/make_desk_wallpaper.py)
   src/
     App.tsx                 # 데스크톱/모바일 분기, 스케일/스테이지
     components/
@@ -83,7 +84,7 @@ exam-app/
 
 - 장을 넘기는 길은 **터치 스와이프와 키보드 `←` `→`** 둘뿐이다 (마우스 드래그 없음)
 - 모바일도 Noto Serif KR · 그림자/라운드 카드 없음 (PC와 동일 분위기). 종이 밖은
-  PC 와 같은 모눈종이 책상이고, 흰 바탕은 종이가 직접 깐다
+  PC 와 같은 모눈종이 책상(표지 벽지 포함)이고, 흰 바탕은 종이가 직접 깐다
 
 ## 레이아웃 엔진 (요약 · 데스크톱)
 
@@ -120,7 +121,9 @@ npm run build
 - UI는 Tailwind 유틸 우선. 본문 글꼴은 Noto Serif KR, 양식(표지·성적표·헤더)은 조선굴림.
 - **요소 기본값(`button` 등)은 `index.css` 의 `@layer base` 안에만 쓴다.** 레이어 밖에 두면
   Tailwind 유틸리티(`@layer utilities`)를 통째로 이겨서 `font-bold` 같은 게 조용히 무시된다.
-- 배경 흰색, 시험지 그림자 없음. 쪽 경계는 페이지 사이 **옅은 회색 점선**으로만 표시한다.
+- 시험지는 흰색, 그림자 없음. 쪽 경계는 페이지 사이 **옅은 회색 점선**으로만 표시한다.
+  시험지 **밖**은 모눈 책상 위에 교재 표지를 깐 벽지다 (`LAYOUT.md` 배경 절) — 종이에는
+  테두리도 그림자도 두지 않으므로 경계는 무늬가 끊기는 자리로만 드러난다.
 - 한글 주석·문자열이 깨지면 반드시 복구한다.
 - 레이아웃 동작 변경 시 `LAYOUT.md`도 함께 갱신한다.
 - 커밋/푸시는 사용자가 요청할 때만 한다.

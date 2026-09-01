@@ -39,6 +39,11 @@
   --color-hover: #f5f5f5;
   /** 시험지 저작권 문구 */
   --color-copyright: #6b8cae;
+  /**
+   * 오답노트의 출처 줄 — 읽을 글이 아니라 찾아갈 자리를 알려 주는 표지다.
+   * `--color-ink-muted`(#444) 로는 해설과 구분되지 않아 한 단계 더 물렸다.
+   */
+  --color-source: #8c8c8c;
   /** 표지의 필적 확인 띠·안내 배너 바탕 */
   --color-band: #d9d9d9;
   /*
@@ -48,6 +53,17 @@
    */
   --color-desk: #fff;
   --color-desk-grid: color-mix(in srgb, var(--color-ink) 5%, transparent);
+  /*
+   * 책상 벽지 — 교재 표지를 이음매 없이 깐 타일 (`tools/make_desk_wallpaper.py`).
+   * 표지가 노출되는 곳이 성적표의 "책 보러가기" 링크뿐이라 바깥 바탕까지 표지로 도배한다.
+   * 시험지는 제 흰 바탕을 직접 깔고 있어 무늬가 본문을 침범하지 않는다.
+   *
+   * **책 크기·간격·진하기는 여기서 정하지 않는다.** `background-image` 에는 opacity 가
+   * 없어 연하기는 타일에 구워 두었고, 크기도 타일의 실제 픽셀 크기를 그대로 쓴다
+   * (아래 `background-size` 의 `auto`). 무늬를 손보려면 CSS 가 아니라 스크립트의
+   * COVER_W / TILE_W,TILE_H / ALPHA 를 고쳐 다시 굽는다.
+   */
+  --desk-wallpaper: url('/desk-wallpaper.webp');
 }
 
 /*
@@ -69,12 +85,16 @@
     /*
      * 모눈 한 칸 20px = A4 기준 5mm. 스크롤은 안쪽 컨테이너에서 일어나므로
      * 모눈은 화면에 고정된 채 있고 시험지만 그 위를 지나간다.
+     * 표지 타일은 모눈 위에 얹는다 — 책이 모눈종이 위에 놓인 순서다.
+     * 타일 한 변도 20 의 배수라 무늬와 모눈이 어긋나지 않는다.
+     * 벽지만 `auto` — 타일을 다시 구우면 새 크기가 그대로 따라오므로 여기 적을 값이 없다.
      */
     background-color: var(--color-desk);
     background-image:
+      var(--desk-wallpaper),
       linear-gradient(to right, var(--color-desk-grid) 1px, transparent 1px),
       linear-gradient(to bottom, var(--color-desk-grid) 1px, transparent 1px);
-    background-size: 20px 20px;
+    background-size: auto, 20px 20px, 20px 20px;
     -webkit-font-smoothing: antialiased;
   }
 

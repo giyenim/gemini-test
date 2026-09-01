@@ -64,7 +64,7 @@ Pages 의 소스가 **GitHub Actions** (`build_type: workflow`) 여야 이 워�
      position: 'fixed', left: '0', top: '0',
      transformOrigin: 'top left', transform: `scale(${1200 / 842})`, zIndex: '9999',
    })
-   document.body.style.backgroundImage = 'none'   // 모눈종이 책상을 지운다
+   document.body.style.backgroundImage = 'none'   // 모눈종이 책상과 표지 벽지를 지운다
    await document.fonts.ready                      // 조선굴림이 붙기 전에 찍지 않는다
    ```
 
