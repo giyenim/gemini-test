@@ -46,3 +46,33 @@ Pages 의 소스가 **GitHub Actions** (`build_type: workflow`) 여야 이 워�
 > 예전에는 `dist` 를 저장소 루트에 되커밋하고 Pages 가 `main` 의 `/` 를 서빙했다. 그때는 해시가
 > 바뀐 옛 번들이 `assets/` 에 계속 쌓였다. 루트의 `index.html`·`assets/`·`figures/` 는 그 방식의
 > 잔재이므로 되살리지 않는다 — `.gitignore` 가 막고 있다.
+
+## 공유 미리보기 — `public/og.png`
+
+카카오톡·스레드·X 가 링크를 펼칠 때 보여 주는 1200×630 그림이다. 따로 그린 것이 아니라
+**표지(`CoverSheet`)의 위쪽을 그대로 잘라낸 것**이다 — 시험지가 곧 광고물이라 따로 만들 이유가 없고,
+문항이나 시험명이 바뀌면 다시 자르기만 하면 된다.
+
+다시 자르는 법 (브라우저 자동화 도구 기준):
+
+1. `npm run dev` 로 앱을 띄우고 뷰포트를 **1200×630** 으로 맞춘다
+2. 표지가 뜬 상태에서 표지 요소를 OG 폭에 맞춰 확대하고 왼쪽 위에 붙인다
+
+   ```js
+   const c = document.querySelector('[data-cover]')
+   Object.assign(c.style, {
+     position: 'fixed', left: '0', top: '0',
+     transformOrigin: 'top left', transform: `scale(${1200 / 842})`, zIndex: '9999',
+   })
+   document.body.style.backgroundImage = 'none'   // 모눈종이 책상을 지운다
+   await document.fonts.ready                      // 조선굴림이 붙기 전에 찍지 않는다
+   ```
+
+   `842` 는 `layout/constants.ts` 의 `PAGE_W` 다. 배율은 여기서 따라오므로 손으로 적지 않는다.
+3. 뷰포트를 그대로 찍어 `public/og.png` 로 저장한다. **`fullPage` 로 찍지 않는다** — 뷰포트가 곧 규격이다
+
+이 배율이면 잘리는 자리가 성명·수험 번호 줄 아래, 유의 사항 상자 바로 앞이다. 표지 배치를
+손보면 잘리는 자리도 함께 움직이므로 다시 확인한다.
+
+> 그림을 갈아 끼우면 `index.html` 의 `og:image` 에 붙은 `?v=` 를 올린다. 카카오·메타는 URL 단위로
+> 캐시해서 같은 주소로 덮으면 옛 그림이 한참 남는다.
