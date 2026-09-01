@@ -365,7 +365,7 @@ export function MobileExamView({
                 `height` 가 아니라 `minHeight` — 문제가 길면 종이가 늘어난다.
 
                 흰 바탕은 바깥 `<article>` 이 아니라 **이 종이**가 깐다. 그래야 종이가
-                화면보다 짧을 때 위아래로 책상(`body` 의 모눈)이 드러난다 — 표지와 같다.
+                화면보다 짧을 때 위아래로 책상(`body` 의 모눈·표지 벽지)이 드러난다 — 표지와 같다.
               */}
               <div className="flex min-h-full flex-col justify-center">
                 <div className="flex flex-col bg-white px-4 py-6" style={{ minHeight: sheetH }}>
@@ -381,15 +381,21 @@ export function MobileExamView({
                     </div>
                   )}
 
-                  <div className="min-h-0 flex-1">
+                  <div className="flex min-h-0 flex-1 flex-col">
                     <MobilePageContent
                       page={page}
                       answers={answers}
                       onSelect={onSelect}
                     />
 
+                    {/*
+                      제출 버튼은 마지막 문제 바로 밑이 아니라 **종이 아래쪽**, 저작권 줄
+                      바로 위에 붙인다 (`mt-auto`) — 마지막 쪽은 문제가 하나뿐이라 그냥 두면
+                      버튼이 종이 한가운데에 뜨고 그 아래가 통째로 빈다.
+                      `pt-8` 은 문제가 길어 빈자리가 없을 때 지켜지는 최소 간격이다.
+                    */}
                     {isLast ? (
-                      <div className="mt-8 flex flex-col items-center gap-3">
+                      <div className="mt-auto flex flex-col items-center gap-3 pt-8">
                         <SubmitButton onSubmit={onSubmit} />
                       </div>
                     ) : null}
