@@ -76,7 +76,8 @@ export function ProgressBar({
         {/*
           채운 만큼만 왼쪽에서 잘라 보여 준다. `width` 를 직접 주는 것은, SVG 기하
           속성을 CSS 로 옮기는 방식(`transform: scaleX`)이 브라우저마다 기준점이 달라서다.
-          색은 표지의 필적 확인 띠와 같은 `--color-band` 다 — 이 시험지의 '띠' 색이다.
+          색은 `--color-progress` 다 (index.css). 이 띠만 쓰는 색이라 여기서 바꿔도
+          표지의 띠·배너는 그대로 있다.
         */}
         <rect
           clipPath={`url(#${clipId})`}
@@ -84,7 +85,7 @@ export function ProgressBar({
           y="0"
           width={TRACK_W * filled}
           height={TRACK_H}
-          className="fill-band"
+          className="fill-progress"
         />
 
         {/* 윤곽은 맨 위에 — 채움이 선을 넘어 보이면 손으로 그린 티가 사라진다 */}
@@ -101,9 +102,27 @@ export function ProgressBar({
         글월은 띠 위에 겹쳐 가운데 놓는다. 채움(밝은 회색)과 빈 자리(흰색) 어느 쪽에
         걸쳐도 먹색 글자는 읽히므로, 채움이 지나가도 글자를 손볼 일이 없다.
         `pointer-events-none` — 띠는 읽는 것이지 누르는 것이 아니다.
+
+        `translate-y-px` 는 **눈으로 맞추는 보정**이다. 상자는 이미 가운데인데
+        (`items-center`), 한글 글자는 줄상자 안에서 위쪽에 앉는다 — 글꼴이 라틴 문자의
+        내림획 자리를 아래에 비워 두기 때문이다. 그대로 두면 띠 안쪽 중심(22.5)보다
+        글자 잉크 중심이 1px 위(21.5)에 놓여 떠 보인다. 글자 크기를 바꾸면 이 값도
+        다시 재야 한다.
+
+        **400px 이하에서는 12px 로 줄인다.** 띠는 화면 폭을 따라 좁아지는데 글자가 16px 로
+        남으면 긴 줄이 잘린다 (`whitespace-nowrap` 이라 갈리는 대신 잘려 나간다).
+
+        두 값은 **지금 들어 있는 가장 긴 글월에서 나온다.** 글월을 고치면 다시 재야 한다.
+        재는 법은 아래와 같다 — 띠 안쪽은 `min(480, 화면폭 - 48) - 48` 이다.
+
+          16px 로 담기는 최소 화면폭 = 가장 긴 줄의 폭 + 96
+          작은 글자 크기 = 16 × 224 ÷ 가장 긴 줄의 폭   (224 = 320px 화면의 안쪽)
+
+        Tailwind 의 `max-[400px]` 이 아니라 미디어 쿼리를 직접 적은 것은, 그쪽이
+        `not all and (width>=400px)` 로 풀려 **400px 자신을 빼먹기** 때문이다.
       */}
       {children ? (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6 font-ui text-base">
+        <div className="pointer-events-none absolute inset-0 flex translate-y-px items-center justify-center px-6 font-ui text-base [@media(width<=400px)]:text-[12px]">
           {children}
         </div>
       ) : null}
