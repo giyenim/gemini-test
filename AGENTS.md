@@ -13,6 +13,8 @@ GitHub Pages 배포 — 커스텀 도메인 https://gemini-test.easyspub.co.kr (
 - 후보 문항 64제와 해설: [`exam/후보문항.md`](exam/후보문항.md)
 
 응시 흐름: **표지 → 시험지 → 채점 중 3초 → 성적통지표**. 되돌아가는 길은 없다.
+성적표는 제 주소(`/?done`)를 가져 새로고침·뒤로가기를 견딘다 — 낸 기록은 `sessionStorage`
+에 남고, 시험 주소로 물러나도 결과로 되돌린다. 다시 풀려면 `/?new` 다 (`RESULT-PAGE.md`).
 이름은 표지 성명 칸에 직접 적고, 적는 즉시 속지 헤더와 성적표에 반영된다.
 시험지는 항상 채점 전 상태로만 그린다 — 채점 결과는 결과 화면의 채점표·오답노트가 보여 준다.
 
@@ -42,7 +44,9 @@ exam-app/
   public/figures/           # 문항 그림 (교재 PDF에서 잘라낸 캡처)
   public/desk-wallpaper.webp  # 시험지 바깥 책상에 깔 표지 벽지 타일 (tools/make_desk_wallpaper.py)
   src/
-    App.tsx                 # 데스크톱/모바일 분기, 스케일/스테이지
+    App.tsx                 # 데스크톱/모바일 분기, 스케일/스테이지, 주소·복원
+    route.ts                # 주소 두 자리 — 시험(/) · 결과(/?done) · 새 응시(/?new)
+    session.ts              # 낸 답안 갈무리 (sessionStorage) — 새로고침·뒤로가기 대비
     components/
       CoverSheet.tsx        # 표지 (문제 페이지 앞 한 장, 쪽 번호 없음)
       ExamSheet.tsx         # (데스크톱) 측정 → pack → 렌더
