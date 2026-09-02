@@ -205,13 +205,6 @@ export function WrongNotePopup({
             </>
           ) : null}
         </div>
-
-          {/* 화살표가 없는 모바일에만 — 넘기는 길이 안 보이면 첫 장에서 멈춘다 */}
-          {wrong.length > 1 ? (
-            <p className="m-0 mt-6 text-center font-ui text-[11.5px] text-ink-muted md:hidden">
-              좌우로 밀어서 넘기기
-            </p>
-          ) : null}
         </div>
 
       </PaperWindow>
