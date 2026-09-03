@@ -54,14 +54,6 @@ export function loadSubmission(): Submission | null {
   }
 }
 
-export function clearSubmission(): void {
-  try {
-    sessionStorage.removeItem(KEY)
-  } catch {
-    // 지우지 못해도 할 수 있는 일이 없다
-  }
-}
-
 /**
  * 읽어 들인 것을 믿지 않고 한 겹 확인한다 — `sessionStorage` 는 사용자가 직접
  * 고칠 수 있는 자리다. 모양이 어긋나면 통째로 버리고 처음부터 응시하게 둔다.

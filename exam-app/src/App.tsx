@@ -9,8 +9,8 @@ import { ResultView } from './components/result/ResultView'
 import { issueExaminee } from './examinee'
 import { gradeExam } from './grade'
 import { MOBILE_MEDIA_QUERY, PAGE_W } from './layout/constants'
-import { pushResult, replaceExam, replaceResult, routeOf } from './route'
-import { clearSubmission, loadSubmission, saveSubmission } from './session'
+import { pushResult, replaceExam, routeOf } from './route'
+import { loadSubmission, saveSubmission } from './session'
 import type { Answers, ChoiceIndex, ExamData, Examinee } from './types/exam'
 
 // JSON 리터럴은 문자열 유니온·튜플로 좁혀지지 않으므로 한 번에 단언한다
@@ -33,38 +33,38 @@ const PAD_MIN = 0
 type Phase = 'exam' | 'grading' | 'result'
 
 /**
- * 첫 화면 — 주소와 저장된 기록을 함께 본다.
+ * 첫 화면 — **주소가 정한다.**
  *
- * 성적표는 제 주소(`/?done`)를 가지므로 새로고침해도 그 자리에 머문다. 뒤로가기로
- * 시험 주소에 떨어졌더라도, 낸 기록이 남아 있으면 결과로 되돌린다 — 한 번 낸 답을
- * 고쳐 다시 내는 길은 없다(RESULT-PAGE.md).
+ * `/?done` 이면 성적표, 아니면 새 시험지다. 저장된 기록은 성적표를 그릴 재료일 뿐
+ * 어느 화면을 열지는 정하지 않는다. 그래서 시험 주소로 오면 낸 기록이 남아 있어도
+ * 늘 새 시험지가 열린다 — 뒤로가기로 물러났든, 링크를 다시 눌렀든 같다.
+ *
+ * 기록을 **지우지는 않는다.** 지워 버리면 그 자리에서 앞으로가기를 눌렀을 때
+ * 되살릴 것이 없어 성적표가 영영 사라진다. 새 시험을 시작하되 낸 것은 남겨 둬야
+ * 앞으로가기로 성적표에 돌아올 수 있다. 기록은 다음 제출이 덮어쓴다.
  *
  * `채점 중`(3초)은 되살리지 않는다. 지나가는 연출이라 되감을 것이 없고,
  * 새로고침한 사람을 3초 더 세워 둘 이유도 없다 — 곧장 성적표를 편다.
  */
 function initialState(): { phase: Phase; answers: Answers; examinee: Examinee } {
-  /* `/?new` — 낸 기록을 버리고 처음부터. 주소에 흔적이 남지 않게 갈아 끼운다 */
-  if (routeOf() === 'new') {
-    clearSubmission()
+  const fresh = (): { phase: Phase; answers: Answers; examinee: Examinee } =>
+    // 표지를 여는 순간이 곧 응시 시작이다
+    ({ phase: 'exam', answers: {}, examinee: issueExaminee() })
+
+  if (routeOf() === 'result') {
+    const saved = loadSubmission()
+    if (saved) {
+      return { phase: 'result', answers: saved.answers, examinee: saved.examinee }
+    }
+    /*
+      낸 기록이 없는데 주소만 `/?done` 이다 — 남이 보내 준 결과 링크를 열었거나,
+      탭을 닫았다 되연 경우다. 남의 성적표를 대신 보여 줄 수는 없으니 시험 주소로
+      갈아 끼우고 처음부터 응시하게 한다.
+    */
     replaceExam()
-    return { phase: 'exam', answers: {}, examinee: issueExaminee() }
   }
 
-  const saved = loadSubmission()
-  if (saved) {
-    /* 주소가 `/` 인 채로 결과를 그리면 주소와 화면이 어긋난다 — 그 자리를 새로고침하면
-       또 결과가 뜨는데 주소만 시험지다. 되살리는 김에 주소도 결과로 맞춰 둔다 */
-    if (routeOf() !== 'result') replaceResult()
-    return { phase: 'result', answers: saved.answers, examinee: saved.examinee }
-  }
-  /*
-    낸 기록이 없는데 주소만 `/?done` 이다 — 남이 보내 준 결과 링크를 열었거나,
-    탭을 닫았다 되연 경우다. 남의 성적표를 대신 보여 줄 수는 없으니 시험 주소로
-    갈아 끼우고 처음부터 응시하게 한다.
-  */
-  if (routeOf() === 'result') replaceExam()
-  // 표지를 여는 순간이 곧 응시 시작이다
-  return { phase: 'exam', answers: {}, examinee: issueExaminee() }
+  return fresh()
 }
 
 export default function App() {
@@ -150,21 +150,32 @@ export default function App() {
   }, [phase, isMobile, pageIndex, goToPage, needsSignature])
 
   /**
-   * 뒤로가기·앞으로가기 — 주소가 바뀌면 화면도 따라간다.
+   * 뒤로가기·앞으로가기 — 주소를 따라 화면을 갈아 끼운다.
    *
-   * 결과에서 뒤로 물러나면 시험 주소가 되지만 낸 기록은 그대로다. 답을 고쳐 다시
-   * 내는 길은 없으므로 결과 주소로 도로 밀어 넣는다 — 실수로 이탈해도 성적표가
-   * 제자리로 돌아온다. 새로 풀려면 `/?new` 이거나 새 탭이다.
+   * 결과에서 뒤로 물러나면 **새 시험지**가 열리고, 거기서 앞으로가기를 누르면 낸
+   * 기록으로 성적표가 다시 선다. 기록을 지우지 않고 두는 것이 이 왕복을 가능하게 한다.
+   *
+   * 첫 화면을 정하는 규칙(`initialState`)과 같은 규칙이어야 한다 — 새로고침해서 온
+   * 사람과 뒤로가기로 온 사람이 같은 주소에서 다른 화면을 보면 안 된다.
    */
   useEffect(() => {
     const onPop = () => {
       if (routeOf() === 'result') {
+        const saved = loadSubmission()
         // 앞으로가기로 결과에 돌아왔다 — `채점 중`은 건너뛰고 성적표를 편다
-        if (loadSubmission()) setPhase('result')
+        if (saved) {
+          setAnswers(saved.answers)
+          setExaminee(saved.examinee)
+          setPhase('result')
+        }
         return
       }
-      // 시험 주소로 물러났다. 낸 기록이 있으면 되돌린다
-      if (loadSubmission()) pushResult()
+      /* 시험 주소로 물러났다 — 낸 기록이 남아 있어도 새 시험지를 편다.
+         답안·수험 번호를 새로 발급해야 앞 응시의 흔적이 딸려 오지 않는다 */
+      setAnswers({})
+      setExaminee(issueExaminee())
+      setPageIndex(0)
+      setPhase('exam')
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
