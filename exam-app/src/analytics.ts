@@ -22,7 +22,8 @@
  * 화면을 벗어날 때 한 번에 보낸다 — 홈 버튼을 누르든 앱을 전환하든 잡힌다. 계기는
  * `visibilitychange` 와 `pagehide` **둘**이다 (왜 둘인지는 `startAnalytics` 주석).
  *
- * 셋 다 같은 `session_id` 로 한 줄을 덮어쓴다. 요청이 여러 번이어도 **줄은 하나**다.
+ * 셋 다 같은 `session_id` 로 한 줄을 덮어쓴다. 요청이 여러 번이어도 **줄은 하나**다 —
+ * 새로고침해도, 뒤로가기를 해도 늘지 않는다. 예외는 **재응시**뿐이다(`trackSubmit`).
  *
  * 제출만은 그 자리에서 즉시 한 번 더 보낸다. 가장 중요한 기록이라 유실을 피한다.
  *
@@ -103,6 +104,9 @@ function sessionId(): string {
 
 /** 표지 열림을 이미 알렸는가 — 한 세션에 한 번만 보낸다 */
 let opened = false
+
+/** 이 탭에서 제출한 횟수 — 두 번째부터 줄을 가른다 (`trackSubmit`) */
+let submitCount = 0
 
 let cachedDevice: 'mobile' | 'pc' | null = null
 
@@ -234,9 +238,27 @@ export function trackClick(target: ClickTarget): void {
 export function trackSubmit(score: ExamScore, examNo: string): void {
   state.dirty = false
 
+  /*
+   * 재응시는 **새 줄**로 가른다.
+   *
+   * 성적표에서 뒤로가면 새 시험이 열리는데(`route.ts`), 같은 탭이라 세션 번호는
+   * 그대로다. 그냥 두면 두 번째 제출이 첫 번째를 덮어써 앞의 점수와 수험번호가
+   * 사라진다 — 캡처해 둔 성적표로 응모했을 때 그 번호를 DB 에서 찾을 수 없게 된다.
+   *
+   * 그래서 두 번째 제출부터 번호 뒤에 회차를 붙여 다른 줄로 보낸다. **첫 제출은
+   * 방문 줄에 그대로 담는다** — 한 번 풀고 마는 것이 보통이라, 그때까지 줄이 늘면
+   * "줄 수 = 방문 수"가 깨진다.
+   *
+   *   방문(= 표지 열림)  → 줄 A            "몇 명이 왔나"는 이 줄들로 센다
+   *   첫 제출            → 줄 A 에 덮어씀
+   *   재응시 제출        → 줄 A#2, A#3 …   제출 건수는 submitted 인 줄로 센다
+   */
+  const id = submitCount === 0 ? sessionId() : `${sessionId()}-${submitCount + 1}`
+  submitCount += 1
+
   send(
     {
-      session_id: sessionId(),
+      session_id: id,
       device: device(),
       referrer: referrer(),
       started: true,

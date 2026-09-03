@@ -362,7 +362,15 @@ Vercel Hobby 월 한도는 **함수 호출 100만 회**, 데이터 전송 100GB,
 
 ## 9. 완료 확인 — 이 쿼리들이 답을 주면 된다
 
+> **줄 하나 = 방문 하나.** 새로고침·뒤로가기로는 늘지 않는다. 단 **재응시 제출**만
+> 새 줄로 갈린다(`session_id` 뒤에 `-2`, `-3`) — 앞 응시의 점수·수험번호가 덮이면
+> 캡처된 성적표로 응모했을 때 대조가 안 되기 때문이다. 그래서 **방문 수는 `-N` 이
+> 붙지 않은 줄**로, **제출 건수는 `submitted` 인 줄 전부**로 센다.
+
 ```sql
+-- 0) 방문 수 (재응시로 갈린 줄은 뺀다)
+SELECT count(*) FROM exam.events WHERE session_id NOT LIKE '%-_';
+
 -- 1) 시험지를 띄우고 바로 이탈 (이름도 안 씀)
 SELECT count(*) FROM exam.events WHERE NOT started;
 
