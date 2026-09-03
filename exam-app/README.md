@@ -93,10 +93,16 @@ W, H = im.size
 # 표지에서 「된다!」 로고 자리 — 표지 배치가 바뀌면 이 비율도 다시 잡는다
 c = im.crop((int(W*0.02), int(H*0.36), int(W*0.30), int(H*0.49)))
 
-pad = 0.12
-side = int(max(c.width, c.height) * (1 + pad*2))
+# 글자의 **진짜** 경계를 임계값으로 찾는다. `getbbox()` 를 그냥 쓰면 느낌표 오른쪽의
+# 흐린 픽셀까지 글자로 세어 경계가 65px 넓게 잡히고, 그만큼 글자가 왼쪽으로 쏠린다.
+bw = c.convert('L').point(lambda v: 255 if v < 200 else 0)
+glyph = c.crop(bw.getbbox())
+gw, gh = glyph.size
+
+pad = 0.03
+side = int(round(max(gw, gh) * (1 + pad*2)))
 canvas = Image.new('RGB', (side, side), (255, 255, 255))
-canvas.paste(c, ((side-c.width)//2, (side-c.height)//2))
+canvas.paste(glyph, ((side-gw)//2, (side-gh)//2))
 
 out = 'exam-app/public'
 canvas.save(out+'/favicon.ico', sizes=[(16,16), (32,32), (48,48)])
@@ -105,6 +111,15 @@ canvas.resize((192,192), Image.LANCZOS).save(out+'/favicon-192.png')
 ```
 
 `.ico` 안에 16·32·48 을 함께 담는다 — 브라우저와 OS 가 자리에 맞는 크기를 고른다.
+
+「된다!」 는 가로가 세로의 2 배가 넘어(457×220) 정사각형에 넣으면 **위아래 여백이
+좌우보다 넓다** — 글자를 더 키우려 해도 가로가 먼저 꽉 찬다. 가운데 정렬이 맞았는지는
+좌우 여백이 같은지로 확인한다:
+
+```python
+chk = Image.open(out+'/favicon-192.png').convert('L').point(lambda v: 255 if v<200 else 0).getbbox()
+print('좌%d 우%d 상%d 하%d' % (chk[0], 192-chk[2], chk[1], 192-chk[3]))
+```
 
 > 그림을 갈아 끼우면 `index.html` 의 `?v=` 를 올린다. **파비콘은 og 그림보다도 캐시가
 > 질기다** — 주소가 같으면 브라우저가 옛 그림을 한참 붙들고 있다.
