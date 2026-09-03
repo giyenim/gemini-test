@@ -30,20 +30,19 @@ function useReduceMotion(): boolean {
 /**
  * 채점 중 화면의 **생김새만**. 얼마나 찼는지는 `progress` 로 받는다.
  *
- * 제출 버튼을 `SubmitButtonFace` 와 가른 것과 같은 이유다 — 저 혼자 시간을 재면
- * 3초 만에 달아나 버려서 중간 모양을 붙잡고 고칠 수가 없다. `?bar` 가 이것을
- * 멈춰 세워 그린다 (`main.tsx`).
+ * 제출 버튼을 `SubmitButtonFace` 와 가른 것과 같은 이유다 — 시간을 재는 일과 그리는
+ * 일을 한 몸에 두면 중간 모양을 붙잡고 고칠 수가 없다.
  *
  * 종이를 깔지 않는다 — 채점은 시험지 위에서 일어나는 일이 아니라서, 앞뒤 화면과
  * 같은 책상(모눈·표지 벽지)을 그대로 둔다.
  */
-export function GradingScreen({ progress }: { progress: number }) {
+function GradingScreen({ progress }: { progress: number }) {
   const wobbleId = useId()
   const reduceMotion = useReduceMotion()
 
   /*
    * 지금 보여 줄 문구의 차례. 문구마다 머무는 시간이 같으므로 진행률을 문구 수로 나눈
-   * 것이 그대로 차례다 — `?bar=55` 처럼 멈춰 세워도 그 시점의 문구가 그대로 선다.
+   * 것이 그대로 차례다 — 어느 시점을 집어도 그 자리의 문구가 나온다.
    * 마지막 칸(진행률 1)에서 범위를 넘지 않게 잘라 준다.
    */
   const step = Math.min(
@@ -156,16 +155,13 @@ export function GradingScreen({ progress }: { progress: number }) {
   )
 }
 
-/** 되풀이(`loop`)할 때 다 찬 모습을 보여 주고 처음으로 돌아가기까지 (ms) */
-const LOOP_HOLD_MS = 700
-
 /**
  * 제출 → 성적표 사이에 끼우는 대기 화면 (RESULT-PAGE.md §1).
  *
  * 즉시 띄우지 않고 몇 초를 끄는 것만으로 체감이 크게 올라간다. 화면을 넘기는 타이머는
  * App 이 잡고, 여기서는 같은 시간(`GRADING_MS`)을 다시 재어 띠를 채운다.
  */
-export function GradingOverlay({ loop = false }: { loop?: boolean }) {
+export function GradingOverlay() {
   const [progress, setProgress] = useState(0)
 
   /*
@@ -175,28 +171,20 @@ export function GradingOverlay({ loop = false }: { loop?: boolean }) {
    * 시간을 따라가므로, App 이 화면을 넘기는 순간과 띠가 차는 순간이 어긋나지 않는다.
    */
   useEffect(() => {
-    let start = performance.now()
+    const start = performance.now()
     let frame = 0
 
     const tick = () => {
       const elapsed = performance.now() - start
       setProgress(Math.min(1, elapsed / GRADING_MS))
 
-      // 실제 흐름에서는 다 차면 멈춘다 — 화면은 App 이 넘긴다
-      if (elapsed < GRADING_MS) {
-        frame = requestAnimationFrame(tick)
-        return
-      }
-      if (!loop) return
-
-      // 되풀이: 다 찬 모습을 잠깐 두었다가 처음부터. 시계만 되돌리면 된다
-      if (elapsed >= GRADING_MS + LOOP_HOLD_MS) start = performance.now()
-      frame = requestAnimationFrame(tick)
+      // 다 차면 멈춘다 — 화면은 App 이 넘긴다
+      if (elapsed < GRADING_MS) frame = requestAnimationFrame(tick)
     }
 
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
-  }, [loop])
+  }, [])
 
   return <GradingScreen progress={progress} />
 }

@@ -25,7 +25,7 @@ export const PROGRESS_BAR_W = TRACK_W
 /**
  * 채워지는 띠 — **생김새만** 맡고 얼마나 찼는지는 `value` 로 받는다.
  * 제출 버튼을 `SubmitButtonFace` 와 가른 것과 같은 이유다. 저 혼자 시간을 재면
- * 작업장(`?ui`)에서 중간 모양을 붙잡아 둘 수가 없다.
+ * 중간 모양을 붙잡아 둘 수가 없다.
  */
 export function ProgressBar({
   value,
