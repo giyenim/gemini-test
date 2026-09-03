@@ -162,7 +162,7 @@ export default function App() {
     return () => document.removeEventListener('keydown', onKey)
   }, [phase, isMobile, pageIndex, goToPage, needsSignature])
 
-  /* 지표 — 표지가 열렸다. 화면을 벗어날 때 한 번에 보낸다 (analytics.ts) */
+  /* 지표 — 표지가 열렸다. 들어온 사실을 곧바로 보내고, 이후는 쌓아 두었다 벗어날 때 보낸다 */
   useEffect(() => {
     trackOpen()
     return startAnalytics()

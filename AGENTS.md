@@ -151,8 +151,9 @@ npm run build
 - 주고받은 문서: [`ANALYTICS-REQUEST.md`](exam-app/ANALYTICS-REQUEST.md) (요청) ·
   [`ANALYTICS-READY.md`](exam-app/ANALYTICS-READY.md) (회신·검증 결과)
 
-세션당 1~3회만 보낸다 — 진행 상황은 쌓아 두었다가 화면을 벗어날 때
-(`visibilitychange`) 한 번에 보내고, 제출만 그 자리에서 즉시 보낸다.
+세션당 **2~3회**만 보낸다 — ① 표지가 열릴 때(들어온 사실 = 완주율의 분모)
+② 화면을 벗어날 때(`visibilitychange`·`pagehide`, 이탈 지점) ③ 제출할 때.
+그 사이 진행 상황은 쌓아만 둔다. 셋 다 같은 세션 번호로 **한 줄**을 덮어쓴다.
 **개인정보는 담지 않는다** (서명·IP 없음).
 
 ### 걷어낼 때
