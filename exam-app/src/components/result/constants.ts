@@ -61,15 +61,17 @@ export const GRADING_MS = GRADING_MESSAGES.length * MESSAGE_MS
    ───────────────────────────────────────────────────────────────────────── */
 
 /**
- * 특별자료 주소 — **지금은 임시로 서점 링크를 넣어 두었다.**
- * 자료가 준비되면 이 한 줄만 Drive 공유 링크로 갈아 끼운다.
+ * 특별자료 주소 — Drive 공유 링크.
  *
  * 이 주소는 번들에 문자열로 박히므로 **비밀이 아니다.** 응시하지 않은 사람도
  * 찾아낼 수 있고, 받은 사람이 퍼뜨릴 수도 있다. "이벤트 참여자에게만"은 실제
  * 통제가 아니라 안내다 — 기간이 끝나 확실히 닫으려면 앱이 아니라 **Drive 쪽에서
  * 공유를 해제**해야 한다. 앱에서 버튼을 내려도 이미 퍼진 주소는 계속 열린다.
+ *
+ * Drive 의 공유 설정이 "링크가 있는 모든 사용자"여야 로그인 없이 열린다.
  */
-export const BONUS_URL = BOOK_URL
+export const BONUS_URL =
+  'https://drive.google.com/file/d/1S9BjLwvjnPbMqVASW0n4BVMbRlAY1_j8/view?usp=sharing'
 
 /**
  * 창에 적히는 말 — 줄 단위로 끊어 두어, 문단이 늘거나 줄어도 컴포넌트는 손대지 않는다.
