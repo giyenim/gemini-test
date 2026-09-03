@@ -119,15 +119,25 @@ export function ResultView({ exam, examinee, score }: ResultViewProps) {
               쪽 넘김과 같은 손그림 버튼으로 도드라지게 둔다 */}
           {/* 모바일은 세로로 쌓고, PC(md~)는 한 줄로 나란히 */}
           <div className="mt-7 flex flex-col items-center gap-3 md:flex-row md:justify-center md:gap-6">
-            <PageTurnButton href={BOOK_URL} onClick={() => trackClick('book')}>
+            {/*
+              점 색은 셋이 한 벌이다 — 제출 버튼(`ui/SubmitButton` 의 `DOT_COLORS`)이
+              쓰는 빨강·남색·노랑 그대로다. 기본값(빨강)에 맡기지 않고 셋 다 적어 두어야
+              한 벌이라는 것이 드러나고, 버튼을 더하거나 순서를 바꿀 때 눈에 걸린다.
+            */}
+            <PageTurnButton
+              href={BOOK_URL}
+              dotClass="fill-rose-500"
+              onClick={() => trackClick('book')}
+            >
               책 보러가기
             </PageTurnButton>
-            <PageTurnButton onClick={share}>
+            <PageTurnButton dotClass="fill-indigo-600" onClick={share}>
               {copied ? '링크 복사 완료!' : '테스트 공유하기'}
             </PageTurnButton>
 
             {/* 한시적 이벤트 — 기간이 끝나면 이 버튼과 창을 걷어낸다 (constants.ts 특별자료 절) */}
             <PageTurnButton
+              dotClass="fill-yellow-300"
               onClick={() => {
                 trackClick('bonus')
                 setPopup({ kind: 'bonus' })
