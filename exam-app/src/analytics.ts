@@ -48,7 +48,7 @@ const ENDPOINT = 'https://yes24-it-best.vercel.app/api/exam-events'
 const SESSION_KEY = 'exam:analytics:sid'
 
 /** 클릭으로 셀 것 — 서버가 아는 값만 보낸다. 모르는 것은 서버가 걸러 낸다 */
-export type ClickTarget = 'book' | 'share' | 'score_table' | 'wrong_note'
+export type ClickTarget = 'book' | 'share' | 'score_table' | 'wrong_note' | 'bonus'
 
 interface Payload {
   session_id: string

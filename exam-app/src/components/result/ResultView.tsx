@@ -3,6 +3,7 @@ import { trackClick } from '../../analytics'
 import type { ExamScore } from '../../grade'
 import type { ExamData, Examinee } from '../../types/exam'
 import { PageTurnButton } from '../../ui'
+import { BonusPopup } from './BonusPopup'
 import { BOOK_URL, SHARE_URL } from './constants'
 import { ReportCard } from './ReportCard'
 import { ScoreTablePopup } from './ScoreTablePopup'
@@ -15,7 +16,7 @@ interface ResultViewProps {
 }
 
 /** 두 팝업은 겹쳐 띄우지 않고 갈아끼운다 (RESULT-PAGE.md §3) */
-type Popup = null | { kind: 'scoreTable' } | { kind: 'wrongNote' }
+type Popup = null | { kind: 'scoreTable' } | { kind: 'wrongNote' } | { kind: 'bonus' }
 
 /** 성적표 아래 링크 셋이 같이 쓰는 생김새 — 버튼도 바깥 링크도 이것 하나다 */
 const LINK =
@@ -124,6 +125,16 @@ export function ResultView({ exam, examinee, score }: ResultViewProps) {
             <PageTurnButton onClick={share}>
               {copied ? '링크 복사 완료!' : '테스트 공유하기'}
             </PageTurnButton>
+
+            {/* 한시적 이벤트 — 기간이 끝나면 이 버튼과 창을 걷어낸다 (constants.ts 특별자료 절) */}
+            <PageTurnButton
+              onClick={() => {
+                trackClick('bonus')
+                setPopup({ kind: 'bonus' })
+              }}
+            >
+              특별자료 받기
+            </PageTurnButton>
           </div>
         </div>
 
@@ -132,6 +143,8 @@ export function ResultView({ exam, examinee, score }: ResultViewProps) {
       {popup?.kind === 'scoreTable' ? (
         <ScoreTablePopup results={score.results} onClose={() => setPopup(null)} />
       ) : null}
+
+      {popup?.kind === 'bonus' ? <BonusPopup onClose={() => setPopup(null)} /> : null}
 
       {popup?.kind === 'wrongNote' ? (
         <WrongNotePopup
