@@ -8,6 +8,10 @@ import type { Answers, ChoiceIndex, ExamData } from './types/exam'
  * 이 두 값을 실제 통계로 갈아끼우면 되고, 표본이 모자랄 때의 대체값으로도 그대로 쓴다.
  *
  * 50점 만점에 평균 30점(60%)·표준편차 9점을 가정했다. 근거가 되는 응시 데이터는 없다.
+ *
+ * **다만 실제 점수는 2026-09-03부터 쌓이고 있다** — 지표 수집(`analytics.ts`)이 제출마다
+ * 원점수·등급을 남긴다. 표본이 모이면 실제 평균·표준편차로 아래 두 값을 갈아끼운다.
+ * 지표는 임시로 붙인 것이라(AGENTS.md) **걷어내기 전에 값을 떠 두어야 한다.**
  */
 export const BASE_MEAN = 30
 export const BASE_SD = 9
