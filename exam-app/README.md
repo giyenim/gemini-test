@@ -76,3 +76,35 @@ Pages 의 소스가 **GitHub Actions** (`build_type: workflow`) 여야 이 워�
 
 > 그림을 갈아 끼우면 `index.html` 의 `og:image` 에 붙은 `?v=` 를 올린다. 카카오·메타는 URL 단위로
 > 캐시해서 같은 주소로 덮으면 옛 그림이 한참 남는다.
+
+## 탭 아이콘 — `public/favicon.ico`
+
+브라우저 탭에 뜨는 그림이다. **책 표지의 「된다!」 로고를 잘라낸 것**이다 — 표지를
+통째로 줄이면 32px 에서 글자가 뭉개져 색 덩어리만 남는다. 파비콘이 감당하는 것은
+글자 두어 자가 한계다.
+
+다시 굽는 법 (저장소 루트에서, Pillow 필요):
+
+```python
+from PIL import Image
+im = Image.open('된다! 제미나이 활용법_앞표지.jpg').convert('RGB')
+W, H = im.size
+
+# 표지에서 「된다!」 로고 자리 — 표지 배치가 바뀌면 이 비율도 다시 잡는다
+c = im.crop((int(W*0.02), int(H*0.36), int(W*0.30), int(H*0.49)))
+
+pad = 0.12
+side = int(max(c.width, c.height) * (1 + pad*2))
+canvas = Image.new('RGB', (side, side), (255, 255, 255))
+canvas.paste(c, ((side-c.width)//2, (side-c.height)//2))
+
+out = 'exam-app/public'
+canvas.save(out+'/favicon.ico', sizes=[(16,16), (32,32), (48,48)])
+canvas.resize((180,180), Image.LANCZOS).save(out+'/apple-touch-icon.png')
+canvas.resize((192,192), Image.LANCZOS).save(out+'/favicon-192.png')
+```
+
+`.ico` 안에 16·32·48 을 함께 담는다 — 브라우저와 OS 가 자리에 맞는 크기를 고른다.
+
+> 그림을 갈아 끼우면 `index.html` 의 `?v=` 를 올린다. **파비콘은 og 그림보다도 캐시가
+> 질기다** — 주소가 같으면 브라우저가 옛 그림을 한참 붙들고 있다.

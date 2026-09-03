@@ -2,7 +2,17 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!--
+      탭 아이콘 — 책 표지의 「된다!」 로고를 잘라낸 것이다 (원본: 저장소 루트의 앞표지 jpg).
+      표지를 통째로 줄이면 32px 에서 글자가 뭉개져 색 덩어리만 남는다. 그래서 로고만
+      잘라 정사각형에 앉혔다.
+
+      `.ico` 안에 16·32·48 을 함께 담았다 — 브라우저와 OS 가 자리에 맞는 크기를 고른다.
+      **그림을 갈아 끼우면 `?v=` 를 올린다** — 파비콘은 og 그림보다도 캐시가 질기다.
+    -->
+    <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
+    <link rel="icon" type="image/png" href="/favicon-192.png?v=2" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>이지스 AI 활용 능력 모의고사</title>
     <meta
