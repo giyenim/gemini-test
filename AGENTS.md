@@ -47,6 +47,7 @@ exam-app/
   src/
     App.tsx                 # 데스크톱/모바일 분기, 스케일/스테이지, 주소·복원
     route.ts                # 주소 두 자리 — 시험(/) · 결과(/?done)
+    analytics.ts            # 응시 지표 수집 (**임시** — 아래 절 참고)
     session.ts              # 낸 답안 갈무리 (sessionStorage) — 새로고침·뒤로가기 대비
     components/
       CoverSheet.tsx        # 표지 (문제 페이지 앞 한 장, 쪽 번호 없음)
@@ -139,3 +140,28 @@ npm run build
 - 단별 콘텐츠 수동 배치로 되돌리기
 - 문제를 단 중간에 잘라 이어 붙이기
 - `LAYOUT.md`와 다른 여백 규칙을 코드에만 조용히 넣기
+
+## 응시 지표 수집 (임시 — 걷어낼 것)
+
+마케팅 캠페인 동안 **응시자가 어디까지 풀다 그만뒀는지**를 모은다.
+끝나면 걷어낸다. 그러기 쉽게 **한 파일에 몰아 두었다.**
+
+- 보내는 쪽: [`src/analytics.ts`](exam-app/src/analytics.ts) 하나 + 호출부 몇 줄
+- 받는 쪽: `yes24-IT-best` 저장소 (Vercel 라우트 + Supabase `exam` 스키마)
+- 주고받은 문서: [`ANALYTICS-REQUEST.md`](exam-app/ANALYTICS-REQUEST.md) (요청) ·
+  [`ANALYTICS-READY.md`](exam-app/ANALYTICS-READY.md) (회신·검증 결과)
+
+세션당 1~3회만 보낸다 — 진행 상황은 쌓아 두었다가 화면을 벗어날 때
+(`visibilitychange`) 한 번에 보내고, 제출만 그 자리에서 즉시 보낸다.
+**개인정보는 담지 않는다** (서명·IP 없음).
+
+### 걷어낼 때
+
+1. `src/analytics.ts` 삭제
+2. 호출부 제거 — `App.tsx`(`trackOpen`·`trackStart`·`trackFurthest`·`trackSubmit`·
+   `startAnalytics`) · `MobileExamView.tsx`(스크롤 `trackFurthest`) ·
+   `result/ResultView.tsx`(`trackClick` 넷)
+3. `ui/PageTurnButton.tsx` 의 링크 분기 `onClick` 은 **그대로 둬도 된다** —
+   지표와 무관하게 쓸 수 있는 정상적인 통로다
+4. 이 절과 위 디렉터리 목록의 `analytics.ts` 줄, 문서 둘 삭제
+5. 받는 쪽은 그 저장소 `AGENTS.md` 의 "제미나이 모의고사 지표" 절을 따른다

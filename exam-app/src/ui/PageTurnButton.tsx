@@ -62,6 +62,7 @@ export function PageTurnButton({
 }: {
   children: ReactNode
   disabled?: boolean
+  /** 링크(`href`)로 렌더될 때도 불린다 — 넘어가기 전에 눌린 것을 알릴 수 있다 */
   onClick?: () => void
   /** 주면 버튼 대신 새 탭 링크로 렌더된다 — 생김새는 같다 (예: 성적표의 책 링크) */
   href?: string
@@ -74,6 +75,8 @@ export function PageTurnButton({
         href={href}
         target="_blank"
         rel="noreferrer"
+        // 링크로 쓸 때도 누른 것을 알린다 — 새 탭이라 이 화면은 살아 있다
+        onClick={onClick}
         className={`${FRAME} no-underline`}
       >
         <ButtonArt dotClass={dotClass} />

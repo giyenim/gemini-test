@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { trackFurthest } from '../analytics'
 import { HEADER_FIRST_H, PAGE_H, PAGE_PAD_X, PAGE_W } from '../layout/constants'
 import type {
   Answers,
@@ -313,6 +314,30 @@ export function MobileExamView({
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [pageCount])
+
+  /*
+   * 지표 — 몇 번째 장까지 갔는가 (analytics.ts).
+   *
+   * 장 번호가 곧 문항 번호다: 0 = 표지, 1부터 문제. 위 키보드 처리와 같은 식으로
+   * 스크롤 위치를 폭으로 나눠 구한다 — 스냅이 붙는 자리가 장 폭의 배수라서다.
+   *
+   * 미는 도중에도 계속 발생하므로 값을 **읽기만** 하고, 큰 값만 남기는 판단은
+   * `trackFurthest` 에 맡긴다. 여기서 상태를 만들지 않아 다시 그리지 않는다.
+   */
+  useEffect(() => {
+    const el = scrollerRef.current
+    if (!el) return
+
+    const onScroll = () => {
+      const width = el.clientWidth
+      if (width === 0) return
+      trackFurthest(Math.round(el.scrollLeft / width))
+    }
+
+    onScroll()
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
     <div className="h-full overflow-hidden text-ink">

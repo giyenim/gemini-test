@@ -6,6 +6,13 @@ import { PageNav } from './components/PageNav'
 import { GRADING_MS } from './components/result/constants'
 import { GradingOverlay } from './components/result/GradingOverlay'
 import { ResultView } from './components/result/ResultView'
+import {
+  startAnalytics,
+  trackFurthest,
+  trackOpen,
+  trackStart,
+  trackSubmit,
+} from './analytics'
 import { issueExaminee } from './examinee'
 import { gradeExam } from './grade'
 import { MOBILE_MEDIA_QUERY, PAGE_W } from './layout/constants'
@@ -102,6 +109,8 @@ export default function App() {
 
   // 표지 성명 칸 — 쓰는 즉시 속지 헤더와 성적표에 같은 서명이 반영된다
   const onSignatureChange = useCallback((signature: string | null) => {
+    // 이름을 쓴 것이 곧 응시 시작이다 — 여기부터가 지표의 "시작한 사람"
+    if (signature) trackStart()
     setExaminee((prev) => ({ ...prev, signature }))
   }, [])
 
@@ -109,6 +118,8 @@ export default function App() {
     setPageIndex((prev) => {
       const clamped = Math.min(totalPagesRef.current - 1, Math.max(0, next))
       if (clamped !== prev) stageScrollRef.current?.scrollTo({ top: 0 })
+      // 지표 — PC 는 쪽 번호가 도달 지점이다 (0=표지, 1~4=문제지)
+      trackFurthest(clamped)
       return clamped
     })
   }, [])
@@ -121,6 +132,8 @@ export default function App() {
    */
   const onSubmit = useCallback(() => {
     saveSubmission({ answers, examinee })
+    // 지표 — 제출은 가장 중요한 기록이라 이 자리에서 즉시 보낸다 (analytics.ts)
+    trackSubmit(gradeExam(exam, answers), examinee.id)
     pushResult()
     setPhase('grading')
   }, [answers, examinee])
@@ -148,6 +161,12 @@ export default function App() {
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [phase, isMobile, pageIndex, goToPage, needsSignature])
+
+  /* 지표 — 표지가 열렸다. 화면을 벗어날 때 한 번에 보낸다 (analytics.ts) */
+  useEffect(() => {
+    trackOpen()
+    return startAnalytics()
+  }, [])
 
   /**
    * 뒤로가기·앞으로가기 — 주소를 따라 화면을 갈아 끼운다.

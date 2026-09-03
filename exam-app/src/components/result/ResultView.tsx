@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { trackClick } from '../../analytics'
 import type { ExamScore } from '../../grade'
 import type { ExamData, Examinee } from '../../types/exam'
 import { PageTurnButton } from '../../ui'
@@ -52,6 +53,7 @@ export function ResultView({ exam, examinee, score }: ResultViewProps) {
   const [copied, setCopied] = useState(false)
   const copiedTimer = useRef<number | undefined>(undefined)
   const share = async () => {
+    trackClick('share')
     try {
       await navigator.clipboard.writeText(SHARE_URL)
     } catch {
@@ -85,14 +87,26 @@ export function ResultView({ exam, examinee, score }: ResultViewProps) {
             score={score}
             actions={
               <>
-                <ActionLink onClick={() => setPopup({ kind: 'scoreTable' })}>
+                <ActionLink
+                  onClick={() => {
+                    trackClick('score_table')
+                    setPopup({ kind: 'scoreTable' })
+                  }}
+                >
                   {'<문항별 채점표 보기>'}
                 </ActionLink>
 
                 {/* 만점이어도 숨기지 않고 흐리게 죽인다 — 사라지면 줄이 흔들린다 (§5) */}
                 <ActionLink
                   disabled={perfect}
-                  onClick={perfect ? undefined : () => setPopup({ kind: 'wrongNote' })}
+                  onClick={
+                    perfect
+                      ? undefined
+                      : () => {
+                          trackClick('wrong_note')
+                          setPopup({ kind: 'wrongNote' })
+                        }
+                  }
                 >
                   {'<오답노트 보기>'}
                 </ActionLink>
@@ -104,7 +118,9 @@ export function ResultView({ exam, examinee, score }: ResultViewProps) {
               쪽 넘김과 같은 손그림 버튼으로 도드라지게 둔다 */}
           {/* 모바일은 세로로 쌓고, PC(md~)는 한 줄로 나란히 */}
           <div className="mt-7 flex flex-col items-center gap-3 md:flex-row md:justify-center md:gap-6">
-            <PageTurnButton href={BOOK_URL}>책 보러가기</PageTurnButton>
+            <PageTurnButton href={BOOK_URL} onClick={() => trackClick('book')}>
+              책 보러가기
+            </PageTurnButton>
             <PageTurnButton onClick={share}>
               {copied ? '링크 복사 완료!' : '테스트 공유하기'}
             </PageTurnButton>
