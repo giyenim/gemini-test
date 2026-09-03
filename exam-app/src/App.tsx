@@ -15,6 +15,7 @@ import {
 } from './analytics'
 import { issueExaminee } from './examinee'
 import { gradeExam } from './grade'
+import { openSignatureField } from './components/signatureField'
 import { MOBILE_MEDIA_QUERY, PAGE_W } from './layout/constants'
 import { pushResult, replaceExam, routeOf } from './route'
 import { loadSubmission, saveSubmission } from './session'
@@ -161,6 +162,26 @@ export default function App() {
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [phase, isMobile, pageIndex, goToPage, needsSignature])
+
+  /*
+   * 모바일에서 표지가 뜨면 **성명 칸을 대신 눌러 준다.**
+   *
+   * 데스크톱은 넘김 버튼이 서명 전이면 이 칸을 대신 누르지만(`PageNav`), 모바일은
+   * 스와이프로 넘겨 그 길이 없다. 칸이 표지 안에 조용히 앉아 있어 그냥 지나치고,
+   * 이름 없이 시험을 치르게 된다. 그래서 열자마자 창을 띄워 먼저 묻는다.
+   *
+   * 이미 서명했으면 열지 않는다 — 뒤로가기로 표지에 돌아왔을 때 창이 다시 뜨면
+   * 지운 적 없는 이름을 또 쓰라는 말이 된다.
+   *
+   * 표지가 그려진 **뒤에** 눌러야 한다. `openSignatureField` 는 DOM 에서 칸을 찾아
+   * 누르는데, 이 효과는 첫 그림과 같은 차례에 돌아 아직 칸이 없다.
+   */
+  useEffect(() => {
+    if (!isMobile || phase !== 'exam' || pageIndex !== 0) return
+    if (examinee.signature) return
+    const t = window.setTimeout(openSignatureField, 0)
+    return () => window.clearTimeout(t)
+  }, [isMobile, phase, pageIndex, examinee.signature])
 
   /* 지표 — 표지가 열렸다. 들어온 사실을 곧바로 보내고, 이후는 쌓아 두었다 벗어날 때 보낸다 */
   useEffect(() => {
