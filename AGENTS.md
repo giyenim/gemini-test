@@ -56,7 +56,6 @@ exam-app/
       result/               # 제출 이후 화면 (RESULT-PAGE.md)
                             # GradingOverlay(채점 중) ResultView(성적표 화면)
                             # ReportCard(성적통지표) ScoreTablePopup WrongNotePopup Modal
-                            # BonusPopup(특별자료 — **한시적 이벤트**, RESULT-PAGE.md §5)
                             # constants
       examText.tsx          # 공통 텍스트 렌더 훅
       SheetHeader.tsx       # 헤더 분기 (first → 1페이지 / continued → 2페이지~)
