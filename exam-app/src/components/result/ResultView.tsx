@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { trackClick } from '../../analytics'
 import type { ExamScore } from '../../grade'
 import type { ExamData, Examinee } from '../../types/exam'
 import { PageTurnButton } from '../../ui'
@@ -67,10 +66,7 @@ export function ResultView({ exam, examinee, score }: ResultViewProps) {
             actions={
               <>
                 <ActionLink
-                  onClick={() => {
-                    trackClick('score_table')
-                    setPopup({ kind: 'scoreTable' })
-                  }}
+                  onClick={() => setPopup({ kind: 'scoreTable' })}
                 >
                   {'<문항별 채점표 보기>'}
                 </ActionLink>
@@ -81,10 +77,7 @@ export function ResultView({ exam, examinee, score }: ResultViewProps) {
                   onClick={
                     perfect
                       ? undefined
-                      : () => {
-                          trackClick('wrong_note')
-                          setPopup({ kind: 'wrongNote' })
-                        }
+                      : () => setPopup({ kind: 'wrongNote' })
                   }
                 >
                   {'<오답노트 보기>'}
@@ -103,7 +96,6 @@ export function ResultView({ exam, examinee, score }: ResultViewProps) {
             <PageTurnButton
               href={BOOK_URL}
               dotClass="fill-rose-500"
-              onClick={() => trackClick('book')}
             >
               책 보러가기
             </PageTurnButton>
